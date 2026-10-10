@@ -29,9 +29,10 @@ The requirements process runs **~2 years**. Steps 1–9 repeat whenever somethin
 ```
 new ingest batch (feedback wave, study, sales update, competitor launch, web refresh)
   → re-extract / update findings (only affected ones)
+  → derive new drafts; drafts that restate an existing requirement (any line) become `extend` proposals, not duplicates (D-035)
   → future-need projection refresh
   → prioritization run (snapshot of all requirement-target scores & ranks)
-  → change proposals (priority/status/content) → PM accepts/rejects
+  → change proposals (priority / content / link_finding / new_requirement / extend) → PM accepts/rejects
   → history: priority timeline per requirement with the "why" of each move
 ```
 
@@ -96,8 +97,8 @@ ingest_batch(id, ts, kind[feedback_wave|study|sales|competitor_event|web_refresh
 prioritization_run(id, ts, trigger[new_evidence|weight_change|pm_request|scheduled], ingest_batch_id?,
                    weights_version, model, initiated_by)
 score_snapshot(run_id, requirement_id, vehicle_model_id, market_code, score, breakdown_json, rank, priority)
-change_proposal(id, run_id, requirement_id, target?, field, old_value, proposed_value, reason,
-                evidence_delta_json, status[open|accepted|rejected], decided_by, decided_at, decision_rationale)
+change_proposal(id, run_id, requirement_id, target?, kind[priority|content|link_finding|new_requirement|extend], field,
+                old_value, proposed_value, reason, evidence_delta_json, status[open|accepted|rejected|superseded], decided_by, decided_at, decision_rationale)
 weights_version(id, weights_json, created_by, created_at, rationale)
 llm_usage(id, ts, job, model, status, reserved_usd, cost_usd, tokens…, search_calls)   -- budget guard (D-014)
 llm_cache(key, model, output_text, llm_usage_id)   -- identical requests never re-billed (D-010)

@@ -38,7 +38,7 @@ uv run python scripts/demo_build.py                 # rebuild wave1 + demo from 
 | 2 | Curated reference layer (platforms, plants, competitors, market profiles, brand guardrails) | AI-researched, **PM signs off guardrails** | `bmw_req.reference_data` |
 | 3 | Web research agents → cited evidence (URL in search citations, quote verified) | AI, autonomous | `bmw_req.research` |
 | 4 | Signal extraction (luna) → findings (embeddings + clustering, per-market/per-wave metrics) | AI, autonomous | `pipeline.extract`, `pipeline.findings` |
-| 5 | Requirement derivation (sol), portfolio consolidation, evidence linking | AI **proposes** | `pipeline.requirements`, `pipeline.linker` |
+| 5 | Requirement derivation (sol), portfolio consolidation, dedup against the existing backlog (merge proposals), evidence linking | AI **proposes** | `pipeline.requirements`, `pipeline.linker` |
 | 6 | Fit checks: brand (gate), segment, market, feasibility (context) | AI checks, sol re-checks warn/fail | `pipeline.fit` |
 | 7 | Explainable per-target scoring, snapshots, change proposals | AI computes, **PM sets weights** | `pipeline.scoring` |
 | 8 | Review: approve / reject / defer / edit / challenge / override gate / confirm priority | **Human, mandatory** | PM app |

@@ -7,7 +7,7 @@ _Last updated: 2026-10-10_
 **Phase 2 — End-to-end demo built (2026-10-10).** Atahan delegated the whole challenge to the agent ("full power, sole competitor").
 - Evidence layer complete: 10,128 verbatims (extract-v3, D-024), customer study (391 items), sales, option lists (458 items), reference layer (96 cited sources), web research (219 cited items, 152 web findings).
 - Findings: verbatim clusters G60 243 · F70 166 · G70 242 (D-025), 391 study findings (D-026).
-- Requirements pipeline: derivation (sol, derive-v5) → portfolio consolidation → evidence linker → fit checks → scoring v2 → change proposals, orchestrated per simulated wave (LangGraph, D-027–D-029).
+- Requirements pipeline: derivation (sol, derive-v6) → portfolio consolidation → dedup vs backlog (D-035) → evidence linker → fit checks → scoring v2 → change proposals, orchestrated per simulated wave (LangGraph, D-027–D-029).
 - PM app (Streamlit, 11 pages, D-032) with approve/reject/defer/edit/challenge/override/priority/inbox, audit trail, export.
 - Demo states via `scripts/demo_state.py` + `scripts/demo_build.py` (snapshots `evidence`, `wave1`, `demo`).
 
@@ -59,9 +59,11 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 ## Demo (how to run)
 
 - `uv run streamlit run app.py`. DB holds the full `demo` state; `uv run python scripts/demo_state.py restore wave1` for a live PM review from scratch (stop the app first). Rebuild: `scripts/demo_build.py`.
-- Story: Overview (workflow, funnel) → Portfolio → Backlog G60×US / G68×CN / G60×EU → Requirement REQ-0001 (evidence vs assumption, score breakdown, evidence chain, fit, decision, audit) → Change inbox (wave 2/3 proposals) → Market conflicts → Weights & runs (re-rank live, free) → Audit trail → Export.
+- Story: Overview (workflow, funnel) → Portfolio → Backlog G60×US / G68×CN / G60×EU → Requirement REQ-0001 (evidence vs assumption, score breakdown, evidence chain, fit, decision, audit) → Change inbox (wave 2/3 proposals, incl. "Merge into existing" duplicates) → Market conflicts → Weights & runs (re-rank live, free) → Audit trail → Export.
 
 ## Next up (suggested order)
+
+- Validation (2026-10-10, `documents/validation-report.md`): duplicates fixed (D-035); decide Q-021 (linker on approved requirements) and Q-023 (customer-voice shrinkage, conflicts in score); thin future orientation (42/53 `today`).
 
 0. Fill in Team & logistics (Q-007, Q-008); rehearse the demo path above.
 1. Ask BMW mentors: Q-005, Q-006, Q-015, Q-016 (Q-010 is now decided as non-blocking, D-030 — confirm).
@@ -73,7 +75,7 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 
 | Item | Value |
 |---|---|
-| Spent to date | **$6.86** (2026-10-10): derivation $2.38 (incl. prompt iterations v2–v6, 4 wave-1 runs, waves 2–3 ×2), web research $1.69, fit checks $0.55, extraction $0.52, linker $0.23, recheck $0.13, benchmarks $0.09, challenge $0.08, consolidation $0.08, other $0.12, **plus a $1.00 reconciliation row** (usage rows lost in a failed demo restore, upper-bound estimate; bug fixed). Source of truth: `llm_usage` / Budget page |
+| Spent to date | **$7.37** (2026-10-10; +$0.06 validation, +$0.45 dedup demo rebuild D-035): derivation $2.38 (incl. prompt iterations v2–v6, 4 wave-1 runs, waves 2–3 ×2), web research $1.69, fit checks $0.55, extraction $0.52, linker $0.23, recheck $0.13, benchmarks $0.09, challenge $0.08, consolidation $0.08, other $0.12, **plus a $1.00 reconciliation row** (usage rows lost in a failed demo restore, upper-bound estimate; bug fixed). Source of truth: `llm_usage` / Budget page |
 | Planned build spend | ≈ $60 (≈ $48 + 25% contingency) |
 | Warn / block non-demo / app hard stop | $45 / $70 / $90 |
 | Demo-day reserve | $20 ($70 → $90) |
@@ -141,3 +143,5 @@ Update the budget table after every paid run. Once the app exists, the source of
 - 2026-10-10 — Committed e7cabd9 (pilot). Q-018 → D-022 (extract-v2: `complaint` type, category definitions, quote check, no implicit cache writes; `signal`/`verbatim_extraction` tables; parallel runner). Full G60 extraction: 5,400 signals, $0.1348, 0 failures. Total spent $0.1549. Q-019 opened (out-of-scope over-exclusion). Not committed.
 - 2026-10-10 — Committed ed747bf. Q-019 re-check (D-023): signal provenance column + migration, recheck module; 111/268 flipped, +118 signals, $0.1342 (est. was $0.05); first attempt tripped own run cap (no calls made), re-run OK. Total spent $0.2891. Q-020 opened (support-call questions as evidence). Not committed.
 - 2026-10-10 — Full delegation from Atahan ("sole competitor"). Built the end-to-end demo: extract-v3 for all 10,128 verbatims (D-024, resolves Q-020); study/sales/option-list ingest (D-026); reference layer + web research agents (D-031, subagent); clustering findings (D-025); simulated waves + LangGraph orchestrator (D-027, Q-012); derivation v6 + consolidation + evidence linker (D-028); scoring v2 with shrinkage (D-029, Q-004); feasibility non-blocking (D-030, Q-010); Streamlit PM app, 11 pages (D-032, subagent); Flex fallback (D-033). Benchmarks: extraction vs BMW labels, requirement judge 3.83 → 4.26 → 4.02 (coverage 0.48 → 0.70), scoring robustness tau 0.93–0.96. Demo: 53 requirements, 165 targets, 3 runs, 1,632 audit events. Spent $6.86 total. 44 tests pass.
+- 2026-10-10 — Validation pass (judge + QA): deliverable checklist, 3 end-to-end traces, scope/brand check, live PM flow on `wave1` (AppTest + browser, restored afterwards). Fixed D-034 (rejected new requirement now `rejected`, stale priority proposals superseded, honest wave cause, Streamlit on localhost); +2 tests (46 pass); Q-021–Q-023 opened; report in `documents/validation-report.md`. Spent $0.06. Not committed.
+- 2026-10-10 — Q-022 fixed (D-035): later waves match new drafts against the whole backlog; duplicates become `extend` proposals (inbox tab "Merge into existing"); fit checks cover every unchecked target. Demo rebuilt: 39 requirements, 151 targets, 3 runs, 1,606 audit events, 7 open merge proposals; coverage F70 0.95 · G60 0.95 · G70 0.75. 47 tests pass. Spent $0.45. Not committed.

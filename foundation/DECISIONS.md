@@ -39,6 +39,8 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-031 | Reference layer + web research agents with citation-filtered URLs and quote verification | accepted |
 | D-032 | PM app: Streamlit pages over one service layer; access events logged | accepted |
 | D-033 | Wrapper falls back from Flex to standard when Flex is unavailable; per-job run caps | accepted |
+| D-035 | Later waves dedup new drafts against the whole backlog → `extend` proposals (resolves Q-022) | accepted |
+| D-034 | Validation fixes: rejected new requirement → status rejected; stale priority proposals superseded; honest new-requirement cause; Streamlit on localhost | accepted |
 
 Keep this index in sync when adding a decision.
 
@@ -387,3 +389,21 @@ Template:
 ## D-033 — Flex fallback and per-job run caps
 - Date: 2026-10-10 · Decided by: agent · Status: accepted
 - Decision: on `429 flex_unavailable` the wrapper settles the reservation at $0 and retries once on standard processing (same cache key). Run caps in `run_extract` count only the run's own job, so parallel jobs can't trip them (a G60 run aborted for that reason).
+
+## D-034 — Validation fixes (judge/QA pass)
+- Date: 2026-10-10 · Decided by: agent (validation session, clear bugs only) · Status: accepted
+- Context: end-to-end validation (`documents/validation-report.md`) found bugs that would show in a live demo.
+- Decision:
+  - `service.decide_proposal`: rejecting a `new_requirement` proposal sets the requirement to `rejected` (human action, rationale, audited). Before, it stayed `proposed`, in the backlog and in every scoring run, although the inbox says "reject to drop it".
+  - `scoring.run_prioritization`: every re-score supersedes open priority proposals for that target; before, a stale proposal stayed open when a later run agreed with the PM again.
+  - `graph.node_derive`: the cause of a wave ≥ 2 `new_requirement` proposal says whether it cites a finding new in that wave; before, it always claimed "new evidence" (false for 5 of 25 in the demo).
+  - `.streamlit/config.toml`: `server.address = "localhost"` — the app served confidential BMW data on all interfaces (AGENTS rule 1). For a demo on another device, change it deliberately.
+- Consequences: 2 regression tests (46 total). The `demo` snapshot is unaffected (no rejected new requirements, no stale proposals in it).
+
+## D-035 — Dedup later-wave drafts against the whole backlog (resolves Q-022)
+- Date: 2026-10-10 · Decided by: Atahan ("fix the duplicates and rebuild the demo"), implemented by agent · Status: accepted
+- Context: wave ≥ 2 derivation saw only its own line's requirements and consolidation only merged one run's drafts → ~9 cross-line near-duplicates in the demo.
+- Decision: after per-run consolidation, one sol call (`requirements.match_existing`, job `match_existing:wN`) maps every new draft to an existing non-rejected requirement of ANY line with the same need, or none. A match becomes an `extend` change proposal on the existing requirement (its new targets + new evidence links; audit `match_existing` by AI). Only unmatched drafts are stored as new requirements. Accepting (`service.extend_requirement`) adds the targets/links as human-attributed audit events; new targets are scored by the next run and fit-checked in the next wave (`fit.run` now checks every target without a brand check). Derivation prompts are unchanged, so earlier waves replay from cache.
+- Alternatives: show other lines' requirements to derivation (prompt change, re-derivation of all waves); AI extends `proposed` requirements directly (allowed by rule 5, but less visible to the PM).
+- Consequences: demo rebuilt ($0.45): 39 requirements (was 53), 151 targets, 14 duplicate drafts → 7 accepted merges (wave 2, scripted) + 7 open merge proposals in the wave-3 inbox. Top-20 pain coverage F70 0.95 · G60 0.95 · G70 0.75. Borderline pairs left by the matcher: REQ-0015/0033 (luggage), REQ-0012/0014/0018 (assistance, wave-1). Wave-1 drafts are still only consolidated among themselves.
+
