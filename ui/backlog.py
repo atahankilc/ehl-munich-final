@@ -15,7 +15,7 @@ sel = st.multiselect("Targets (derivative × market)", labels, default=default,
                      help="Pick 2–3 to compare markets side by side.")
 df = targets_df()
 if df.empty:
-    empty("No requirements yet. They are drafted by the AI when a wave is opened (Overview → Timeline).")
+    empty("No requirements yet. They are drafted by the AI when a wave is opened (Home → Where we are).")
     st.stop()
 
 f1, f2, f3, f4 = st.columns([2, 3, 2, 2])

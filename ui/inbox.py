@@ -1,12 +1,13 @@
-"""Change inbox: open AI change proposals (priority / content / evidence link / new requirement); the PM accepts
-or rejects each with a rationale (service.decide_proposal). Accepting applies the change."""
+"""AI suggestions (change inbox): open AI change proposals (priority / content / evidence link / new requirement /
+merge into existing); the PM accepts or rejects each with a rationale (service.decide_proposal). Accepting applies it."""
 
 import streamlit as st
 
 from bmw_req import service
-from ui.common import (act, actor, chip, empty, esc, loads, md, nz, open_requirement, page_header, q, run_label, short)
+from ui.common import (act, actor, chip, empty, esc, loads, md, nz, open_requirement, page_header, plain_target, q, run_label,
+                       short)
 
-page_header("Change inbox",
+page_header("AI suggestions",
             "The AI never changes a PM decision. When new evidence, a weight change or a challenge suggests a "
             "change, it lands here as a proposal with its cause — you accept or reject it.")
 
@@ -14,7 +15,7 @@ props = q("""SELECT p.*, r.title, r.status AS req_status, pr.ts AS run_ts, pr.tr
              FROM change_proposal p JOIN requirement r ON r.id = p.requirement_id
              LEFT JOIN prioritization_run pr ON pr.id = p.run_id ORDER BY p.id""")
 if props.empty:
-    empty("No change proposals yet. They appear after a new wave, a weight change or a PM challenge.")
+    empty("No AI suggestions yet. They appear after a new wave, a weight change or when you ask the AI about a requirement.")
     st.stop()
 props["kind"] = props["kind"].fillna("priority")
 open_p = props[props["status"] == "open"]
@@ -35,7 +36,7 @@ else:
         with tab:
             for p in open_p[open_p["kind"] == k].itertuples():
                 with st.container(border=True):
-                    tgt = f" · {p.vehicle_model_id} × {p.market_code}" if isinstance(p.vehicle_model_id, str) else ""
+                    tgt = f" · {plain_target(p.vehicle_model_id, p.market_code)}" if isinstance(p.vehicle_model_id, str) else ""
                     md(f"**#{int(p.id)} · {esc(p.requirement_id)}{esc(tgt)}** — {esc(short(p.title, 100))} "
                        f"{chip(p.req_status)}")
                     if k == "priority":

@@ -12,11 +12,12 @@ from ui.common import (FACTOR_COLOR, NO_DATA_COLOR, PRIORITIES, _LOCK, act, acto
                        latest_fit, loads, log_access_once, md, metrics_wave, page_header, q, requirement_options,
                        nz, run_label, short, targets_df, write)
 
-page_header("Requirement", "One requirement, fully traceable: sources → findings → requirement → score → PM decision.")
+page_header("Requirement details", "One requirement, fully traceable: sources → findings → requirement → score → PM decision. "
+            "For a quicker read, use Review requirements.")
 
 opts = requirement_options()
 if not opts:
-    empty("No requirements yet. They are drafted by the AI when a wave is opened (Overview → Timeline).")
+    empty("No requirements yet. They are drafted by the AI when a wave is opened (Home → Where we are).")
     st.stop()
 cur = st.session_state.get("req_id")
 idx = next((i for i, o in enumerate(opts) if cur and o.startswith(f"{cur} ·")), 0)
@@ -365,7 +366,7 @@ with tabs[4]:
         st.caption("No targets.")
     else:
         st.caption("Default = the AI proposal from the score. Confirming records your priority; later runs only "
-                   "*propose* changes to it (Change inbox).")
+                   "*propose* changes to it (AI suggestions).")
         with st.form(f"prio_{rid}", clear_on_submit=False):
             choices = {}
             cols = st.columns(min(len(tdf), 4))
@@ -487,9 +488,9 @@ with tabs[4]:
     props = q("""SELECT id, kind, field, old_value, proposed_value, reason FROM change_proposal
                  WHERE requirement_id = ? AND status = 'open' ORDER BY id""", (rid,))
     if not props.empty:
-        st.markdown(f"**Open AI proposals for {rid}** — decide them in the Change inbox")
+        st.markdown(f"**Open AI proposals for {rid}** — decide them under AI suggestions")
         st.dataframe(props, hide_index=True, width="stretch")
-        if st.button("Go to Change inbox", icon=":material/inbox:"):
+        if st.button("Go to AI suggestions", icon=":material/inbox:"):
             st.switch_page("ui/inbox.py")
     prev = q("""SELECT ts, new_value, model FROM audit_event WHERE entity_type = 'requirement' AND entity_id = ?
                 AND action = 'challenge_response' ORDER BY id DESC""", (rid,))

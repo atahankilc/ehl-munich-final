@@ -15,7 +15,7 @@ import streamlit as st
 
 from bmw_req.config import get_settings
 from bmw_req.db import connect
-from bmw_req.portfolio import LINES, MIN_MARKET_VERBATIMS, SUCCESSOR_LAUNCH, TARGETS, all_targets  # noqa: F401
+from bmw_req.portfolio import FOCUS_TARGETS, LINES, MIN_MARKET_VERBATIMS, SUCCESSOR_LAUNCH, TARGETS, all_targets  # noqa: F401
 from bmw_req.service import ActionError
 
 DEFAULT_PM = "Atahan (PM)"
@@ -24,6 +24,50 @@ STATUSES = ["proposed", "challenged", "approved", "deferred", "rejected"]
 MARKET_NAMES = {"US": "United States", "EU": "Europe", "CN": "China", "RoW": "Rest of world"}
 SOURCE_KINDS = ["feedback", "study", "sales", "option_list", "web", "reference"]
 _LOCK = threading.RLock()
+
+# ------------------------------------------------------------------------------------------------ plain-language labels
+# The data model keeps codes (G60, E1, basic …); everything a PM reads goes through these.
+VEHICLE_NAMES = {"F70": "1 Series", "G60": "5 Series", "G68": "5 Series LWB", "G70": "7 Series"}
+MARKET_SHORT = {"US": "USA", "EU": "Europe", "CN": "China", "RoW": "Rest of world"}
+EVIDENCE_LABELS = {"E1": "Strong evidence", "E2": "Good evidence", "E3": "Limited evidence", "E4": "Assumption only"}
+EVIDENCE_HELP = {"E1": "20+ customer comments from 2+ channels, plus study or cited web evidence",
+                 "E2": "15+ comments, or comments plus study/web evidence",
+                 "E3": "a few comments, or study/web evidence only",
+                 "E4": "no direct evidence — forward-looking assumption"}
+KANO_LABELS = {"basic": "Expected", "performance": "Differentiator", "delighter": "Delighter"}
+HORIZON_LABELS = {"today": "Needed today", "at_successor_launch": "Needed by successor launch"}
+STATUS_LABELS = {"proposed": "To review", "challenged": "Challenged", "approved": "Approved", "deferred": "Deferred",
+                 "rejected": "Rejected"}
+
+
+def car(d: Any) -> str:
+    return VEHICLE_NAMES.get(str(d), str(d))
+
+
+def mkt(m: Any) -> str:
+    return MARKET_SHORT.get(str(m), str(m))
+
+
+def plain_target(d: Any, m: Any) -> str:
+    """'G60', 'US' → '5 Series · USA'."""
+    return f"{car(d)} · {mkt(m)}"
+
+
+def evidence_chip(level: Any) -> str:
+    lv = None if level is None or (isinstance(level, float) and pd.isna(level)) else str(level)
+    return chip(EVIDENCE_LABELS.get(lv, "No evidence level"), lv) if lv else chip("–")
+
+
+def status_chip(status: Any) -> str:
+    return chip(STATUS_LABELS.get(str(status), str(status)), str(status))
+
+
+def priority_chip(p: Any, ai: bool = False) -> str:
+    """Priority chip; AI suggestions are marked so they're never mistaken for a PM decision."""
+    if p is None or (isinstance(p, float) and pd.isna(p)) or p == "":
+        return chip("–")
+    return chip(f"{p} · AI suggests" if ai else str(p), str(p))
+
 
 # ------------------------------------------------------------------------------------------------ colours
 COLORS = {
@@ -213,6 +257,12 @@ def has_requirements() -> bool:
 def open_requirement(req_id: str) -> None:
     st.session_state["req_id"] = req_id
     st.switch_page("ui/requirement.py")
+
+
+def review_requirement(req_id: str) -> None:
+    """Open the guided review on one requirement."""
+    st.session_state["review_focus"] = req_id
+    st.switch_page("ui/review.py")
 
 
 def requirement_options() -> list[str]:

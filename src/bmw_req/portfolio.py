@@ -21,6 +21,9 @@ TARGETS = {
 # Successor launch assumption for the 3–5 year horizon (D-012); used in prompts and the UI only.
 SUCCESSOR_LAUNCH = {"F70": "~2031", "G60": "~2030", "G68": "~2030", "G70": "~2029–2030"}
 
+# Targets the PM app shows first (demo slice D-021: best-evidenced US, China variant, Europe). UI default only.
+FOCUS_TARGETS = [("G60", "US"), ("G68", "CN"), ("G60", "EU")]
+
 MIN_MARKET_VERBATIMS = 30   # below this a market has no usable verbatim base (CN: 0, G70 EU: ~19) → evidence gap
 
 
