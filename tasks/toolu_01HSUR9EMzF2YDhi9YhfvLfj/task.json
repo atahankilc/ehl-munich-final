@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01HSUR9EMzF2YDhi9YhfvLfj",
+  "agent_id": "a68284cb584dc887f",
+  "subagent_type": "general-purpose",
+  "task_description": "Fact-check BMW portfolio claims",
+  "token_usage": {
+    "input_tokens": 20,
+    "cache_creation_tokens": 52377,
+    "cache_read_tokens": 391832,
+    "output_tokens": 195,
+    "api_call_count": 10
+  },
+  "started_at": "2026-10-10T15:14:48.832345+02:00",
+  "completed_at": "2026-10-10T15:56:55.616414+02:00"
+}

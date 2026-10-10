@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_018QLLiLCfVjipm8vjpHzoaB",
+  "agent_id": "a649e0c226c1f2432",
+  "subagent_type": "general-purpose",
+  "task_description": "Fact-check competitor landscape claims",
+  "token_usage": {
+    "input_tokens": 20,
+    "cache_creation_tokens": 51092,
+    "cache_read_tokens": 376447,
+    "output_tokens": 230,
+    "api_call_count": 10
+  },
+  "started_at": "2026-10-10T15:14:48.830682+02:00",
+  "completed_at": "2026-10-10T15:56:55.609824+02:00"
+}
