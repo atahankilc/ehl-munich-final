@@ -9,7 +9,8 @@ _Last updated: 2026-10-10_
 - Stack decided (D-015–D-020): LangGraph, SQLite + sqlite-vec, no graph DB, Streamlit, Python 3.12/uv.
 - Scaffold in place: `pyproject.toml`, `src/bmw_req/` (config, SQLite, budget-guarded OpenAI wrapper with `llm_usage`), Streamlit `app.py` (budget view), 12 guard tests (no paid calls).
 - Demo slice + tables decided (D-021): full demo schema built, G60 feedback ingested (4,000 verbatims, counts match `data-inventory.md`).
-- **Next: design the verbatim classification/extraction step, then the paid pilot (D-014: 50 verbatims + 5 requirements).**
+- Pilot run 2026-10-10: $0.0201 total, all quality checks passed except 1 paraphrased quote (see Pilot results).
+- **Next: Q-018 schema fixes, then the full G60 extraction (parallel Flex calls).**
 
 ## Team & logistics (fill in — Q-007, Q-008)
 
@@ -75,13 +76,26 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 
 | Item | Value |
 |---|---|
-| Spent to date | **$0.00** (wrapper built and tested with a fake client; no paid calls yet) |
+| Spent to date | **$0.0201** (D-014 pilot, 3 calls, 2026-10-10). Source of truth: `llm_usage` in `data/app.db` / Streamlit page |
 | Planned build spend | ≈ $60 (≈ $48 + 25% contingency) |
 | Warn / block non-demo / app hard stop | $45 / $70 / $90 |
 | Demo-day reserve | $20 ($70 → $90) |
 | OpenAI project hard limit | $95 (to set by Atahan, + $45 alert) |
 
-Update this table after every paid run. Once the app exists, the source of truth is the wrapper's usage log.
+## Pilot results (2026-10-10, `scripts/pilot.py`, outputs in `data/pilot/`)
+
+| Step | Calls | Tokens in / out (reasoning) | Cost | Latency (Flex) |
+|---|---|---|---|---|
+| Extract 50 G60 US verbatims (B 20, A/C/D 10 each, seed 42), luna low | 2 × 25 | 3.0k / 3.2k (452); 2.3k / 2.6k (142) | $0.0018 | 84 s, 66 s |
+| Derive 5 requirements from 73 signals, sol medium | 1 | 6.1k / 2.1k (279) | $0.0183 | 35 s |
+
+- **Extraction:** every ID returned, none invented, none duplicated; 73 signals; 1 verbatim correctly out of scope ("Nothng."). 1 of 73 quotes not an exact substring (model inserted "he"). Feedback type overlaps BMW's label on 28/39 labelled verbatims; most of the 11 mismatches are BMW "Difficult to Use" on things that are actually faults (CarPlay drops, trunk opening by itself), where our label looks more accurate. Real errors: "seats less comfortable than expected" → `defect`, trunk opening → category Interior. BMW's own label was wrong on G60-0877 (says trunk light, text is about vanity mirror).
+- **Derivation:** 5 requirements, every cited ID exists, all have evidence (2–9 verbatims each); spot-checked citations support the claims. Weak points: all 5 tagged `at_successor_launch`, 4/5 Kano `basic`; metrics have no numeric targets (model says so in assumptions); 2 requirements rest on 2–3 verbatims, expected at n=50.
+- **Re-estimate (D-014):** extraction ≈ $0.0009 per 25-verbatim call → ≈ $0.36 per full 10.1k run, ≈ $1.1 for 3 runs (plan $1.4). Derivation output was ~420 tokens/requirement vs 6k planned, but real input depends on the findings step (not built), so the derivation estimate stays as is. Plan total unchanged at ≈ $60.
+- Prompt caching wrote almost the whole prompt on every call (+25% input, ~8% of pilot cost) with no reuse → Q-018.
+- Follow-ups → Q-018. Source D finding → Q-005, `data-inventory.md`.
+
+Update the budget table after every paid run. Once the app exists, the source of truth is the wrapper's usage log.
 
 ## Risks / watch-outs
 
@@ -108,3 +122,4 @@ Update this table after every paid run. Once the app exists, the source of truth
 - 2026-10-10 — Decision hygiene: undecided stack items reworded as Q-014 candidates (tech-stack, D-010 note, STATE, Q-002, README, knowledge-base). Usability: decision index, lighter session-start read list, glossary, fresh-clone setup, team/logistics placeholders, proposed demo path, duplicates removed. No code, no commit.
 - 2026-10-10 — Atahan approved the stack table → D-015–D-020, Q-014 resolved, Q-017 opened. Scaffold: pyproject/uv, `src/bmw_req` (config, SQLite + sqlite-vec, budget-guarded OpenAI wrapper per D-014), Streamlit budget page, 12 tests passing. No paid calls, no commit.
 - 2026-10-10 — Scaffold committed (65d3952). Q-017 delegated → D-021: demo slice G60 × US + G68 × CN, demo schema (audit append-only via triggers, sqlite-vec, llm_cache), G60 feedback ingest (4,000 verbatims, verified vs. inventory). 16 tests passing. No paid calls.
+- 2026-10-10 — Committed db695bd. Pilot (D-014) run: extraction (luna) + derivation (sol) modules, `scripts/pilot.py`; $0.0201 spent; results + re-estimate in STATE; Source D note corrected (Q-005, data-inventory); Q-018 opened for schema fixes. Pilot code not committed yet.

@@ -42,7 +42,7 @@ Quirks:
   - **A:** all derivatives, many countries (incl. JP/KR), lower-case normalized text ("the car…", "i really…"), so possibly translated.
   - **B:** US only; most verbatims start "Customer stated / mentioned / reported / commented…" (third-person notes).
   - **C:** US only; ~30–40% start "I had a minor/serious problem with…", others "What is…" / "If there…" (structured survey prompts); mostly Difficult-to-Use/Defect.
-  - **D:** US only; short, ~80% positive wording ("love the…"), unclassified. It looks like answers to a "what do you like" question, **not** "what could be improved".
+  - **D:** US only; short; unclassified. Two prompt templates in G60 (checked 2026-10-10): 34 of 136 end with "That is the one thing could be most improved about the <area> of my vehicle" (improvement answers, e.g. "the head rests are too short"); the rest are mostly "love the…" answers. So D mixes "what do you like" and "what could be most improved" — the earlier note that D is **not** improvement feedback was wrong.
 - **No China verbatims** for any derivative. There is **no date column** — no time series possible.
 
 ## 2. Customer studies — `F70_G60_G68_G70_customer_studies.xlsx`

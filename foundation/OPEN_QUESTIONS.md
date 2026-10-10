@@ -25,7 +25,7 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
   - **A:** multi-country (incl. JP/KR), lower-case normalized, possibly translated.
   - **B:** US only, third-person "Customer stated…" notes.
   - **C:** US only, structured survey prompts ("I had a minor/serious problem…", "What is…"), mostly Difficult-to-Use/Defect.
-  - **D:** US only, short, ~80% positive. Likely "what do you like" answers, **not** "what could be improved".
+  - **D:** US only; short; unclassified. Two prompt templates in G60 (checked 2026-10-10): 34 of 136 end with "That is the one thing could be most improved about the <area> of my vehicle" (improvement answers, e.g. "the head rests are too short"); the rest are mostly "love the…" answers. So D mixes "what do you like" and "what could be most improved" — the earlier note that D is **not** improvement feedback was wrong.
 - This affects source-trust weighting. Don't weight sources differently until confirmed.
 
 ### Q-006 — Customer study scales
@@ -89,6 +89,15 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
   - ADAS is a top purchase driver in China (`competitor-landscape.md` §2).
   - But "safety" is out of scope (regulatory).
 - Working line (not decided): ADAS *experience* (usability, availability, comfort, trust) is in; safety/homologation performance is out.
+
+### Q-018 — Extraction schema fixes after the pilot
+- Owner: agent (proposal), team to OK
+- Context: pilot 2026-10-10 (`STATE.md` → Pilot results). Proposed changes, not applied:
+  1. Add a feedback type for plain dissatisfaction (e.g. `complaint`): the 4 types force "seats less comfortable than expected" into `defect`.
+  2. Tighten category guidance: "trunk opens by itself" landed in Interior.
+  3. Derivation put all 5 requirements at `at_successor_launch` and 4 of 5 as Kano `basic` — horizon/Kano need explicit criteria or a separate projection step (D-012).
+  4. Prompt caching: the API wrote almost the whole prompt to cache on every call (+25% input cost) while nothing was reused. Use `prompt_cache_options={'mode': 'explicit'}` for one-off calls.
+  5. Flex latency 66–84 s per 25-verbatim call → the full run needs parallel calls.
 
 ## Resolved
 
