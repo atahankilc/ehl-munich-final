@@ -1,4 +1,6 @@
-"""`uv run python -m bmw_req.ingest [F70 G60 G70]` — seed reference rows and ingest feedback files."""
+"""`uv run python -m bmw_req.ingest [F70 G60 G70]` — seed reference rows and ingest feedback files.
+
+Other datasets: `python -m bmw_req.ingest.study`, `.sales`, `.options [F70 G60 G70]`."""
 
 import sys
 
