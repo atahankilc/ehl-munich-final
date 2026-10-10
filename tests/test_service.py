@@ -166,7 +166,7 @@ def test_duplicate_draft_becomes_extend_proposal_and_accept_applies_it(conn):
     d = RequirementDraft(
         title="Pair phones fast", description="d", category="Infotainment & Digital", target_metric="m",
         acceptance_criteria="a", horizon="today", horizon_reason="r", kano_class="basic", kano_drift="stable",
-        must_not_lose=False, effort="S", effort_reason="r",
+        must_not_lose=False, product_decision="offer it", effort="S", effort_reason="r",
         targets=[TargetDraft(vehicle_model_id="G60", market_code="US", realization="platform_wide", market_note="dup"),
                  TargetDraft(vehicle_model_id="G70", market_code="US", realization="platform_wide", market_note="new")],
         supporting_finding_ids=[1, 2], conflicting_finding_ids=[], conflicting_evidence="none found",

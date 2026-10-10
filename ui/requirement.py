@@ -93,7 +93,10 @@ with tabs[1]:
         empty("Not scored yet — scores appear after a prioritization run.")
     else:
         st.caption("score = 100 × Σ(weight × factor value) / Σ(weights of factors with data) × confidence(evidence level)"
-                   " + market-fit modifier + effort modifier, clipped to 0–100. Bands: Must ≥ 60, Should ≥ 45.")
+                   " + market-fit modifier + effort modifier, clipped to 0–100. Bands: Must ≥ 60, Should ≥ 45. "
+                   "A market without its own comments borrows the line's rate at half value and is capped at the best "
+                   "comment-backed market unless it has its own study gap and competitor evidence; 'Expected' needs "
+                   "get one priority in every market (D-038).")
         sub_tabs = st.tabs(list(tdf["target"]))
         for stab, (_, t) in zip(sub_tabs, tdf.iterrows()):
             with stab:
@@ -133,6 +136,9 @@ with tabs[1]:
                                      "value": st.column_config.NumberColumn("value 0–1", format="%.2f"),
                                      "points": st.column_config.NumberColumn(format="%.1f"),
                                      "explanation": st.column_config.TextColumn(width="large")})
+                for note in (b.get("cap_note"), b.get("priority_note")):
+                    if note:
+                        st.info(note[0].upper() + note[1:] + ".", icon=":material/rule:")
                 st.markdown("**Rationale**")
                 st.write(b.get("rationale") or "–")
                 if b.get("gaps"):

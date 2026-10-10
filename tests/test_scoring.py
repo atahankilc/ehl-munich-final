@@ -45,14 +45,18 @@ def conn():
     return c
 
 
-def test_missing_factors_renormalized_and_flagged(conn):
+def test_missing_voice_borrowed_at_discount_and_flagged(conn):
     run = scoring.run_prioritization(conn, wave=1, trigger="new_evidence", initiated_by="system")
     rows = {r["market_code"]: json.loads(r["breakdown_json"]) for r in conn.execute(
         "SELECT * FROM score_snapshot WHERE run_id = ?", (run,))}
     us, cn = rows["US"], rows["CN"]
     assert us["factors"]["customer_voice"]["available"] and us["verbatims"]["verbatims"] == 12
-    assert not cn["factors"]["customer_voice"]["available"]
-    assert "Customer voice" in cn["gaps"] and "Satisfaction gap" in cn["gaps"]
+    # D-038: CN has no comments → borrows the 5 Series rate at a discount instead of dropping the factor
+    assert us["voice_observed"] and not cn["voice_observed"]
+    assert cn["factors"]["customer_voice"]["available"] and "borrowed" in cn["factors"]["customer_voice"]["explanation"]
+    assert cn["factors"]["customer_voice"]["value"] < us["factors"]["customer_voice"]["value"]
+    assert "Satisfaction gap" in cn["gaps"] and "Customer voice" not in cn["gaps"]
+    assert cn["score"] <= us["score"]
     assert cn["evidence_level"] == "E4" and us["evidence_level"] == "E3"
     assert 0 <= cn["score"] <= 100 and 0 <= us["score"] <= 100
     assert "evidence level" in us["rationale"]
@@ -91,3 +95,38 @@ def test_stale_priority_proposal_superseded_when_run_agrees(conn):
                         proposed_value, kind) VALUES ('REQ-0001', 'G60', 'US', 'priority', ?, 'Must', 'priority')""", (ai,))
     scoring.run_prioritization(conn, wave=1, trigger="pm_request", initiated_by="system")   # same evidence → agrees with PM
     assert conn.execute("SELECT COUNT(*) FROM change_proposal WHERE status = 'open'").fetchone()[0] == 0
+
+
+def _items(**scores):
+    """(target, breakdown) pairs for apply_requirement_rules; kwargs market=(score, observed, study_gap, competition)."""
+    out = []
+    for m, (sc, obs, gap, comp) in scores.items():
+        out.append(({"vehicle_model_id": "G60", "market_code": m}, {
+            "score": sc, "voice_observed": obs, "modifiers": {}, "gaps": [], "evidence_level": "E2", "confidence": 0.92,
+            "gates": {}, "factors": {k: {"label": k, "value": v, "available": v is not None, "points": 0, "weight": 15,
+                                         "explanation": ""}
+                                     for k, v in [("customer_voice", 0.3), ("satisfaction_gap", gap),
+                                                  ("competitive_pressure", comp)]}}))
+    return out
+
+
+def test_no_comment_market_capped_unless_own_evidence():
+    items = _items(US=(50.0, True, 0.4, 0.0), CN=(70.0, False, 0.9, 0.1))
+    scoring.apply_requirement_rules({"kano_class": "performance"}, items)
+    b = dict((t["market_code"], b) for t, b in items)
+    assert b["CN"]["score"] == 50.0 and b["CN"]["modifiers"]["no_comment_cap"] == -20.0 and "Capped at 50" in b["CN"]["rationale"]
+    items = _items(US=(50.0, True, 0.4, 0.0), CN=(70.0, False, 0.9, 0.8))
+    scoring.apply_requirement_rules({"kano_class": "performance"}, items)
+    b = dict((t["market_code"], b) for t, b in items)
+    assert b["CN"]["score"] == 70.0 and b["CN"]["priority"] == "Must" and "own study gap" in b["CN"]["rationale"]
+
+
+def test_basic_requirement_gets_one_priority_everywhere():
+    items = _items(US=(65.0, True, 0.4, 0.0), EU=(40.0, True, 0.4, 0.0))
+    scoring.apply_requirement_rules({"kano_class": "basic"}, items)
+    assert {b["priority"] for _, b in items} == {"Must"}
+    eu = next(b for t, b in items if t["market_code"] == "EU")
+    assert eu["score"] == 40.0 and "same priority in every market" in eu["rationale"]
+    items = _items(US=(65.0, True, 0.4, 0.0), EU=(40.0, True, 0.4, 0.0))
+    scoring.apply_requirement_rules({"kano_class": "performance"}, items)
+    assert sorted(b["priority"] for _, b in items) == ["Could", "Must"]

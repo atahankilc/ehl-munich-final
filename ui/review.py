@@ -69,6 +69,9 @@ md(" ".join([status_chip(req["status"]), evidence_chip(req.get("evidence_level")
              chip("Protects a strength", "approved") if req.get("must_not_lose") else "",
              f"<span class='muted'>{esc(req.get('category') or '')} · {esc(rid)}</span>"]))
 st.write(req.get("description") or "–")
+_dec = (loads(req.get("derivation_json"), {}) or {}).get("product_decision")
+if _dec:
+    md(f"<div class='card'><h4>The decision this asks for</h4><div class='kv'>{esc(_dec)}</div></div>")
 with st.expander("How we would measure it"):
     st.markdown(f"**Target:** {req.get('target_metric') or '–'}")
     st.markdown(f"**Test:** {req.get('acceptance_criteria') or '–'}")
@@ -84,7 +87,7 @@ with left:
         b = loads(t.score_breakdown_json, {}) or {}
         cv = (b.get("factors") or {}).get("customer_voice", {})
         name = plain_target(t.vehicle_model_id, t.market_code)
-        if not cv.get("available"):
+        if not cv.get("available") or b.get("voice_observed") is False:   # borrowed voice is not this market's own
             silent.append(name)
             continue
         n = (b.get("verbatims") or {}).get("verbatims", 0)

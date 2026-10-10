@@ -33,6 +33,7 @@ PAGES = {
         page("ui/requirement.py", title="Requirement details", icon=":material/description:"),
         page("ui/conflicts.py", title="Market conflicts", icon=":material/compare_arrows:"),
         page("ui/findings.py", title="Findings explorer", icon=":material/search:"),
+        page("ui/quality.py", title="Quality hand-over", icon=":material/build:"),
         page("ui/audit.py", title="Audit trail", icon=":material/history:"),
     ],
     "Under the hood": [

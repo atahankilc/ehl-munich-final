@@ -10,6 +10,7 @@ from bmw_req.pipeline import requirements as R
 def draft(title, targets, findings, **kw):
     base = dict(title=title, description="d", category="Interior", target_metric="≥ 95 % in 5 s", acceptance_criteria="clinic",
                 horizon="today", horizon_reason="r", kano_class="basic", kano_drift="stable", must_not_lose=False,
+                product_decision="offer it",
                 effort="S", effort_reason="r", supporting_finding_ids=findings, conflicting_finding_ids=[],
                 conflicting_evidence="none found", evidence_summary="e", assumptions=["a"], uncertainties=["u"],
                 targets=[dict(vehicle_model_id=d, market_code=m, realization="platform_wide", market_note="n") for d, m in targets])
@@ -64,3 +65,18 @@ def test_store_creates_proposed_requirement_with_audit():
     assert r["status"] == "proposed" and r["created_by"] == "ai:fake"
     actions = [a[0] for a in conn.execute("SELECT action FROM audit_event WHERE entity_id = ?", (ids[0],))]
     assert actions == ["create", "add_target", "link_findings"]
+
+
+def test_defect_share_marks_quality_issues():
+    conn = connect(":memory:")
+    reference.seed(conn)
+    fid = conn.execute("""INSERT INTO finding (type, title, scope_level, vehicle_model_id, created_by, source_kind)
+                          VALUES ('mixed', 'Wi-Fi drops', 'derivative', 'G60', 't', 'verbatim')""").lastrowid
+    for i, ft in enumerate(["defect", "defect", "defect", "want"]):
+        sid = conn.execute("INSERT INTO source_item (kind, ref, vehicle_model_id, market_code) VALUES ('feedback', ?, 'G60', 'US')",
+                           (f"r{i}",)).lastrowid
+        conn.execute("INSERT INTO verbatim_extraction (source_item_id, extractor_version, in_scope) VALUES (?, 'v', 1)", (sid,))
+        gid = conn.execute("""INSERT INTO signal (source_item_id, extractor_version, category, feedback_type, quote_verified)
+                              VALUES (?, 'v', 'Infotainment & Digital', ?, 1)""", (sid, ft)).lastrowid
+        conn.execute("INSERT INTO finding_signal VALUES (?, ?)", (fid, gid))
+    assert R.defect_share(conn, fid) == 0.75 >= R.QUALITY_DEFECT_SHARE

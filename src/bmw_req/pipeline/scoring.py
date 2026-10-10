@@ -21,9 +21,9 @@ import sqlite3
 from collections import defaultdict
 
 from bmw_req.pipeline.requirements import audit
-from bmw_req.portfolio import MIN_MARKET_VERBATIMS
+from bmw_req.portfolio import LINES, MIN_MARKET_VERBATIMS, line_of
 
-SCORING_VERSION = "score-v2"
+SCORING_VERSION = "score-v3"
 
 DEFAULT_WEIGHTS = {
     "customer_voice": 30,        # severity-weighted share of this market's feedback (verbatim findings)
@@ -38,7 +38,7 @@ FACTOR_LABELS = {
     "competitive_pressure": "Competitive pressure", "future_relevance": "Future relevance",
     "portfolio_leverage": "Portfolio leverage",
 }
-CONFIDENCE = {"E1": 1.0, "E2": 0.92, "E3": 0.8, "E4": 0.65}
+CONFIDENCE = {"E1": 1.0, "E2": 0.92, "E3": 0.75, "E4": 0.5}   # D-038: thin evidence costs real points
 EFFORT_MOD = {"S": 0.0, "M": -3.0, "L": -6.0}
 MARKET_FIT_MOD = {"pass": 2.0, "warn": -5.0, "fail": -10.0}
 PRIORITY_BANDS = [("Must", 60.0), ("Should", 45.0), ("Could", 0.0)]
@@ -48,6 +48,8 @@ TREND_TYPES = {"market_trend", "customer_expectation"}
 SUPPORT_Q_WEIGHT = 0.5      # Q-020: support-call questions count half
 SHRINK_K = 150              # pseudo-verbatims pulling a small market's share toward the derivative-wide share
 SEVERITY_W = {"low": 1.0, "medium": 2.0, "high": 3.0}
+BORROW_DISCOUNT = 0.5       # D-038: customer voice borrowed from other markets of the line counts half
+OWN_EVIDENCE_MIN = 0.5      # D-038: study gap AND competitive pressure ≥ this lets a no-comment market exceed the cap
 
 
 def priority_for(score: float) -> str:
@@ -135,7 +137,23 @@ def score_target(conn, req: dict, target: dict, wave: int, weights: dict, n_targ
     # customer voice — empirical-Bayes shrinkage: a small market's share is pulled toward the derivative-wide share
     base = market_base(conn, d, m, wave)
     verb = verbatim_evidence(conn, req["id"], d, m, wave)
-    if base >= MIN_MARKET_VERBATIMS:
+    voice_observed = base >= MIN_MARKET_VERBATIMS
+    if not voice_observed:
+        # D-038: no usable comment base here (e.g. China). Dropping the factor and renormalizing let the other factors
+        # carry 100 % of the score, so the market with the least evidence ranked highest. Instead borrow the line-wide
+        # rate (other markets / derivatives of the same car line) at a discount, and say so.
+        line_ds = LINES[line_of(d)]["derivatives"]
+        pairs = [(dd, mk) for dd in line_ds for mk in ("US", "EU", "CN", "RoW") if (dd, mk) != (d, m)]
+        lb = sum(market_base(conn, dd, mk, wave) for dd, mk in pairs)
+        lsw = sum(verbatim_evidence(conn, req["id"], dd, mk, wave)["severity_weighted"] for dd, mk in pairs)
+        if lb >= MIN_MARKET_VERBATIMS:
+            val = BORROW_DISCOUNT * min(1.0, math.log1p(100 * lsw / lb / 3 * 4) / math.log1p(40))
+            factors["customer_voice"] = (val, f"no comments of its own ({base} in {m} for {d}) — borrowed the "
+                                              f"{line_of(d)} rate from other markets at ×{BORROW_DISCOUNT}")
+        else:
+            factors["customer_voice"] = (None, f"evidence gap: only {base} in-scope verbatims in {m} for {d}, "
+                                               f"none elsewhere in the {line_of(d)} line")
+    else:
         all_base = sum(market_base(conn, d, mk, wave) for mk in ("US", "EU", "CN", "RoW"))
         all_sw = sum(verbatim_evidence(conn, req["id"], d, mk, wave)["severity_weighted"] for mk in ("US", "EU", "CN", "RoW"))
         prior = all_sw / all_base if all_base else 0.0
@@ -145,8 +163,6 @@ def score_target(conn, req: dict, target: dict, wave: int, weights: dict, n_targ
         factors["customer_voice"] = (val, f"{verb['verbatims']} of {base} in-scope verbatims "
                                           f"({100 * verb['verbatims'] / base:.1f}%), channels {', '.join(verb['channels']) or '–'}"
                                           + (f"; small base, pulled toward {d}-wide rate" if base < 2 * SHRINK_K else ""))
-    else:
-        factors["customer_voice"] = (None, f"evidence gap: only {base} in-scope verbatims in {m} for {d}")
 
     # satisfaction gap (customer study)
     # supports and contradicts both count: a strong study result is evidence against a claimed gap (value → 0)
@@ -232,10 +248,50 @@ def score_target(conn, req: dict, target: dict, wave: int, weights: dict, n_targ
         },
         "gaps": [FACTOR_LABELS[k] for k, v in factors.items() if v[0] is None],
         "gates": {"brand": fit.get("brand"), "segment": fit.get("segment"), "feasibility": fit.get("feasibility")},
-        "verbatims": verb,
+        "verbatims": verb, "voice_observed": voice_observed,
     }
+    breakdown["priority"] = priority_for(breakdown["score"])
     breakdown["rationale"] = rationale(breakdown, d, m)
     return breakdown
+
+
+def apply_requirement_rules(req: dict, items: list[tuple[dict, dict]]) -> None:
+    """Cross-market rules for one requirement (D-038), applied after every target is scored. `items` = (target, breakdown).
+
+    1. A market without its own customer comments may not outrank the requirement's comment-backed markets, unless it
+       has its own strong evidence (a study gap AND competitor pressure in that market) — the cap is shown as a modifier.
+    2. An 'Expected' (Kano basic) requirement gets one priority in every market — a basic expectation can't be a Must
+       in one market and optional in another. Scores stay per market and visible.
+    """
+    observed = [b["score"] for _, b in items if b.get("voice_observed")]
+    cap = max(observed) if observed else None
+    for t, b in items:
+        if cap is None or b.get("voice_observed") or b["score"] <= cap:
+            continue
+        fs = b["factors"]
+        own = (fs["satisfaction_gap"]["value"] or 0) >= OWN_EVIDENCE_MIN and \
+              (fs["competitive_pressure"]["value"] or 0) >= OWN_EVIDENCE_MIN
+        if own:
+            b["cap_note"] = (f"ranks above the markets with customer comments (best {cap:.0f}) on its own study gap and "
+                             f"competitor evidence")
+            continue
+        b["modifiers"]["no_comment_cap"] = round(cap - b["score"], 1)
+        b["cap_note"] = (f"capped at {cap:.0f}, the best market with customer comments — no comments of its own and no "
+                         f"study gap plus competitor evidence to justify ranking higher")
+        b["score"] = round(cap, 1)
+    for _, b in items:
+        b["priority"] = priority_for(b["score"])
+    if (req.get("kano_class") or "") == "basic" and items:
+        top = max(items, key=lambda x: x[1]["score"])
+        prio = top[1]["priority"]
+        for t, b in items:
+            if b["priority"] != prio:
+                b["priority_note"] = (f"Expected (basic) need: same priority in every market — set by the strongest market "
+                                      f"{top[0]['vehicle_model_id']} × {top[0]['market_code']} ({top[1]['score']:.0f}); "
+                                      f"this market alone would score {b['priority']}")
+            b["priority"] = prio
+    for t, b in items:
+        b["rationale"] = rationale(b, t["vehicle_model_id"], t["market_code"])
 
 
 def rationale(b: dict, d: str, m: str) -> str:
@@ -243,7 +299,13 @@ def rationale(b: dict, d: str, m: str) -> str:
     ranked = sorted([(k, f) for k, f in fs.items() if f["available"]], key=lambda kv: -(kv[1]["points"] or 0))
     top = [f"{f['label'].lower()} ({f['explanation']})" for _, f in ranked[:2] if (f["points"] or 0) > 0]
     weak = [f["label"].lower() for _, f in ranked if (f["value"] or 0) < 0.15]
-    parts = [f"{d} × {m}: score {b['score']:.0f} → proposed {priority_for(b['score'])}."]
+    parts = [f"{d} × {m}: score {b['score']:.0f} → proposed {b.get('priority') or priority_for(b['score'])}."]
+    if b.get("priority_note"):
+        parts.append(b["priority_note"] + ".")
+    if b.get("cap_note"):
+        parts.append(b["cap_note"][0].upper() + b["cap_note"][1:] + ".")
+    if b.get("voice_observed") is False and fs["customer_voice"]["available"]:
+        parts.append("No customer comments in this market — customer voice borrowed from the line's other markets at half weight.")
     if top:
         parts.append("Driven by " + " and ".join(top) + ".")
     if weak:
@@ -327,9 +389,9 @@ def run_prioritization(conn: sqlite3.Connection, *, wave: int, trigger: str, ini
                 targets[t["requirement_id"]].append(dict(t))
         results = []
         for rid, ts in targets.items():
-            for t in ts:
-                b = score_target(conn, reqs[rid], t, wave, weights, len(ts))
-                results.append((rid, t, b))
+            items = [(t, score_target(conn, reqs[rid], t, wave, weights, len(ts))) for t in ts]
+            apply_requirement_rules(reqs[rid], items)
+            results.extend((rid, t, b) for t, b in items)
         # rank within each derivative × market
         by_target = defaultdict(list)
         for rid, t, b in results:
@@ -338,7 +400,7 @@ def run_prioritization(conn: sqlite3.Connection, *, wave: int, trigger: str, ini
         for key, items in by_target.items():
             items.sort(key=lambda x: -x[2]["score"])
             for rank, (rid, t, b) in enumerate(items, 1):
-                prio = priority_for(b["score"])
+                prio = b["priority"]
                 prev = last_snapshot(conn, rid, *key, run_id)
                 conn.execute(
                     """INSERT INTO score_snapshot (run_id, requirement_id, vehicle_model_id, market_code, score,

@@ -20,9 +20,10 @@ from bmw_req.llm import LLM
 from bmw_req.pipeline.extract import Category
 from bmw_req.portfolio import LINES, SUCCESSOR_LAUNCH, TARGETS
 
-PROMPT_VERSION = "derive-v6"
+PROMPT_VERSION = "derive-v7"
 MAX_IMPROVE_FINDINGS = 110
 MAX_LIKE_FINDINGS = 30
+QUALITY_DEFECT_SHARE = 0.5   # D-038: a pain finding with ≥ 50 % defect signals is a field-quality issue, not a product need
 
 
 class TargetDraft(BaseModel):
@@ -43,6 +44,9 @@ class RequirementDraft(BaseModel):
     kano_class: Literal["basic", "performance", "delighter"]
     kano_drift: str = Field(description="Expected Kano class at successor launch and why, or 'stable'")
     must_not_lose: bool = Field(description="True if this protects a praised strength rather than fixing a gap")
+    product_decision: str = Field(description="The concrete product decision this asks BMW to take for the successor "
+                                              "(feature, content, capability level, design direction, variant/package) "
+                                              "and what it would be traded off against. One sentence.")
     effort: Literal["S", "M", "L"] = Field(description="Rough incremental effort vs. today's car: S = keep/protect, software, calibration, packaging; M = new content within an existing area; L = new hardware, package space or body change")
     effort_reason: str
     targets: list[TargetDraft]
@@ -76,6 +80,16 @@ existing requirements don't cover. Prefer strong, multi-source needs; include mu
 successor could lose (e.g. through a new UI or platform); include forward-looking needs where web trends and
 market evidence support them (e.g. China, where only study + web evidence exists).
 
+What is NOT a requirement (D-038):
+- Quality hygiene. "X must work reliably / without crashes, drops, failures or defects" is not a product decision —
+  every car must work; broken things go to quality engineering, not into this backlog. Findings with
+  quality_issue=true (mostly defect reports) are on that hand-over list already. Cite them only as supporting
+  evidence for a genuine product decision that changes what the customer gets (e.g. a capability level, a
+  feature or a design choice that removes the failure mode from the experience) — never restate them as
+  "make it work".
+- Test: product_decision must name something BMW could reasonably decide against or trade off (cost, package
+  space, complexity, another feature). If nobody would ever decide against it, it is not a requirement.
+
 Rules:
 - Cite supporting_finding_ids (only IDs from the input; ≥ 1, ideally verbatim + study/web together). Cite
   conflicting_finding_ids and describe conflicts and cross-market differences — never hide them.
@@ -83,6 +97,8 @@ Rules:
   performance, no pricing/business case. Driver assistance only as experienced (usability, availability, trust).
 - Solution-neutral where possible (the need, not the part), but concrete enough to act on.
 - One customer need per requirement: do not bundle independent features (split them, or pick the strongest).
+  A general need and a specific feature (e.g. phone connectivity vs rear-seat entertainment) are different
+  requirements. Per-line or per-market target values are fine only when they measure the same thing.
 - target_metric: ONE primary customer-perceivable measure with a proposed numeric target (and per-line or
   per-market values where segments/markets differ). acceptance_criteria: how it is verified — the test method
   (e.g. customer clinic with N target customers, owner survey, defined road/climate test), the task set or
@@ -95,7 +111,8 @@ Rules:
 - effort: rate the INCREMENTAL effort versus today's car. Protecting an existing strength or fixing software
   behaviour is S; most requirements are S or M; L only for new hardware, package space or body changes.
 - Cover the spread of the evidence, in this order: (1) the largest pain points by severity-weighted count —
-  every one of the ~10 biggest pain/want findings should be cited by some requirement unless out of scope;
+  every one of the ~10 biggest pain/want findings that are NOT quality issues should be cited by some requirement
+  unless out of scope;
   (2) must-not-lose strengths (at most a quarter of the requirements); (3) at least two requirements where the
   markets clearly differ (e.g. China-specific needs from study/web).
 - Brand & segment fit: must fit BMW ("Sheer Driving Pleasure", driver focus, premium quality) and this segment.
@@ -120,6 +137,12 @@ def visible_findings(conn: sqlite3.Connection, derivatives: list[str], wave: int
     return [dict(r) for r in rows]
 
 
+def defect_share(conn: sqlite3.Connection, finding_id: int) -> float:
+    r = conn.execute("""SELECT AVG(g.feedback_type = 'defect') FROM finding_signal fs JOIN signal g ON g.id = fs.signal_id
+                        WHERE fs.finding_id = ?""", (finding_id,)).fetchone()[0]
+    return float(r or 0.0)
+
+
 def build_context(conn: sqlite3.Connection, line: str, wave: int) -> tuple[dict, set[int]]:
     derivs = LINES[line]["derivatives"]
     findings = visible_findings(conn, derivs, wave)
@@ -138,12 +161,15 @@ def build_context(conn: sqlite3.Connection, line: str, wave: int) -> tuple[dict,
                 for mk, v in wm["markets"].items()
             }
             sw = sum(v["severity_weighted"] for v in wm["markets"].values())
+            ds = defect_share(conn, f["id"])
             quotes = [r["quote"] for r in conn.execute(
                 "SELECT quote FROM finding_source WHERE finding_id = ? AND quote IS NOT NULL LIMIT 2", (f["id"],))]
             verbatim.append({"id": f["id"], "new_in_this_wave": (f["first_wave"] or 1) == wave,
                              "derivative": f["vehicle_model_id"], "category": f["category"],
                              "type": f["type"], "title": f["title"], "summary": f["summary"],
-                             "polarity": f["polarity"], "markets": markets, "_sw": sw, "example_quotes": quotes})
+                             "polarity": f["polarity"], "markets": markets, "_sw": sw, "example_quotes": quotes,
+                             **({"defect_share": round(ds, 2), "quality_issue": ds >= QUALITY_DEFECT_SHARE}
+                                if f["polarity"] != "like" else {})})
         elif f["source_kind"] == "study":
             if not m.get("notable"):
                 continue   # average items reach requirements via the evidence linker, not derivation
@@ -259,7 +285,10 @@ MERGE_INSTRUCTIONS = """You consolidate customer requirements for a BMW PORTFOLI
 lines (1, 5, 7 Series). Group drafts that state the SAME customer need so it becomes one portfolio requirement
 with targets on several derivatives (e.g. 'tactile everyday controls' in the 5 and 7 Series). Only group drafts
 from different lines whose need and direction match — even if the numeric targets differ per segment (then
-state targets per line). Also group drafts about the same need for different derivatives in one market (e.g.
+state targets per line). Be strict (D-038): group only if ONE product decision would satisfy every member and the
+target metrics measure the same thing. Sharing a category or theme is not enough: a general need and a specific
+feature (e.g. phone connectivity vs rear-seat entertainment), or a capability and a reliability complaint, stay
+separate. When unsure, do not group. Also group drafts about the same need for different derivatives in one market (e.g.
 China urban assistance for G68 and G70). Only needs that are genuinely segment-specific (e.g. luxury rear lounge
 vs compact practicality) stay separate. For each group write a merged, segment-neutral title,
 description, target metric and acceptance criteria (keep numeric targets; if they differ by segment, state
@@ -274,7 +303,7 @@ def lines_of(d: "RequirementDraft") -> str:
 def consolidate(llm: LLM, drafts: list[tuple[str, RequirementDraft]], job: str) -> tuple[list[RequirementDraft], list[str]]:
     """drafts: [(line, draft)] → merged list. Union of targets, findings, assumptions; notes for the audit trail."""
     payload = [{"index": i, "line": line, "title": d.title, "category": d.category, "description": d.description,
-                "target_metric": d.target_metric, "must_not_lose": d.must_not_lose}
+                "target_metric": d.target_metric, "product_decision": d.product_decision, "must_not_lose": d.must_not_lose}
                for i, (line, d) in enumerate(drafts)]
     res = llm.generate(job=job, tier="smart", instructions=MERGE_INSTRUCTIONS, input=json.dumps(payload, ensure_ascii=False),
                        schema=MergeResult, reasoning_effort="medium", max_output_tokens=16_000, flex=True)
@@ -323,7 +352,8 @@ MATCH_INSTRUCTIONS = """You keep a BMW PORTFOLIO requirement backlog free of dup
 review wave; the existing requirements may belong to other vehicle lines (1, 5, 7 Series). For every draft, return
 the ID of the existing requirement that states the SAME customer need in the same direction — even if it targets
 other derivatives/markets or has other numeric targets (the draft would then add its targets and evidence to it).
-Return null if the draft is a different need, a clearly narrower/other sub-need with its own customer value, or
+Same need means one product decision would satisfy both;
+a shared theme or category is not enough. Return null if the draft is a different need, a clearly narrower/other sub-need with its own customer value, or
 genuinely segment-specific (e.g. luxury rear lounge vs compact practicality). Return exactly one entry per draft."""
 
 

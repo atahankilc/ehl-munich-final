@@ -212,8 +212,10 @@ with left:
     b_.metric("Duplicates caught", merges, help="Later waves compare new drafts with the whole backlog; a duplicate "
               "becomes a 'merge into existing' suggestion instead of a new requirement.")
     rule("Every requirement must cite ≥ 1 finding, say what customers need (not how to engineer it), separate "
-         "<b>evidence</b> from <b>assumptions</b>, and tag when it is needed (today or by successor launch) and its "
-         "Kano class. It is created as <b>To review</b> — the AI can never approve it.")
+         "<b>evidence</b> from <b>assumptions</b>, and tag when it is needed and its Kano class. It must name a "
+         "<b>product decision</b> BMW could trade off — 'it must work reliably' is quality, not a requirement: "
+         "defect-dominated themes go to the <b>Quality hand-over</b> list instead. Lines are merged only when one "
+         "decision satisfies all of them. Created as <b>To review</b> — the AI can never approve it.")
     st.caption(spend("derive", "consolidate", "match_existing", "link"))
 with right:
     st.markdown(f"**{esc(req['title'])}**")
@@ -223,6 +225,8 @@ with right:
                  chip(f"effort {req.get('effort') or '–'}", "system"),
                  f"<span class='muted'>drafted by {esc(req.get('created_by') or '–')}"
                  f" from {len(deriv.get('supporting_finding_ids') or [])} finding(s)</span>"]))
+    if deriv.get("product_decision"):
+        md(f"<div class='card'><h4>Product decision it asks for</h4><div class='kv'>{esc(deriv['product_decision'])}</div></div>")
     ev = deriv.get("evidence_summary")
     asm = nz(req.get("assumptions")) or deriv.get("assumptions")
     if ev:
@@ -259,8 +263,10 @@ with right:
 left, right = step(6, "Score it for this car · market and suggest a priority", "system",
                    "deterministic formula, no AI — same inputs always give the same score")
 with left:
-    rule("Six factors, each 0–1, weighted. A factor with no data for this market (e.g. no China comments) is left "
-         "out and the other weights are scaled up — then the result is multiplied by an evidence confidence "
+    rule("Six factors, each 0–1, weighted. A market without its own comments (e.g. China) borrows the car line's "
+         "comment rate at half value; other factors without data are left out and the weights rescaled. It can't "
+         "outrank the markets that have comments unless it has its own study gap <i>and</i> competitor evidence. "
+         "'Expected' needs get one priority in every market. The result is multiplied by an evidence confidence "
          f"({', '.join(f'{EVIDENCE_LABELS[k].split()[0]} ×{v}' for k, v in CONFIDENCE.items())}) so thin evidence "
          f"still costs points. Effort: {', '.join(f'{k} {v:+.0f}' for k, v in EFFORT_MOD.items())}. "
          f"Bands: <b>Must ≥ {PRIORITY_BANDS[0][1]:.0f}</b>, <b>Should ≥ {PRIORITY_BANDS[1][1]:.0f}</b>, else Could.")
@@ -310,6 +316,9 @@ with right:
         prio = t["proposed_priority"]
         st.markdown(f"**{score:.0f} points → AI suggests {esc(nz(prio, '–'))}** "
                     f"<span class='muted'>(dashed lines: Should ≥ 45, Must ≥ 60)</span>", unsafe_allow_html=True)
+        for note in (b.get("cap_note"), b.get("priority_note")):
+            if note:
+                st.caption(note[0].upper() + note[1:] + ".")
         gaps = [f["label"] for f in facs.values() if not f.get("available")]
         st.dataframe(pd.DataFrame([{
             "factor": f["label"], "weight": f["weight"],

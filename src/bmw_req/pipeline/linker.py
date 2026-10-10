@@ -37,8 +37,10 @@ class LinkResult(BaseModel):
 INSTRUCTIONS = """You link evidence to a customer requirement for a BMW successor vehicle.
 Candidates are customer-study items (satisfaction scores per model × market) and web findings (cited competitor
 advantages, reviews, trends) for the requirement's target markets. Return ONLY candidates that are directly
-about the same customer need/topic as the requirement (be selective: typically 1–3 study items per target
-market and 0–4 web findings). Set contradicts=true only if the candidate argues against the requirement.
+about the same customer need as the requirement (be selective: typically 1–3 study items per target
+market and 0–4 web findings). Same need, not same theme (D-038): a review about seat comfort does not support a
+requirement about controls; a rival's rear-seat entertainment does not support a phone-connectivity requirement.
+When unsure, leave it out — every web link raises the requirement's score. Set contradicts=true only if the candidate argues against the requirement.
 Use only candidate IDs from the input."""
 
 
