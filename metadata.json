@@ -1,0 +1,40 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4K771ABQMYV08EDEXSJZNTW",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "foundation/DECISIONS.md",
+    "foundation/OPEN_QUESTIONS.md",
+    "foundation/STATE.md",
+    "foundation/documents/architecture.md",
+    "foundation/documents/tech-stack.md",
+    "pyproject.toml",
+    "src/bmw_req/db.py",
+    "src/bmw_req/ingest/__init__.py",
+    "src/bmw_req/ingest/__main__.py",
+    "src/bmw_req/ingest/feedback.py",
+    "src/bmw_req/ingest/reference.py",
+    "src/bmw_req/llm/client.py",
+    "tests/test_budget.py",
+    "tests/test_store.py",
+    "uv.lock"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 24,
+    "cache_creation_tokens": 31856,
+    "cache_read_tokens": 1187327,
+    "output_tokens": 20784,
+    "api_call_count": 12
+  }
+}
