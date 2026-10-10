@@ -16,7 +16,9 @@ class RequirementDraft(BaseModel):
     target_metric: str
     acceptance_criteria: str
     horizon: Literal["today", "at_successor_launch"]
+    horizon_reason: str
     kano_class: Literal["basic", "performance", "delighter"]
+    kano_drift: str = Field(description="Expected Kano class at successor launch and why, or 'stable'")
     evidence_verbatim_ids: list[str] = Field(description="IDs of the verbatims that support this requirement")
     conflicting_verbatim_ids: list[str]
     assumptions: str
@@ -35,7 +37,15 @@ Rules:
 - Customer-facing requirements only: no engineering/component specs, no pricing, no regulatory items.
 - Must fit a premium BMW in this segment.
 - Separate evidence from assumption: put forward-looking beliefs in `assumptions`, and what could make them wrong in `uncertainties`.
-- target_metric / acceptance_criteria: measurable from the customer's point of view where possible.
+- target_metric / acceptance_criteria: measurable from the customer's point of view, with a concrete proposed
+  target value (e.g. "≥ 95 % automatic reconnects"). Mark every target value as a proposal in `assumptions`.
+- horizon: `today` = a current shortcoming to fix or strength to keep, needed regardless of trends.
+  `at_successor_launch` = only when you expect the need itself to grow or change by launch in 3-5 years;
+  say why in horizon_reason. Do not default to either one.
+- kano_class: `basic` = customers take it for granted and are dissatisfied only by its absence or failure
+  (reliability, things that must simply work); `performance` = more is better, satisfaction scales with it
+  (range, comfort, speed of response); `delighter` = unexpected, absence goes unnoticed. Classify by how
+  customers react today; put the expected change by launch in kano_drift.
 - Do not invent customer statements; the evidence base is small, say so in uncertainties where relevant."""
 
 

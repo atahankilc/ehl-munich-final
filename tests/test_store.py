@@ -64,3 +64,25 @@ def test_ingest_dedupes_by_id_and_is_idempotent(conn, tmp_path):
     assert rows["G60-0001"]["ref"] == "G60_feedback_hackathon.xlsx#Feedback_Explorer:G60-0001"
     assert conn.execute("SELECT COUNT(*) FROM ingest_batch").fetchone()[0] == 1
     assert conn.execute("SELECT COUNT(*) FROM audit_event WHERE action = 'ingest'").fetchone()[0] == 1
+
+
+def test_extraction_store_flags_quotes_and_skips_invented(conn):
+    from bmw_req.pipeline.extract import BatchResult, quote_ok
+    from bmw_req.pipeline.run_extract import pending, store
+
+    conn.execute("INSERT INTO source_item (kind, ref, external_id, vehicle_model_id, text, meta_json)"
+                 " VALUES ('feedback', 'f#1', 'G60-1', 'G60', 'Customer stated  the Seats are hard.', '{\"engine\": \"ICE\"}')")
+    conn.execute("INSERT INTO source_item (kind, ref, external_id, vehicle_model_id, text, meta_json)"
+                 " VALUES ('feedback', 'f#2', 'G60-2', 'G60', 'love it', '{\"engine\": \"ICE\"}')")
+    chunk = pending(conn, "G60", None)
+    assert [v["id"] for v in chunk] == ["G60-1", "G60-2"]
+    sig = dict(category="Comfort & Space", topic="Seats", feedback_type="complaint", severity="low", need_statement="n")
+    batch = BatchResult.model_validate({"results": [
+        {"verbatim_id": "G60-1", "in_scope": True, "out_of_scope_reason": None, "signals": [
+            {**sig, "quote": "the seats are hard"}, {**sig, "quote": "he said the seats are hard"}]},
+        {"verbatim_id": "G60-999", "in_scope": True, "out_of_scope_reason": None, "signals": [{**sig, "quote": "x"}]},
+    ]})
+    stats = store(conn, chunk, batch, None, "m")
+    assert stats == {"stored": 1, "signals": 2, "unverified_quotes": 1}
+    assert [v["id"] for v in pending(conn, "G60", None)] == ["G60-2"]   # missing ID stays pending
+    assert quote_ok("Seats are", "the  seats are hard") and not quote_ok("", "x")

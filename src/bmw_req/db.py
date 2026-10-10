@@ -78,6 +78,21 @@ CREATE TABLE IF NOT EXISTS finding_source (
     PRIMARY KEY (finding_id, source_item_id)
 );
 
+CREATE TABLE IF NOT EXISTS verbatim_extraction (   -- one row per verbatim × extractor version (D-022)
+    source_item_id INTEGER NOT NULL REFERENCES source_item(id), extractor_version TEXT NOT NULL,
+    in_scope INTEGER NOT NULL, out_of_scope_reason TEXT, llm_usage_id INTEGER REFERENCES llm_usage(id),
+    created_at TEXT NOT NULL DEFAULT {NOW},
+    PRIMARY KEY (source_item_id, extractor_version)
+);
+CREATE TABLE IF NOT EXISTS signal (                -- AI-extracted customer signal; input to findings (D-022)
+    id INTEGER PRIMARY KEY, source_item_id INTEGER NOT NULL REFERENCES source_item(id),
+    extractor_version TEXT NOT NULL, category TEXT NOT NULL, topic TEXT, feedback_type TEXT NOT NULL,
+    severity TEXT, need_statement TEXT, quote TEXT,
+    quote_verified INTEGER NOT NULL,   -- quote is a contiguous span of the verbatim (whitespace/case normalized)
+    FOREIGN KEY (source_item_id, extractor_version) REFERENCES verbatim_extraction(source_item_id, extractor_version)
+);
+CREATE INDEX IF NOT EXISTS ix_signal_source ON signal(source_item_id);
+
 -- Decision layer ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS requirement (
     id TEXT PRIMARY KEY,          -- REQ-0001

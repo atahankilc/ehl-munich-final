@@ -27,6 +27,7 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-019 | UI: Streamlit | accepted |
 | D-020 | Scaffold conventions (Python 3.12/uv, OpenAI SDK direct, Pydantic, pytest) | accepted |
 | D-021 | Demo slice G60 × US + G68 × CN; demo table set (Q-017) | accepted |
+| D-022 | Extraction v2 (Q-018 fixes) + `signal` / `verbatim_extraction` tables | accepted |
 
 Keep this index in sync when adding a decision.
 
@@ -302,4 +303,19 @@ Template:
   - Raw xlsx parsing with `openpyxl` (no pandas in the app).
 - Alternatives considered: a minimal 8-table model without the continuity layer — rejected, D-013 must be demoed.
 - Consequences: one `ingest_batch` per raw file for now; splitting feedback into simulated waves is still Q-012.
+
+## D-022 — Extraction v2 and signal storage (applies Q-018)
+- Date: 2026-10-10
+- Decided by: agent; Atahan said "apply the Q-018 fixes and run full G60"
+- Status: accepted
+- Context: pilot findings (Q-018); the full run needs its output stored.
+- Decision:
+  - `extract-v2` prompt: new feedback type `complaint` (works as designed, customer dissatisfied); category definitions (trunk/doors → Exterior, HVAC/noise → Comfort & Space, …); stricter quote instruction.
+  - Quotes are checked deterministically (contiguous span, whitespace/case normalized); failures are stored with `quote_verified = 0`, not dropped.
+  - `prompt_cache_options={"mode": "explicit"}` on extraction calls: the prefix is below the 1,024-token cache minimum, so implicit cache writes were pure +25% input cost.
+  - Derivation prompt: explicit horizon and Kano criteria, `horizon_reason`, `kano_drift`, proposed numeric targets marked as assumptions. Not re-validated yet (no derivation run since).
+  - New tables: `verbatim_extraction` (one row per verbatim × extractor version, incl. out-of-scope verdict) and `signal` (one row per extracted signal). Findings will be built from signals; `finding_source` still points at `source_item`, so provenance stays verbatim-level.
+  - Runner `bmw_req.pipeline.run_extract`: 25 verbatims per call, parallel Flex calls (16 workers), retry with backoff on rate-limit/timeout/5xx, per-run spend cap (default $1), idempotent per extractor version; one `audit_event` per batch (actor ai, model, prompt_ref = extractor version).
+- Alternatives considered: storing signals in `source_item.meta_json` — rejected, not queryable for clustering.
+- Consequences: changing the prompt means a new `EXTRACTOR_VERSION`; old results stay for comparison.
 

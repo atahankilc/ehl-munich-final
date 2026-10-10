@@ -90,16 +90,15 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
   - But "safety" is out of scope (regulatory).
 - Working line (not decided): ADAS *experience* (usability, availability, comfort, trust) is in; safety/homologation performance is out.
 
-### Q-018 — Extraction schema fixes after the pilot
+### Q-019 — Out-of-scope verdict drops some usable verbatims
 - Owner: agent (proposal), team to OK
-- Context: pilot 2026-10-10 (`STATE.md` → Pilot results). Proposed changes, not applied:
-  1. Add a feedback type for plain dissatisfaction (e.g. `complaint`): the 4 types force "seats less comfortable than expected" into `defect`.
-  2. Tighten category guidance: "trunk opens by itself" landed in Interior.
-  3. Derivation put all 5 requirements at `at_successor_launch` and 4 of 5 as Kano `basic` — horizon/Kano need explicit criteria or a separate projection step (D-012).
-  4. Prompt caching: the API wrote almost the whole prompt to cache on every call (+25% input cost) while nothing was reused. Use `prompt_cache_options={'mode': 'explicit'}` for one-off calls.
-  5. Flex latency 66–84 s per 25-verbatim call → the full run needs parallel calls.
+- Context: full G60 run (extract-v2) marked 268/4,000 verbatims out of scope (B 158, A 103, C 5, D 2). Spot check of 14: most are right (dealer/service calls, charger etiquette, generic "going well"), but 2–3 contain a real product signal next to dealer content, e.g. "only fast charged to 80%, which i really hated" dropped because a salesperson is mentioned; "why is there an 80% charging limit" is arguably a range/usability signal. Rough guess from that sample: ~15–20% of the 268 (≈ 40–55 verbatims) lost.
+- Options: (a) re-check only the 268 with sol, asking "is there any in-scope signal?" (≈ $0.05); (b) prompt tweak "extract in-scope parts even if the verbatim is mostly about dealer/service" → new extractor version, full re-run ≈ $0.14; (c) accept the loss. Recommendation: (a).
 
 ## Resolved
+
+### Q-018 — Extraction schema fixes after the pilot → **applied in extract-v2** (D-022)
+- Atahan 2026-10-10: "apply the Q-018 fixes". Verified on the 50 pilot verbatims, then full G60 run.
 
 ### Q-017 — Demo slice & data-model scope → **G60 × US + G68 × CN; logical model minus 3 folded tables** (D-021)
 - Delegated by Atahan 2026-10-10 ("do whatever you want"); agent decided.

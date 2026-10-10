@@ -10,7 +10,8 @@ _Last updated: 2026-10-10_
 - Scaffold in place: `pyproject.toml`, `src/bmw_req/` (config, SQLite, budget-guarded OpenAI wrapper with `llm_usage`), Streamlit `app.py` (budget view), 12 guard tests (no paid calls).
 - Demo slice + tables decided (D-021): full demo schema built, G60 feedback ingested (4,000 verbatims, counts match `data-inventory.md`).
 - Pilot run 2026-10-10: $0.0201 total, all quality checks passed except 1 paraphrased quote (see Pilot results).
-- **Next: Q-018 schema fixes, then the full G60 extraction (parallel Flex calls).**
+- Q-018 fixes applied (D-022, extract-v2) and full G60 extraction done: 4,000 verbatims → 5,400 signals, $0.1348, 0 failures (see G60 extraction results).
+- **Next: Q-019 decision, then findings (cluster signals per market), then requirement derivation for G60 × US.**
 
 ## Team & logistics (fill in — Q-007, Q-008)
 
@@ -76,7 +77,7 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 
 | Item | Value |
 |---|---|
-| Spent to date | **$0.0201** (D-014 pilot, 3 calls, 2026-10-10). Source of truth: `llm_usage` in `data/app.db` / Streamlit page |
+| Spent to date | **$0.1549** (pilot $0.0201 + G60 extraction $0.1348, 2026-10-10). Source of truth: `llm_usage` in `data/app.db` / Streamlit page |
 | Planned build spend | ≈ $60 (≈ $48 + 25% contingency) |
 | Warn / block non-demo / app hard stop | $45 / $70 / $90 |
 | Demo-day reserve | $20 ($70 → $90) |
@@ -94,6 +95,16 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 - **Re-estimate (D-014):** extraction ≈ $0.0009 per 25-verbatim call → ≈ $0.36 per full 10.1k run, ≈ $1.1 for 3 runs (plan $1.4). Derivation output was ~420 tokens/requirement vs 6k planned, but real input depends on the findings step (not built), so the derivation estimate stays as is. Plan total unchanged at ≈ $60.
 - Prompt caching wrote almost the whole prompt on every call (+25% input, ~8% of pilot cost) with no reuse → Q-018.
 - Follow-ups → Q-018. Source D finding → Q-005, `data-inventory.md`.
+
+## G60 extraction results (2026-10-10, extract-v2, `bmw_req.pipeline.run_extract`)
+
+- 160 luna Flex calls (2 validation + 158 full), 16 workers, 12 min; **$0.1348** ($0.00084/call); 421k in / 455k out (58k reasoning); 0 cache writes; 0 failed, 0 missing, 0 invented IDs; no retries needed.
+- 4,000 verbatims → 3,732 in scope → **5,400 signals** (US 4,607 · RoW 485 · EU 308).
+- Feedback types: like 2,777 · complaint 851 · want 699 · defect 580 · difficult_to_use 493.
+- Top categories: Infotainment & Digital 1,023 · Driving Experience 901 · Comfort & Space 781 · Interior 572 · Exterior 550.
+- 33 signals (0.6%) have unverified quotes — mostly stitched with "…" or a changed word form ("enjoy" vs "enjoys"); flagged, not dropped.
+- Out-of-scope verdicts drop some usable content → Q-019.
+- Re-estimate: extraction for all 10.1k verbatims ≈ $0.34/run, below D-014's $0.47/run.
 
 Update the budget table after every paid run. Once the app exists, the source of truth is the wrapper's usage log.
 
@@ -123,3 +134,4 @@ Update the budget table after every paid run. Once the app exists, the source of
 - 2026-10-10 — Atahan approved the stack table → D-015–D-020, Q-014 resolved, Q-017 opened. Scaffold: pyproject/uv, `src/bmw_req` (config, SQLite + sqlite-vec, budget-guarded OpenAI wrapper per D-014), Streamlit budget page, 12 tests passing. No paid calls, no commit.
 - 2026-10-10 — Scaffold committed (65d3952). Q-017 delegated → D-021: demo slice G60 × US + G68 × CN, demo schema (audit append-only via triggers, sqlite-vec, llm_cache), G60 feedback ingest (4,000 verbatims, verified vs. inventory). 16 tests passing. No paid calls.
 - 2026-10-10 — Committed db695bd. Pilot (D-014) run: extraction (luna) + derivation (sol) modules, `scripts/pilot.py`; $0.0201 spent; results + re-estimate in STATE; Source D note corrected (Q-005, data-inventory); Q-018 opened for schema fixes. Pilot code not committed yet.
+- 2026-10-10 — Committed e7cabd9 (pilot). Q-018 → D-022 (extract-v2: `complaint` type, category definitions, quote check, no implicit cache writes; `signal`/`verbatim_extraction` tables; parallel runner). Full G60 extraction: 5,400 signals, $0.1348, 0 failures. Total spent $0.1549. Q-019 opened (out-of-scope over-exclusion). Not committed.
