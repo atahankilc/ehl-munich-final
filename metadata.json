@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KWYDR6H70J4928NA8C1KXP",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "app.py",
+    "src/bmw_req/portfolio.py",
+    "ui/backlog.py",
+    "ui/board.py",
+    "ui/common.py",
+    "ui/home.py",
+    "ui/inbox.py",
+    "ui/overview.py",
+    "ui/requirement.py",
+    "ui/review.py",
+    "ui/waves_ui.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 94,
+    "cache_creation_tokens": 80343,
+    "cache_read_tokens": 14788976,
+    "output_tokens": 43015,
+    "api_call_count": 47
+  }
+}
