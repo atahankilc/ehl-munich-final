@@ -53,9 +53,9 @@ proposals** with their factor-level cause.
 
 | BMW deliverable | Where |
 |---|---|
-| Concept + working prototype | this repo; PM app pages Overview → Backlog → Requirement |
+| Concept + working prototype | this repo; PM app: Home → Review requirements → Priorities by market → AI suggestions (sidebar "Demo tour" walks the path) |
 | Structured requirement list (ID, description, findings+sources, score, rationale, evidence level, assumptions/uncertainties, status) | Export page (JSON / CSV / Markdown), `service.export_requirements` |
-| Workflow definition: AI autonomous vs mandatory human review | table above; Overview page; `foundation/documents/architecture.md` |
+| Workflow definition: AI autonomous vs mandatory human review | table above; Home ("How it works") and Pipeline & data pages; `foundation/documents/architecture.md` |
 | Audit trail: sources → findings → consolidation → scoring → prioritization → human decision | Requirement → Audit tab; Audit trail page; `audit_event` (append-only via triggers) |
 
 ## Key design choices

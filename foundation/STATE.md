@@ -8,7 +8,7 @@ _Last updated: 2026-10-10_
 - Evidence layer complete: 10,128 verbatims (extract-v3, D-024), customer study (391 items), sales, option lists (458 items), reference layer (96 cited sources), web research (219 cited items, 152 web findings).
 - Findings: verbatim clusters G60 243 · F70 166 · G70 242 (D-025), 391 study findings (D-026).
 - Requirements pipeline: derivation (sol, derive-v6) → portfolio consolidation → dedup vs backlog (D-035) → evidence linker → fit checks → scoring v2 → change proposals, orchestrated per simulated wave (LangGraph, D-027–D-029).
-- PM app (Streamlit, 11 pages, D-032) with approve/reject/defer/edit/challenge/override/priority/inbox, audit trail, export.
+- PM app (Streamlit, D-032, restructured D-036: Home → Review → Priorities by market → AI suggestions, plus detail pages and a demo tour) with approve/reject/defer/edit/challenge/override/priority/inbox, audit trail, export.
 - Demo states via `scripts/demo_state.py` + `scripts/demo_build.py` (snapshots `evidence`, `wave1`, `demo`).
 
 ## Team & logistics (fill in — Q-007, Q-008)
@@ -59,7 +59,7 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 ## Demo (how to run)
 
 - `uv run streamlit run app.py`. DB holds the full `demo` state; `uv run python scripts/demo_state.py restore wave1` for a live PM review from scratch (stop the app first). Rebuild: `scripts/demo_build.py`.
-- Story: Overview (workflow, funnel) → Portfolio → Backlog G60×US / G68×CN / G60×EU → Requirement REQ-0001 (evidence vs assumption, score breakdown, evidence chain, fit, decision, audit) → Change inbox (wave 2/3 proposals, incl. "Merge into existing" duplicates) → Market conflicts → Weights & runs (re-rank live, free) → Audit trail → Export.
+- Story: switch on **Demo tour** in the sidebar — Home (question, waves, what needs a decision) → Review requirements (one requirement: need, evidence, AI suggestion, decide) → Priorities by market (5 Series USA vs China) → AI suggestions (priority changes, new requirements, merges) → Requirement details (score breakdown, evidence chain, fit, audit) → Audit trail → Export.
 
 ## Next up (suggested order)
 
@@ -145,3 +145,4 @@ Update the budget table after every paid run. Once the app exists, the source of
 - 2026-10-10 — Full delegation from Atahan ("sole competitor"). Built the end-to-end demo: extract-v3 for all 10,128 verbatims (D-024, resolves Q-020); study/sales/option-list ingest (D-026); reference layer + web research agents (D-031, subagent); clustering findings (D-025); simulated waves + LangGraph orchestrator (D-027, Q-012); derivation v6 + consolidation + evidence linker (D-028); scoring v2 with shrinkage (D-029, Q-004); feasibility non-blocking (D-030, Q-010); Streamlit PM app, 11 pages (D-032, subagent); Flex fallback (D-033). Benchmarks: extraction vs BMW labels, requirement judge 3.83 → 4.26 → 4.02 (coverage 0.48 → 0.70), scoring robustness tau 0.93–0.96. Demo: 53 requirements, 165 targets, 3 runs, 1,632 audit events. Spent $6.86 total. 44 tests pass.
 - 2026-10-10 — Validation pass (judge + QA): deliverable checklist, 3 end-to-end traces, scope/brand check, live PM flow on `wave1` (AppTest + browser, restored afterwards). Fixed D-034 (rejected new requirement now `rejected`, stale priority proposals superseded, honest wave cause, Streamlit on localhost); +2 tests (46 pass); Q-021–Q-023 opened; report in `documents/validation-report.md`. Spent $0.06. Not committed.
 - 2026-10-10 — Q-022 fixed (D-035): later waves match new drafts against the whole backlog; duplicates become `extend` proposals (inbox tab "Merge into existing"); fit checks cover every unchecked target. Demo rebuilt: 39 requirements, 151 targets, 3 runs, 1,606 audit events, 7 open merge proposals; coverage F70 0.95 · G60 0.95 · G70 0.75. 47 tests pass. Spent $0.45. Not committed.
+- 2026-10-10 — PM app restructured for comprehension (D-036, Atahan: "I understand nothing from the frontend"): new Home, guided Review queue, Priorities-by-market board, plain-language labels (5 Series · USA, Strong evidence, Expected/Differentiator), wave stepper moved to Home, demo tour, trust-tier chart fixed, sidebar grouped Start here / Explore & trace / Under the hood. No pipeline or data change, no LLM spend. Tested with AppTest + browser on a throwaway copy, demo state restored. Not committed.

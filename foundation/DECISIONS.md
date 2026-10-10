@@ -39,6 +39,7 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-031 | Reference layer + web research agents with citation-filtered URLs and quote verification | accepted |
 | D-032 | PM app: Streamlit pages over one service layer; access events logged | accepted |
 | D-033 | Wrapper falls back from Flex to standard when Flex is unavailable; per-job run caps | accepted |
+| D-036 | PM app organised by the PM's job: Home, guided Review, Priorities by market, AI suggestions; plain labels; demo tour | accepted |
 | D-035 | Later waves dedup new drafts against the whole backlog → `extend` proposals (resolves Q-022) | accepted |
 | D-034 | Validation fixes: rejected new requirement → status rejected; stale priority proposals superseded; honest new-requirement cause; Streamlit on localhost | accepted |
 
@@ -406,4 +407,10 @@ Template:
 - Decision: after per-run consolidation, one sol call (`requirements.match_existing`, job `match_existing:wN`) maps every new draft to an existing non-rejected requirement of ANY line with the same need, or none. A match becomes an `extend` change proposal on the existing requirement (its new targets + new evidence links; audit `match_existing` by AI). Only unmatched drafts are stored as new requirements. Accepting (`service.extend_requirement`) adds the targets/links as human-attributed audit events; new targets are scored by the next run and fit-checked in the next wave (`fit.run` now checks every target without a brand check). Derivation prompts are unchanged, so earlier waves replay from cache.
 - Alternatives: show other lines' requirements to derivation (prompt change, re-derivation of all waves); AI extends `proposed` requirements directly (allowed by rule 5, but less visible to the PM).
 - Consequences: demo rebuilt ($0.45): 39 requirements (was 53), 151 targets, 14 duplicate drafts → 7 accepted merges (wave 2, scripted) + 7 open merge proposals in the wave-3 inbox. Top-20 pain coverage F70 0.95 · G60 0.95 · G70 0.75. Borderline pairs left by the matcher: REQ-0015/0033 (luggage), REQ-0012/0014/0018 (assistance, wave-1). Wave-1 drafts are still only consolidated among themselves.
+
+## D-036 — PM app organised by the PM's job, in plain language
+- Date: 2026-10-10 · Decided by: Atahan ("build it"), implemented by agent · Status: accepted (amends D-032's page set)
+- Context: the 11 pages mirrored the data model (pipeline funnel, 20-column backlog, 6-tab requirement page, codes like G60×US / E1 / Kano); Atahan couldn't follow the flow — a judge won't either.
+- Decision: sidebar groups *Start here* (Home, Review requirements, Priorities by market, AI suggestions), *Explore & trace* (Requirement details, Market conflicts, Findings explorer, Audit trail), *Under the hood* (Pipeline & data, All requirements table, Portfolio coverage, Weights & runs, Export, Budget). Home leads with the question, a 6-step "how it works", the wave stepper (moved from Overview), what needs a decision and top priorities for `portfolio.FOCUS_TARGETS`. Review = one requirement at a time: the need, customer comments (counts, quotes, small samples and markets without comments flagged), study, cited web evidence, conflicts, AI suggestion per car · market, decision form (reason required; optional "accept the AI priorities" per unset market) and "Ask the AI". Plain labels in `ui/common.py` (car/market names, evidence levels, Kano, horizon, status); AI suggestions are always marked as such. Optional 7-step demo tour. All writes still go through `service.py`.
+- Consequences: no pipeline/schema change; existing detail pages unchanged apart from titles. The tour flag lives in plain session state (widget state didn't survive `st.switch_page`).
 
