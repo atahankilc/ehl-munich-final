@@ -1,0 +1,114 @@
+<pasted_content id="85e7">
+You are validating a hackathon solution for the BMW "AI for Product Decision Making" challenge.
+Repo: /Users/atahankilic/Documents/ehl-munich-final. Act as a critical BMW judge + QA engineer:
+verify that the solution actually meets the challenge, find gaps/bugs, and report them with evidence.
+Do not rebuild things; fix only clear bugs, and ask before anything costly or architectural.
+
+## What the challenge asks (read foundation/documents/challenge-brief.md for the full text)
+Build an AI app that helps BMW product managers (PMs) derive, justify and prioritize CUSTOMER requirements
+for a successor vehicle (3–5 yr horizon), from customer verbatims, BMW product/sales data and web research,
+with the PM in control and a complete audit trail. Vehicles: 1 Series F70, 5 Series G60 (+China LWB G68),
+7 Series G70; markets EU/US/CN. Minimum: one derivative in one market, but not a one-off.
+Deliverables: (1) concept + working prototype, (2) structured requirement list — each with unique ID,
+actionable description, linked findings and sources, priority/score, prioritization rationale, evidence
+level, future-facing assumptions & uncertainties, decision status, (3) end-to-end workflow showing what AI
+does autonomously vs. where human review is mandatory, (4) audit trail from sources → findings →
+consolidation → scoring → prioritization → human decision (who/what, when, rationale; content, score,
+priority, evidence, status changes; also access events).
+In scope: features, equipment, comfort, space, usability, infotainment/digital, design & quality perception,
+driving experience, range/charging as experienced, variants/packages. Out of scope: regulatory/homologation,
+engineering/component specs/architecture, pricing/business case (rough effort as a factor is OK).
+BMW mentors added: markets differ by climate/usage/culture; derive FUTURE needs; the process is ~2 years of
+continuous re-prioritization, not a one-shot list.
+
+## Mandatory first reads (project rules)
+AGENTS.md (rules: raw BMW data in "challange information document/" is confidential and may only be sent to
+OpenAI — never print raw verbatim text into your own context, use aggregate queries; AI only proposes, PM
+decides; append-only audit; $100 OpenAI budget), then foundation/STATE.md, foundation/DECISIONS.md index
+(D-024–D-033 are the latest session's decisions), foundation/OPEN_QUESTIONS.md, README.md.
+
+## What was built (all committed on main, commits 7bd8f1b..f8166c5)
+Stack: Python 3.12/uv, OpenAI only (gpt-6-luna bulk, gpt-6.1-sol reasoning, text-embedding-3-small),
+SQLite data/app.db + sqlite-vec, LangGraph for wave orchestration (no LangChain), Streamlit UI. Every LLM
+call goes through the budget-guarded wrapper src/bmw_req/llm/client.py (reserve → settle, logged in
+llm_usage, identical calls cached in llm_cache, Flex→standard fallback).
+Pipeline (src/bmw_req/):
+- ingest/: feedback (10,128 verbatims), study.py (391 items, z-scores per model×market column),
+  sales.py, options.py (458 option-list items from German PDFs, every line verified), reference.py +
+  reference_data.py (platforms, plants, production, 21 competitor models, market profiles, BMW brand
+  guardrails — status "proposed, PM sign-off needed"; 96 cited reference sources).
+- research/: web research agents (luna + web_search); evidence kept only if its URL is in the response's
+  citations; quotes verified by fetching where possible; 219 web items (T1/T2/T3), 152 web findings.
+- pipeline/extract.py (extract-v3, D-024): 15,630 signals; support-call questions flagged, weighted 0.5.
+- pipeline/findings.py (D-025): embeddings + agglomerative clustering (threshold 0.35) → verbatim findings
+  G60 243 / F70 166 / G70 242 with per-market, per-wave metrics; study_findings.py → 391 study findings.
+- pipeline/requirements.py (derive-v6, sol): per vehicle line, incremental; validates cited finding IDs and
+  targets; consolidate() merges same needs across lines into portfolio requirements.
+- pipeline/linker.py: attaches study items/web findings per target market (supports/contradicts/context).
+- pipeline/fit.py: brand/segment/market/feasibility per target; brand FAIL blocks approval unless PM
+  override; feasibility is non-blocking context (D-030).
+- pipeline/scoring.py (score-v2, D-029): per derivative×market score = weighted factors (customer voice 30,
+  satisfaction gap 15, market volume 15, competitive pressure 15, future relevance 15, portfolio leverage 10),
+  renormalized over factors WITH data (missing data shown as evidence gap), × confidence by evidence level
+  E1–E4, + market-fit and effort modifiers; empirical-Bayes shrinkage for small markets; bands Must ≥60,
+  Should ≥45. Runs are snapshotted; a PM-confirmed priority that a later run would change → change_proposal
+  with factor-level cause.
+- pipeline/waves.py + graph.py (D-027): SIMULATED ingest waves (no dates in data): wave 1 = half the
+  verbatims + 2024 sales + baseline web; wave 2 = other half + customer study + 2025/2030 sales; wave 3 =
+  web "market event". LangGraph: open_wave → derive → link_evidence → fit_checks → prioritize.
+- pipeline/challenge.py: PM challenges a requirement; sol answers using linked evidence + sqlite-vec
+  semantic search over signals (the only RAG part); its edits become change proposals, never direct edits.
+- service.py: the only write path for PM actions (rationale + named actor mandatory, audit events, access
+  events, export_requirements()).
+UI: app.py + ui/*.py — 11 pages: Overview (workflow AI vs human gates, funnel), Portfolio, Backlog,
+Requirement (overview with EVIDENCE/ASSUMPTION/UNCERTAINTY/CONFLICT, score breakdown + history, evidence
+chain graph, fit checks, PM decision incl. challenge, audit trail), Change inbox, Market conflicts, Findings
+explorer, Weights & runs, Audit trail, Export, Budget.
+
+## Current data state (DB = snapshot "demo")
+53 requirements, 165 targets, 3 prioritization runs, 1,632 audit events, change proposals open/accepted/
+rejected. PM decisions in this state are SCRIPTED (scripts/demo_build.py, rationales tagged
+"[scripted demo decision]"). Snapshots in data/snapshots: evidence, wave1 (no PM decisions, for a live
+demo), demo. Manage with `uv run python scripts/demo_state.py list|save|restore <name>` (stop Streamlit
+first; restore keeps llm_usage/llm_cache). Export: data/exports/requirements_demo.json.
+Spend: $6.86 of $100 (includes a $1.00 reconciliation row for usage rows lost in a since-fixed restore bug).
+
+## How to run / check
+uv run pytest -q (44 tests, no paid calls)
+uv run streamlit run app.py  (http://localhost:8501; may already be running — check port 8501)
+Benchmarks (results in data/eval/): scripts/benchmark_extraction.py (vs BMW labels, aggregates only),
+scripts/benchmark_requirements.py [--judge] (deterministic checks + sol judge; last: judge 4.02/5, top-20
+pain coverage 0.65–0.75), scripts/benchmark_scoring.py (rank stability under ±25 % weight noise; Kendall
+tau 0.93–0.96).
+
+## Known weak spots to examine
+- Judge dimensions "measurable" (~3.5) and "evidence-grounded" (~3.6) are weakest.
+- Wave 3 still adds ~11 requirements, some thinly evidenced (e.g. single-verbatim ones).
+- Consolidation can miss duplicates; check for near-duplicate requirements.
+- CN targets have no verbatims (study + web only) — check that this is shown honestly, not hidden.
+- "Opening a wave" and "Challenge" block the UI while running (minutes); they cost money.
+- Brand guardrails and reference facts are proposed, not yet PM-signed-off.
+- Clusters were computed on all data, then shown per wave (a documented simulation shortcut).
+- Self-judging: the judge is the same model family (sol) as the derivation model.
+
+## Your validation task
+1. Map every BMW deliverable and "app must be able to" item to concrete evidence in the app/DB
+   (page, table, query). Produce a pass / partial / fail checklist with proof.
+2. Trace 3 requirements end to end (one G60×US, one G68×CN, one portfolio requirement spanning lines):
+   sources → findings → requirement → score breakdown → fit checks → PM decisions → audit events.
+   Verify citations exist and support the claims (use aggregates/IDs and AI-written summaries; don't dump
+   raw verbatims into your context).
+3. Scope check: any requirement that is regulatory, engineering-spec or pricing? Any brand-fit misses?
+4. Check AI-vs-human rule: no AI-made status/priority changes; every human action has actor + rationale;
+   audit_event is append-only (triggers).
+5. Click through the UI (Streamlit AppTest or browser) on snapshot "wave1" doing a live PM flow: confirm
+   priorities, approve, reject, edit, override gate, challenge (costs ~$0.04), open wave 2 (~$0.5) and
+   check the change inbox. Restore the snapshot afterwards.
+6. Report: ranked findings (bugs, gaps vs brief, demo risks), each with evidence and a suggested fix;
+   update foundation/STATE.md (session log) and log any decision/question per AGENTS.md. Do not commit
+   unless asked.
+</pasted_content id="85e7">
+
+---
+
+yes, fix the duplicates (Q-022) and rebuild the demo
