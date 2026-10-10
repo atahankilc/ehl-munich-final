@@ -1,0 +1,139 @@
+"""Budget guard tests with a fake OpenAI client — no paid calls."""
+
+from types import SimpleNamespace as NS
+
+import httpx
+import openai
+import pytest
+
+from bmw_req.db import connect
+from bmw_req.llm import LLM, BudgetExceeded, budget
+
+
+def fake_response(input_tokens=1000, cached=0, cache_write=0, output=200, reasoning=50, tier="default", searches=0):
+    return NS(
+        id="resp_test",
+        model="gpt-6-luna",
+        service_tier=tier,
+        output_text="ok",
+        output=[NS(type="web_search_call")] * searches + [NS(type="message")],
+        usage=NS(
+            input_tokens=input_tokens,
+            input_tokens_details=NS(cached_tokens=cached, cache_write_tokens=cache_write),
+            output_tokens=output,
+            output_tokens_details=NS(reasoning_tokens=reasoning),
+        ),
+    )
+
+
+class FakeResponses:
+    def __init__(self, result):
+        self.result = result
+        self.calls = []
+
+    def create(self, **params):
+        self.calls.append(params)
+        if isinstance(self.result, Exception):
+            raise self.result
+        return self.result
+
+    parse = create
+
+
+@pytest.fixture
+def conn():
+    return connect(":memory:")
+
+
+def make_llm(conn, result=None):
+    client = NS(responses=FakeResponses(result or fake_response()))
+    return LLM(conn=conn, client=client)
+
+
+def preload(conn, usd, status="completed"):
+    conn.execute(
+        "INSERT INTO llm_usage (job, kind, model, status, reserved_usd, cost_usd) VALUES ('seed', 'responses', 'gpt-6-luna', ?, ?, ?)",
+        (status, usd, usd),
+    )
+
+
+def test_actual_cost_standard():
+    # 800 uncached + 200 cached input, 200 output on luna
+    usd = budget.actual_usd("gpt-6-luna", input_tokens=1000, cached_tokens=200, output_tokens=200)
+    assert usd == pytest.approx((800 * 0.10 + 200 * 0.01 + 200 * 0.50) / 1e6)
+
+
+def test_actual_cost_flex_cache_write_and_search():
+    usd = budget.actual_usd(
+        "gpt-6.1-sol", input_tokens=2000, cache_write_tokens=1000, output_tokens=100, search_calls=2, flex=True
+    )
+    tokens = (1000 * 2.00 + 1000 * 2.00 * 1.25 + 100 * 10.00) / 1e6 * 0.5
+    assert usd == pytest.approx(tokens + 2 * 0.01)
+
+
+def test_unknown_model_refused():
+    with pytest.raises(BudgetExceeded):
+        budget.worst_case_usd("gpt-6-astra", 100, 100)
+
+
+def test_call_is_reserved_then_settled(conn):
+    llm = make_llm(conn)
+    res = llm.generate(job="t", tier="fast", input="hello", max_output_tokens=500)
+    row = conn.execute("SELECT * FROM llm_usage WHERE id = ?", (res.usage_id,)).fetchone()
+    assert row["status"] == "completed"
+    assert row["reserved_usd"] > row["cost_usd"] > 0
+    assert row["input_tokens"] == 1000 and row["reasoning_tokens"] == 50
+    assert llm.client.responses.calls[0]["max_output_tokens"] == 500
+
+
+def test_max_output_tokens_required(conn):
+    with pytest.raises(ValueError):
+        make_llm(conn).generate(job="t", tier="fast", input="x", max_output_tokens=0)
+
+
+def test_tools_need_max_tool_calls(conn):
+    with pytest.raises(ValueError):
+        make_llm(conn).generate(job="t", tier="fast", input="x", max_output_tokens=10, tools=[{"type": "web_search"}])
+
+
+def test_non_demo_blocked_above_70_demo_allowed(conn):
+    preload(conn, 69.999)
+    llm = make_llm(conn)
+    with pytest.raises(BudgetExceeded, match="Non-demo"):
+        llm.generate(job="t", tier="smart", input="x" * 1000, max_output_tokens=1000)
+    llm.generate(job="t", tier="smart", input="x" * 1000, max_output_tokens=1000, demo=True)
+
+
+def test_hard_stop_applies_to_demo(conn):
+    preload(conn, 89.999)
+    with pytest.raises(BudgetExceeded, match="Hard stop"):
+        make_llm(conn).generate(job="t", tier="smart", input="x", max_output_tokens=1000, demo=True)
+
+
+def test_open_reservations_count(conn):
+    preload(conn, 69.999, status="reserved")
+    assert budget.committed_usd(conn) == pytest.approx(69.999)
+    assert budget.spent_usd(conn) == 0
+
+
+def test_flex_priced_only_when_confirmed(conn):
+    llm = make_llm(conn, fake_response(tier="default"))
+    std = llm.generate(job="t", tier="fast", input="x", max_output_tokens=10, flex=True)
+    assert llm.client.responses.calls[0]["service_tier"] == "flex"
+    flex = make_llm(conn, fake_response(tier="flex")).generate(job="t", tier="fast", input="x", max_output_tokens=10, flex=True)
+    assert flex.cost_usd == pytest.approx(std.cost_usd * 0.5)
+
+
+def test_api_error_not_billed(conn):
+    err = openai.APIConnectionError(request=httpx.Request("POST", "https://api.openai.com"))
+    with pytest.raises(openai.APIConnectionError):
+        make_llm(conn, err).generate(job="t", tier="fast", input="x", max_output_tokens=10)
+    row = conn.execute("SELECT status, cost_usd FROM llm_usage").fetchone()
+    assert (row["status"], row["cost_usd"]) == ("failed", 0.0)
+
+
+def test_parse_error_keeps_worst_case(conn):
+    with pytest.raises(ValueError):
+        make_llm(conn, ValueError("bad json")).generate(job="t", tier="fast", input="x", max_output_tokens=10)
+    row = conn.execute("SELECT status, cost_usd, reserved_usd FROM llm_usage").fetchone()
+    assert row["status"] == "failed" and row["cost_usd"] == row["reserved_usd"]

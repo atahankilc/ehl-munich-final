@@ -12,7 +12,7 @@
 
 Seed docs: `portfolio-reference.md` (platforms, plants, BMW sales), `competitor-landscape.md` (competitors, trends, brand positioning), `bmw-annual-report-2025.md` (T1: BMW Group Report 2025 — market & sales data, R&D, NEUE KLASSE strategy, with page numbers; recommended by BMW support).
 
-## Research agents (OpenAI web search; orchestration framework open — Q-014)
+## Research agents (OpenAI web search; orchestration via LangGraph — D-015)
 
 | Agent | Question it answers | Typical sources |
 |---|---|---|
@@ -24,7 +24,7 @@ Seed docs: `portfolio-reference.md` (platforms, plants, BMW sales), `competitor-
 | **Brand-fit checker** | Does a requirement fit BMW brand + the derivative's segment? | Brand reference (layer 2) |
 | **Feasibility checker** | Can the target platform/plant build it for that market at the planned time? | Platform/plant reference (layer 2) |
 
-Each agent returns **schema-validated structured output** (schema tooling open, Q-014): claim, quote, URL, publisher, published date, retrieved date, market, model(s), trust tier. Free-text LLM opinions are **never** stored as sources.
+Each agent returns **schema-validated structured output** (Pydantic → Responses API structured output, D-020): claim, quote, URL, publisher, published date, retrieved date, market, model(s), trust tier. Free-text LLM opinions are **never** stored as sources.
 
 ## Trust tiers
 

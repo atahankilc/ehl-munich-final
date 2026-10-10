@@ -73,17 +73,6 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
 - How deep do we go? EU as one market or split (DE vs. GB vs. Nordics)? Note that F70 feedback is 32% Japan and G60/G70 have KR/JP feedback (RoW).
 - Recommendation: EU / US / CN (+ RoW where data exists) for the demo; the data model already supports countries.
 
-### Q-014 — Architecture & framework choices (BLOCKING for scaffolding — discuss with team, do NOT decide alone)
-- Owner: Atahan + team, in a dedicated architecture session
-- Context: Atahan wants these discussed before any decision: **LangChain, LangGraph, a vector DB, a graph (knowledge graph / graph DB), and RAG**. Everything in `documents/tech-stack.md` and the storage/orchestration parts of `documents/architecture.md` is a proposal only.
-- Points to prepare for the discussion (not decisions):
-  - Orchestration: LangGraph (stateful graphs, human-in-the-loop interrupts, checkpoints — fits PM gates & re-prioritization loop) vs. OpenAI Agents SDK vs. plain SDK + own pipeline.
-  - Retrieval: RAG over verbatims + web evidence for derivation and PM "challenge" answers; which vector store (Chroma, LanceDB, pgvector, Qdrant, sqlite-vec) and how citations stay traceable.
-  - Graph: knowledge graph of source → finding → requirement → target (derivative/market/platform/plant) — graph DB (Neo4j, Kùzu) vs. relational tables + graph view.
-  - Fit with constraints: $100 budget (D-014), audit trail (D-003), traceability, hackathon time.
-  - Scope of the data model: the logical model in `architecture.md` has ~25 entities. Decide what the demo slice (STATE → proposed minimal demo path) actually needs (AGENTS rule 18).
-  - UI weight: BMW values reasoning over architecture, so a simpler UI may be enough.
-
 ### Q-015 — Are the BMW sales volumes real or illustrative?
 - Owner: team (ask BMW mentors)
 - Context: `sales_volumes.xlsx` conflicts with public data:
@@ -101,7 +90,15 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
   - But "safety" is out of scope (regulatory).
 - Working line (not decided): ADAS *experience* (usability, availability, comfort, trust) is in; safety/homologation performance is out.
 
+### Q-017 — Demo slice & data-model scope
+- Owner: Atahan + team
+- Blocking: the domain tables (only `llm_usage` exists so far)
+- Context: split out of Q-014 when the stack was decided (D-015–D-020). Still open: (1) confirm or replace the proposed minimal demo path in `STATE.md` (G60 × US + G68 × CN); (2) which of the ~25 logical entities in `architecture.md` the demo actually builds (AGENTS rule 18).
+
 ## Resolved
+
+### Q-014 — Architecture & framework choices → **LangGraph, SQLite, no graph DB, sqlite-vec, Streamlit** (D-015–D-020)
+- Answered by Atahan 2026-10-10: approved the agent's recommendation table and said to start scaffolding. Data-model scope and demo slice moved to Q-017.
 
 ### Q-009 — OpenAI models & budget → **luna for bulk, 6.1-sol for reasoning, $100 cap with guard** (D-010)
 - Answered 2026-10-10: Atahan set $100 total and delegated model choice to the agent.

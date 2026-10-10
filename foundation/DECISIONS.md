@@ -9,7 +9,7 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-001 | `foundation/` is the single source of project truth | accepted |
 | D-002 | Raw BMW data is read-only and stays out of git | accepted |
 | D-003 | Only humans approve/reject/defer requirements | accepted |
-| D-004 | Non-LLM tech stack | proposed — **open in Q-014** |
+| D-004 | Non-LLM tech stack | superseded by D-015–D-020 |
 | D-005 | Portfolio-level (multi-model/market/platform/plant); 5 Series deepest | accepted |
 | D-006 | OpenAI for all LLM work (framework open, Q-014) | accepted |
 | D-007 | Web-enriched 3-layer knowledge base | accepted |
@@ -20,6 +20,12 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-012 | Future-need projection (horizon, Kano) | accepted |
 | D-013 | Continuous re-prioritization with snapshots & change proposals | accepted |
 | D-014 | Budget plan ≈$60, thresholds $45/$70/$90, $20 demo reserve | accepted |
+| D-015 | Orchestration: LangGraph | accepted |
+| D-016 | Storage: SQLite, relational tables | accepted |
+| D-017 | No graph DB; relational links + graph view in the UI | accepted |
+| D-018 | Vector search / RAG: sqlite-vec in the same SQLite file | accepted |
+| D-019 | UI: Streamlit | accepted |
+| D-020 | Scaffold conventions (Python 3.12/uv, OpenAI SDK direct, Pydantic, pytest) | accepted |
 
 Keep this index in sync when adding a decision.
 
@@ -64,7 +70,7 @@ Template:
 ## D-004 — Tech stack (non-LLM parts)
 - Date: 2026-10-10
 - Decided by: agent (proposed); LLM part superseded by D-006
-- Status: proposed — **not decided.** Must be discussed with the team in the architecture session (Q-014). Nothing here is binding.
+- Status: superseded by D-015–D-020 (Q-014 resolved 2026-10-10).
 - Proposal on the table: Python/FastAPI/SQLite backend, Next.js frontend — see `documents/tech-stack.md`.
 
 ## D-005 — Portfolio-level architecture (multi-model, multi-market, platform- and plant-aware)
@@ -221,3 +227,60 @@ Template:
 - Consequences:
   - **Levers if the warn threshold hits early:** cut dev runs from 3 to 2 (≈ −$7); luna for all rationale (≈ −$5); web-search cap 600 (≈ −$5).
   - The fallback `gpt-5-mini` costs 2.5–4× luna. Use it only if luna's structured-output quality fails the pilot.
+
+## D-015 — Orchestration: LangGraph
+- Date: 2026-10-10
+- Decided by: Atahan (approved the agent's Q-014 recommendation table)
+- Status: accepted
+- Context: Q-014. PM gates and re-prioritization runs need human-in-the-loop pauses and checkpoints (D-003, D-013).
+- Decision: multi-step pipelines run as LangGraph graphs. LangChain is **not** adopted: graph nodes call OpenAI through our own budget-guarded wrapper (D-014), never through LangChain model classes.
+- Alternatives considered: OpenAI Agents SDK; LangChain; plain SDK + own pipeline.
+- Consequences: no graph code until there is a step to orchestrate; the wrapper stays the only path to OpenAI.
+
+## D-016 — Storage: SQLite, relational tables
+- Date: 2026-10-10
+- Decided by: Atahan (approved the agent's Q-014 table, which offered "SQLite or Postgres"; agent picked SQLite)
+- Status: accepted
+- Context: Q-014. Audit trail, run snapshots and provenance are naturally rows.
+- Decision: one SQLite file at `data/app.db` (git-ignored). Postgres not used: SQLite needs no server and holds vectors too (D-018).
+- Alternatives considered: Postgres (+pgvector); DuckDB.
+- Consequences: append-only tables for audit/usage; concurrent writers serialized via `BEGIN IMMEDIATE`. The demo data model (which of the ~25 logical entities to build) is still open → Q-017.
+
+## D-017 — No graph DB
+- Date: 2026-10-10
+- Decided by: Atahan (approved the agent's Q-014 table)
+- Status: accepted
+- Context: Q-014. The evidence chain is source → finding → requirement → target.
+- Decision: model the chain as relational link tables in SQLite; render it as a graph in the UI. No Neo4j/Kùzu.
+- Alternatives considered: Neo4j, Kùzu.
+- Consequences: graph queries are SQL joins / recursive CTEs.
+
+## D-018 — Vector search / RAG: sqlite-vec
+- Date: 2026-10-10
+- Decided by: Atahan (approved the agent's Q-014 table, which offered "sqlite-vec or LanceDB"; agent picked sqlite-vec)
+- Status: accepted
+- Context: Q-014. Retrieval must keep citations traceable to the source item.
+- Decision: embeddings (`text-embedding-3-small`, D-010) stored with `sqlite-vec` in the same `data/app.db`; every vector row carries its source ID. LanceDB not used, to keep one store.
+- Alternatives considered: LanceDB, Chroma, Qdrant, pgvector.
+- Consequences: needs a Python build that allows SQLite extension loading (uv's Python 3.12 does).
+
+## D-019 — UI: Streamlit
+- Date: 2026-10-10
+- Decided by: Atahan (approved the agent's Q-014 table, which offered "Streamlit or FastAPI + simple frontend"; agent picked Streamlit)
+- Status: accepted
+- Context: Q-014. BMW values reasoning over architecture; hackathon pace (AGENTS rule 18).
+- Decision: one Python Streamlit app for the PM review UI. No separate backend/frontend; Next.js proposal from D-004 dropped.
+- Alternatives considered: FastAPI + Next.js; FastAPI + simple frontend.
+- Consequences: whole app is Python.
+
+## D-020 — Scaffold conventions
+- Date: 2026-10-10
+- Decided by: agent, while scaffolding on Atahan's go (implementation details that follow from D-015–D-019, not new architecture)
+- Status: accepted
+- Decision:
+  - Python 3.12 via `uv`, project in `pyproject.toml`, package `src/bmw_req/`.
+  - OpenAI Python SDK, **Responses API** called directly inside the wrapper `bmw_req.llm` (also the call path for `web_search`). Structured output via Pydantic models (`responses.parse`).
+  - Budget guard per D-014: model prices in `bmw_req/llm/pricing.py`; a model without a price entry is refused; every call needs `max_output_tokens`; worst-case cost is reserved in `llm_usage` before the call (input estimated as UTF-8 bytes ÷ 2, deliberately high) and replaced by actual usage after it.
+  - Tests with `pytest`, no paid calls in tests.
+- Consequences: logged cost includes the cache-write surcharge (1.25× input, D-014) from `usage.input_tokens_details.cache_write_tokens`. Flex is priced at −50% only when the response confirms `service_tier == "flex"`.
+

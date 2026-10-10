@@ -1,6 +1,6 @@
 # Architecture & Workflow
 
-**Status: DRAFT v3 — conceptual.** The workflow, entities and rules below are the agreed *concept* (D-005, D-008–D-013). The *technical* architecture (orchestration framework, storage, vector DB, graph, RAG) is **not decided** — see Q-014. The data model is a logical model, not a storage decision.
+**Status: DRAFT v3 — conceptual.** The workflow, entities and rules below are the agreed *concept* (D-005, D-008–D-013). The *technical* stack is decided (LangGraph, SQLite, sqlite-vec, no graph DB, Streamlit — D-015–D-020, see `tech-stack.md`). The data model below is still a logical model; which entities the demo builds is open (Q-017).
 
 ## Guiding principle
 

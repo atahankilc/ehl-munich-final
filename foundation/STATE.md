@@ -4,10 +4,11 @@ _Last updated: 2026-10-10_
 
 ## Current phase
 
-**Phase 0 — Foundation & alignment (finishing).**
+**Phase 1 — Scaffolding (started 2026-10-10).**
 - Core direction decided: portfolio-level architecture, OpenAI, web-enriched knowledge base, brand-fit and plant/platform feasibility gates, per-market scoring, future-need projection, continuous re-prioritization, $100 model budget.
-- No application code yet.
-- **Next: architecture discussion with the team (Q-014). Scaffolding comes later, only when Atahan says so.**
+- Stack decided (D-015–D-020): LangGraph, SQLite + sqlite-vec, no graph DB, Streamlit, Python 3.12/uv.
+- Scaffold in place: `pyproject.toml`, `src/bmw_req/` (config, SQLite, budget-guarded OpenAI wrapper with `llm_usage`), Streamlit `app.py` (budget view), 12 guard tests (no paid calls).
+- **Next: Q-017 (demo slice + which tables to build), then the paid pilot (D-014).**
 
 ## Team & logistics (fill in — Q-007, Q-008)
 
@@ -44,7 +45,7 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 - BMW mentor input recorded (D-011 markets differ, D-012 future needs, D-013 continuous re-prioritization). BMW support recommended the annual report → `documents/bmw-annual-report-2025.md`.
 - Model tiering (D-010); budget re-baselined (D-014).
 - Q-001/002/003 answered by Atahan → D-005 (portfolio-level, 5 Series deepest), D-006 (OpenAI), D-007 (web knowledge base), D-008 (brand fit gate), D-009 (plant/platform feasibility).
-- Conceptual architecture, requirement model and knowledge-base design drafted. The tech stack is open (Q-014).
+- Conceptual architecture, requirement model and knowledge-base design drafted. Tech stack decided 2026-10-10 (D-015–D-020).
 - Web research seeds written and fact-checked:
   - `portfolio-reference.md`: platforms, 14 vehicle plants + 3 CKD sites, BMW sales 2024–H1 2026, primary-sourced from the annual report where possible.
   - `competitor-landscape.md`: competitors, trends, expectations, brand-fit guardrails.
@@ -58,12 +59,12 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 
 0. Fill in Team & logistics.
 1. Ask BMW mentors: Q-005 (sources), Q-006 (scales + sample sizes), Q-010 (feasibility framing), Q-015 (sales volumes real?), Q-016 (ADAS scope).
-2. **Architecture discussion (Q-014)**: orchestration, retrieval/RAG, vector store, graph, storage, backend/frontend, data-model size. The team decides, then logs decisions.
-3. Confirm or replace the proposed minimal demo path above.
-4. *(Later, only on Atahan's go)* Scaffold the repo. The budget-guarded LLM wrapper + usage logging come first, before any paid call. Then the pilot (D-014).
-5. Reference layer: load brands, segments, platforms, plants, production and sales from the seed docs (with source IDs) into the store chosen in Q-014.
+2. ~~Architecture discussion (Q-014)~~ → done, D-015–D-020.
+3. **Q-017:** confirm or replace the proposed minimal demo path above, and pick the tables the demo needs.
+4. ~~Scaffold + budget-guarded wrapper~~ → done. Next: put `OPENAI_API_KEY` in `.env`, set the $95 OpenAI project limit + $45 alert, then run the pilot (D-014: 50 verbatims + 5 requirements).
+5. Reference layer: load brands, segments, platforms, plants, production and sales from the seed docs (with source IDs) into SQLite (D-016).
 6. Ingest BMW data for the demo slice first, then all derivatives, organized into ingest waves (Q-012).
-7. Signal extraction, market-segmented → findings with sources (method per Q-014).
+7. Signal extraction, market-segmented → findings with sources (LangGraph pipeline, D-015).
 8. Research agents (competitor, market, review, trend, market profile) → web evidence.
 9. Requirement derivation + future-need projection → fit checks → per-market scoring → prioritization runs + change proposals.
 10. PM review UI + audit trail + export.
@@ -73,7 +74,7 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 
 | Item | Value |
 |---|---|
-| Spent to date | **$0.00** (no app LLM calls yet) |
+| Spent to date | **$0.00** (wrapper built and tested with a fake client; no paid calls yet) |
 | Planned build spend | ≈ $60 (≈ $48 + 25% contingency) |
 | Warn / block non-demo / app hard stop | $45 / $70 / $90 |
 | Demo-day reserve | $20 ($70 → $90) |
@@ -104,3 +105,4 @@ Update this table after every paid run. Once the app exists, the source of truth
 - 2026-10-10 — Foundation review (fresh session): data inventory re-verified (unique-ID counts, Source D/A reinterpretation, no study sample sizes, sales file conflict); brief gaps added; 23 web facts spot-checked and corrected; Q-004/005/006/010/012/013 updated, Q-015/016 added; consistency fixes. No code, no commit.
 - 2026-10-10 — Budget re-baselined (D-014). BMW Group Report 2025 extracted (`documents/bmw-annual-report-2025.md`, page-cited); `portfolio-reference.md` upgraded to primary sources. No code, no commit.
 - 2026-10-10 — Decision hygiene: undecided stack items reworded as Q-014 candidates (tech-stack, D-010 note, STATE, Q-002, README, knowledge-base). Usability: decision index, lighter session-start read list, glossary, fresh-clone setup, team/logistics placeholders, proposed demo path, duplicates removed. No code, no commit.
+- 2026-10-10 — Atahan approved the stack table → D-015–D-020, Q-014 resolved, Q-017 opened. Scaffold: pyproject/uv, `src/bmw_req` (config, SQLite + sqlite-vec, budget-guarded OpenAI wrapper per D-014), Streamlit budget page, 12 tests passing. No paid calls, no commit.

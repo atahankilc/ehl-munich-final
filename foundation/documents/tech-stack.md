@@ -9,26 +9,22 @@
 | Budget | $100 total. Plan, prices, thresholds and cost rules live in **D-014 only** (not repeated here); running spend in `STATE.md` → Budget | D-010, D-014 |
 | Config | Model names via env (`OPENAI_MODEL_FAST/SMART/EMBED`), never hardcoded | AGENTS rule 12 |
 | All LLM calls | Go through one budget-guarded wrapper that logs usage | D-014 |
+| Language / runtime | Python 3.12 via `uv`; package `src/bmw_req/` | D-020 |
+| Orchestration | **LangGraph**. No LangChain; graph nodes call OpenAI through the wrapper | D-015 |
+| Storage | **SQLite**, one file `data/app.db` | D-016 |
+| Graph | **No graph DB**; relational link tables + graph view in the UI | D-017 |
+| Vector store / RAG | **sqlite-vec** in the same SQLite file; every vector row carries its source ID | D-018 |
+| UI | **Streamlit** (`app.py`) | D-019 |
+| OpenAI call path | OpenAI Python SDK, Responses API, inside `bmw_req.llm` (incl. `web_search`) | D-020 |
+| Structured output | Pydantic models → `responses.parse` | D-020 |
+| Tests | `pytest`, no paid calls | D-020 |
 
-## Open — candidates for the architecture discussion (Q-014)
+## Still open
 
-**Nothing in this section is decided.** Every item here is to be discussed with the team first, explicitly including LangChain, LangGraph, a vector DB, a graph, RAG and storage. The list only records what has been mentioned so far, so the discussion has a starting point.
-
-| Layer | Candidates mentioned so far | Notes for the discussion |
-|---|---|---|
-| Language / runtime | Python 3.12 via `uv` (used so far only for data profiling) | Excel/PDF parsing: `openpyxl`/`pandas`, `pdftotext`/`pdfplumber` |
-| Orchestration | OpenAI Agents SDK · LangChain · LangGraph · plain SDK + own pipeline | PM gates and the re-prioritization loop need human-in-the-loop pauses + history |
-| Retrieval / RAG | RAG over verbatims + web evidence — or none | Citations must stay traceable to `source_item` |
-| Vector store | Chroma · LanceDB · pgvector · Qdrant · sqlite-vec — or none | Only needed if retrieval/semantic search is chosen |
-| Graph | Graph DB (Neo4j, Kùzu) · relational tables + graph view | Evidence chain source → finding → requirement → target |
-| Storage | e.g. SQLite · Postgres · DuckDB | Must support an append-only audit trail and run snapshots |
-| Structured output | e.g. Pydantic → OpenAI Structured Outputs | Requirement: every AI output schema-validated before storage |
-| Web search tooling | OpenAI `web_search` via Responses API or an agent framework | Provider is decided (D-006); the call path isn't |
-| Clustering | e.g. HDBSCAN / k-means on embeddings + LLM labels | Dedupe ~10.1k verbatims |
-| Backend / frontend | e.g. FastAPI · Next.js + Tailwind + shadcn/ui · Recharts — or a simpler UI (e.g. Streamlit) | BMW values reasoning over architecture (challenge-brief) |
-| Export | JSON + XLSX of requirement list + audit trail | Deliverable format, not a tech choice |
-
-Also on the agenda: the logical data model in `architecture.md` (~25 entities) may be more than a hackathon demo needs (AGENTS rule 18).
+| Topic | Ref |
+|---|---|
+| Demo slice and which logical entities get tables | Q-017 |
+| Clustering method, Excel/PDF parsing libs, export format | decide when the step is built |
 
 ## Requirements any chosen stack must meet
 - **Precompute:** run pipeline and research offline, cache results with retrieval timestamps, demo against the cache, and re-run only changed steps. Live web search in the demo is optional, with a cached fallback.
@@ -37,7 +33,16 @@ Also on the agenda: the logical data model in `architecture.md` (~25 entities) m
 
 ## Env & secrets
 
-`.env` (git-ignored) will hold `OPENAI_API_KEY` (provided by Atahan), `OPENAI_MODEL_FAST/SMART/EMBED`, `LLM_BUDGET_USD=100` and `RAW_DATA_DIR`. Only `.env.example` is committed; it doesn't exist yet and gets created at scaffolding.
+`.env` (git-ignored) holds `OPENAI_API_KEY` (provided by Atahan), `OPENAI_MODEL_FAST/SMART/EMBED`, `RAW_DATA_DIR` and `DATA_DIR`; template in `.env.example`. Budget thresholds are constants in `bmw_req/llm/budget.py` (D-014), not env vars.
+
+## Budget guard (as built)
+
+- `bmw_req.llm.LLM.generate()` / `.embed()` are the only way to call OpenAI.
+- Each call reserves its worst case in `llm_usage` first (input ≈ UTF-8 bytes ÷ 2, + `max_output_tokens`, + `max_tool_calls` × ($0.01 + 20k content tokens)), at list price. Thresholds apply to settled cost + open reservations.
+- After the call, the row is settled with actual tokens (cached, cache-write, reasoning), search calls and cost. Flex is discounted only if the response confirms `service_tier == "flex"`.
+- API/connection errors settle at $0; any other failure after the request (e.g. parse error) keeps the worst case.
+- A crashed process leaves a `reserved` row that keeps counting — settle or delete it by hand.
+- Streamlit `app.py` shows spend, committed and the usage log.
 
 ## Local machine notes
 

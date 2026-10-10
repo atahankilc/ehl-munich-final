@@ -1,0 +1,26 @@
+[project]
+name = "bmw-req"
+version = "0.1.0"
+description = "AI-assisted, evidence-linked customer requirements for BMW successor vehicles (hackathon)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "openai",
+    "langgraph",
+    "sqlite-vec",
+    "streamlit",
+    "pydantic",
+    "python-dotenv",
+]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bmw_req"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

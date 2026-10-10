@@ -2,7 +2,7 @@
 
 Hackathon project for the **BMW "AI for Product Decision Making"** challenge: an AI app that turns customer feedback, BMW product/sales data and web research into **prioritized, evidence-linked customer requirements** for successor BMW vehicles, with a **product manager (PM) in the loop** and a **full audit trail**.
 
-**Portfolio-level by design:** multiple models, markets, shared platforms (CLAR, FAAR → Neue Klasse) and plants from day one. The 5 Series (G60 + China LWB G68) is the deepest example; F70 and G70 use the same pipeline. **LLM provider: OpenAI.** Orchestration framework, vector DB, graph, RAG and storage are **not decided yet** (Q-014).
+**Portfolio-level by design:** multiple models, markets, shared platforms (CLAR, FAAR → Neue Klasse) and plants from day one. The 5 Series (G60 + China LWB G68) is the deepest example; F70 and G70 use the same pipeline. **LLM provider: OpenAI.** Stack: Python 3.12/uv, LangGraph, SQLite + sqlite-vec, no graph DB, Streamlit (D-015–D-020).
 
 ## Session start — mandatory
 
@@ -17,7 +17,7 @@ Then read only what your task needs:
 |---|---|
 | Scope, deliverables, what BMW asked | `documents/challenge-brief.md` |
 | BMW data files, counts, quirks | `documents/data-inventory.md` |
-| Stack / tooling (mostly open, Q-014) | `documents/tech-stack.md` |
+| Stack / tooling, budget guard | `documents/tech-stack.md` |
 | Workflow, entities, audit rules | `documents/architecture.md` |
 | Requirement fields, evidence levels, scoring | `documents/requirement-model.md` |
 | Research agents, trust tiers, brand/feasibility checks | `documents/knowledge-base.md` |
@@ -51,7 +51,7 @@ Then read only what your task needs:
 14. **Future, not just past.** Derive what customers will need at successor launch (3–5 yr) from predecessor feedback + competitors + trends; tag horizon, Kano class and assumptions (D-012).
 15. **Living process, not a one-shot list.** ~2-year process: every prioritization run is snapshotted; AI only *proposes* priority/status changes with their cause; PM decides; history is always visible (D-013).
 16. **$100 OpenAI budget, total.** Cheap model (`gpt-6-luna`) for bulk extraction/classification/summaries; `gpt-6.1-sol` only for reasoning-heavy steps; all calls through the budget-guarded wrapper; Flex/Batch + caching; capped web-search calls; pilot before full runs; update the Budget section in `foundation/STATE.md` after paid runs (D-010, thresholds D-014).
-17. **Don't decide architecture alone.** Framework, storage, vector DB, graph and RAG choices (LangChain, LangGraph, …) are discussed with the team first (Q-014). Don't start scaffolding or implementation until the team says so.
+17. **Don't decide architecture alone.** The stack is fixed in D-015–D-020; changing it (new framework, store, LangChain, …) needs the team first. The demo data model is open (Q-017).
 18. **Hackathon pace.** Ship a working demo path end-to-end before polishing; prefer simple, cached, deterministic pipelines over clever ones. Don't build what's not needed for the demo.
 
 ## Quick facts
