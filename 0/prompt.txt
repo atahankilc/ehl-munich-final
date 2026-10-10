@@ -1,0 +1,168 @@
+<task-notification>
+<task-id>b0vxu1ixs</task-id>
+<summary>Monitor event: "G60 extraction progress, spend, failures"</summary>
+<event>3950 verbatims pending → 158 calls, 16 workers; committed $0.0219</event>
+If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn't need one.
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0vxu1ixs</task-id>
+<summary>Monitor event: "G60 extraction progress, spend, failures"</summary>
+<event>[10/158] 75s $0.0009 | run $0.1054 | {'done': 250, 'signals': 336, 'unverified': 3, 'missing': 0, 'invented': 0, 'failed': 0}</event>
+If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn't need one.
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0vxu1ixs</task-id>
+<summary>Monitor event: "G60 extraction progress, spend, failures"</summary>
+<event>[20/158] 142s $0.0008 | run $0.1143 | {'done': 500, 'signals': 708, 'unverified': 9, 'missing': 0, 'invented': 0, 'failed': 0}</event>
+If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn't need one.
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0vxu1ixs</task-id>
+<summary>Monitor event: "G60 extraction progress, spend, failures"</summary>
+<event>[30/158] 155s $0.0008 | run $0.1227 | {'done': 750, 'signals': 1053, 'unverified': 11, 'missing': 0, 'invented': 0, 'failed': 0}</event>
+If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn't need one.
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0vxu1ixs</task-id>
+<summary>Monitor event: "G60 extraction progress, spend, failures"</summary>
+<event>[40/158] 210s $0.0008 | run $0.1309 | {'done': 1000, 'signals': 1378, 'unverified': 11, 'missing': 0, 'invented': 0, 'failed': 0}</event>
+If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn't need one.
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0vxu1ixs</task-id>
+<summary>Monitor event: "G60 extraction progress, spend, failures"</summary>
+<event>[50/158] 261s $0.0008 | run $0.1396 | {'done': 1250, 'signals': 1731, 'unverified': 11, 'missing': 0, 'invented': 0, 'failed': 0}</event>
+If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn't need one.
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0vxu1ixs</task-id>
+<summary>Monitor event: "G60 extraction progress, spend, failures"</summary>
+<event>[60/158] 301s $0.0009 | run $0.1484 | {'done': 1500, 'signals': 2082, 'unverified': 12, 'missing': 0, 'invented': 0, 'failed': 0}</event>
+If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn't need one.
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0vxu1ixs</task-id>
+<summary>Monitor event: "G60 extraction progress, spend, failures"</summary>
+<event>[70/158] 346s $0.0010 | run $0.1564 | {'done': 1750, 'signals': 2409, 'unverified': 14, 'missing': 0, 'invented': 0, 'failed': 0}</event>
+If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn't need one.
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0vxu1ixs</task-id>
+<summary>Monitor event: "G60 extraction progress, spend, failures"</summary>
+<event>[80/158] 388s $0.0008 | run $0.1648 | {'done': 2000, 'signals': 2725, 'unverified': 19, 'missing': 0, 'invented': 0, 'failed': 0}</event>
+If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn't need one.
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0vxu1ixs</task-id>
+<summary>Monitor event: "G60 extraction progress, spend, failures"</summary>
+<event>[90/158] 437s $0.0008 | run $0.1735 | {'done': 2250, 'signals': 3067, 'unverified': 19, 'missing': 0, 'invented': 0, 'failed': 0}</event>
+If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn't need one.
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0vxu1ixs</task-id>
+<summary>Monitor event: "G60 extraction progress, spend, failures"</summary>
+<event>[100/158] 472s $0.0008 | run $0.1814 | {'done': 2500, 'signals': 3375, 'unverified': 20, 'missing': 0, 'invented': 0, 'failed': 0}</event>
+If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn't need one.
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0vxu1ixs</task-id>
+<summary>Monitor event: "G60 extraction progress, spend, failures"</summary>
+<event>[110/158] 522s $0.0009 | run $0.1907 | {'done': 2750, 'signals': 3734, 'unverified': 25, 'missing': 0, 'invented': 0, 'failed': 0}</event>
+If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn't need one.
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0vxu1ixs</task-id>
+<summary>Monitor event: "G60 extraction progress, spend, failures"</summary>
+<event>[120/158] 569s $0.0008 | run $0.1984 | {'done': 3000, 'signals': 4054, 'unverified': 26, 'missing': 0, 'invented': 0, 'failed': 0}</event>
+If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn't need one.
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0vxu1ixs</task-id>
+<summary>Monitor event: "G60 extraction progress, spend, failures"</summary>
+<event>[130/158] 602s $0.0008 | run $0.2070 | {'done': 3250, 'signals': 4407, 'unverified': 27, 'missing': 0, 'invented': 0, 'failed': 0}</event>
+If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn't need one.
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0vxu1ixs</task-id>
+<summary>Monitor event: "G60 extraction progress, spend, failures"</summary>
+<event>[140/158] 656s $0.0008 | run $0.2152 | {'done': 3500, 'signals': 4734, 'unverified': 29, 'missing': 0, 'invented': 0, 'failed': 0}</event>
+If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn't need one.
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0vxu1ixs</task-id>
+<summary>Monitor event: "G60 extraction progress, spend, failures"</summary>
+<event>[150/158] 697s $0.0007 | run $0.1780 | {'done': 3750, 'signals': 5082, 'unverified': 32, 'missing': 0, 'invented': 0, 'failed': 0}</event>
+If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn't need one.
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bscww1fx4</task-id>
+<tool-use-id>toolu_01MCiidee2b7QvMP3JD292eS</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-atahankilic-Documents-ehl-munich-final/ebac716e-a49e-4a69-b2e8-118f31523c1a/tasks/bscww1fx4.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full G60 extraction in background" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0vxu1ixs</task-id>
+<summary>Monitor event: "G60 extraction progress, spend, failures"</summary>
+<event>[Monitor expired after 30m with 16 events delivered. Re-arm it if you still need the watch.]</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0vxu1ixs</task-id>
+<summary>Monitor event: "G60 extraction progress, spend, failures"</summary>
+<event>DONE</event>
+If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn't need one.
+</task-notification>
