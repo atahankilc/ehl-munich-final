@@ -1,0 +1,18 @@
+[theme]
+base = "light"
+primaryColor = "#1c69d4"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f3f5f8"
+textColor = "#1d2733"
+font = "sans-serif"
+baseRadius = "small"
+borderColor = "#dde2e8"
+
+[server]
+runOnSave = false
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"
