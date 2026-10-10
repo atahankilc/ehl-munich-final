@@ -79,9 +79,10 @@ def store(conn, chunk: list[dict], batch, usage_id: int | None, model: str) -> d
 def insert_signal(conn, source_item_id: int, s, quote_verified: bool, usage_id: int | None) -> None:
     conn.execute(
         "INSERT INTO signal (source_item_id, extractor_version, category, topic, feedback_type, severity,"
-        " need_statement, quote, quote_verified, llm_usage_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        " need_statement, quote, quote_verified, llm_usage_id, support_question)"
+        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (source_item_id, EXTRACTOR_VERSION, s.category, s.topic, s.feedback_type, s.severity,
-         s.need_statement, s.quote, int(quote_verified), usage_id),
+         s.need_statement, s.quote, int(quote_verified), usage_id, int(getattr(s, "support_question", False))),
     )
 
 
@@ -94,10 +95,18 @@ def _llm() -> LLM:
     return _local.llm
 
 
-def process(chunk: list[dict], job: str, cap_usd: float, start_usd: float) -> dict:
+def run_committed(conn, job: str, first_id: int) -> float:
+    """Committed spend of this run only (its job, rows after the run started) — other jobs running in
+    parallel must not trip this run's cap."""
+    return conn.execute(
+        """SELECT COALESCE(SUM(CASE WHEN status = 'reserved' THEN reserved_usd ELSE cost_usd END), 0) FROM llm_usage
+           WHERE job = ? AND id > ?""", (job, first_id)).fetchone()[0]
+
+
+def process(chunk: list[dict], job: str, cap_usd: float, first_id: int) -> dict:
     llm = _llm()
     for attempt in range(RETRIES):
-        if budget.committed_usd(llm.conn) - start_usd > cap_usd:
+        if run_committed(llm.conn, job, first_id) > cap_usd:
             raise BudgetExceeded(f"run cap ${cap_usd} reached")
         try:
             batch, res = extract_batch(llm, chunk, job=job)
@@ -124,13 +133,14 @@ def main():
     todo = pending(conn, args.derivative, ids)
     chunks = [todo[i:i + BATCH_SIZE] for i in range(0, len(todo), BATCH_SIZE)]
     start = budget.committed_usd(conn)
+    first_id = conn.execute("SELECT COALESCE(MAX(id), 0) FROM llm_usage").fetchone()[0]
     print(f"{len(todo)} verbatims pending → {len(chunks)} calls, {args.workers} workers; committed ${start:.4f}", flush=True)
     job = f"extract:{args.derivative}:{EXTRACTOR_VERSION}"
 
     t0 = time.time()
     totals = {"done": 0, "signals": 0, "unverified": 0, "missing": 0, "invented": 0, "failed": 0}
     with ThreadPoolExecutor(args.workers) as pool:
-        futures = [pool.submit(process, c, job, args.cap_usd, start) for c in chunks]
+        futures = [pool.submit(process, c, job, args.cap_usd, first_id) for c in chunks]
         for n, f in enumerate(as_completed(futures), 1):
             try:
                 r = f.result()
@@ -152,7 +162,7 @@ def main():
             totals["unverified"] += r["unverified_quotes"]
             totals["missing"] += len(r["checks"]["missing_ids"])
             totals["invented"] += len(r["checks"]["invented_ids"])
-            print(f"[{n}/{len(chunks)}] {time.time() - t0:.0f}s ${r['cost']:.4f} | run ${budget.committed_usd(conn) - start:.4f}"
+            print(f"[{n}/{len(chunks)}] {time.time() - t0:.0f}s ${r['cost']:.4f} | run ${run_committed(conn, job, first_id):.4f}"
                   f" | {totals}", flush=True)
     print(f"DONE in {time.time() - t0:.0f}s: run spend ${budget.spent_usd(conn) - (start):.4f}, "
           f"total spent ${budget.spent_usd(conn):.4f}, committed ${budget.committed_usd(conn):.4f} | {totals}", flush=True)

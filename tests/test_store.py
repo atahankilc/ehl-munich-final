@@ -76,7 +76,7 @@ def test_extraction_store_flags_quotes_and_skips_invented(conn):
                  " VALUES ('feedback', 'f#2', 'G60-2', 'G60', 'love it', '{\"engine\": \"ICE\"}')")
     chunk = pending(conn, "G60", None)
     assert [v["id"] for v in chunk] == ["G60-1", "G60-2"]
-    sig = dict(category="Comfort & Space", topic="Seats", feedback_type="complaint", severity="low", need_statement="n")
+    sig = dict(category="Comfort & Space", topic="Seats", feedback_type="complaint", severity="low", need_statement="n", support_question=False)
     batch = BatchResult.model_validate({"results": [
         {"verbatim_id": "G60-1", "in_scope": True, "out_of_scope_reason": None, "signals": [
             {**sig, "quote": "the seats are hard"}, {**sig, "quote": "he said the seats are hard"}]},
@@ -100,7 +100,7 @@ def test_recheck_flips_with_audit_and_confirms(conn):
     chunk = recheck.pending(conn, "G60")
     assert len(chunk) == 2
     sig = dict(category="Range & Charging", topic="DC charging", feedback_type="complaint", severity="medium",
-               need_statement="n", quote="only charges to 80%")
+               need_statement="n", quote="only charges to 80%", support_question=False)
     batch = BatchResult.model_validate({"results": [
         {"verbatim_id": "G60-1", "in_scope": True, "out_of_scope_reason": None, "signals": [sig]},
         {"verbatim_id": "G60-2", "in_scope": False, "out_of_scope_reason": "dealer only", "signals": []},

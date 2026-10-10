@@ -61,7 +61,8 @@ class LLM:
         if tools and not max_tool_calls:
             raise ValueError("Calls with tools need max_tool_calls (D-014 web-search cap)")
         model = self.model_for(tier)
-        key = _cache_key(model, instructions, input, schema, reasoning_effort, tools, max_tool_calls, max_output_tokens, kwargs)
+        key = kwargs.pop("_cache_key_override", None) or _cache_key(
+            model, instructions, input, schema, reasoning_effort, tools, max_tool_calls, max_output_tokens, kwargs)
         if use_cache:
             hit = self.conn.execute("SELECT output_text FROM llm_cache WHERE key = ?", (key,)).fetchone()
             if hit is not None:
@@ -94,6 +95,13 @@ class LLM:
         except (openai.APIStatusError, openai.APIConnectionError) as e:
             # Request rejected or never reached the API: not billed.
             budget.settle(self.conn, usage_id, status="failed", cost_usd=0.0, error=repr(e)[:2000])
+            if flex and isinstance(e, openai.RateLimitError) and "flex" in str(e).lower():
+                # Flex capacity unavailable: retry once on standard processing (2× price, still reserved + logged).
+                return self.generate(
+                    job=job, tier=tier, input=input, max_output_tokens=max_output_tokens, instructions=instructions,
+                    schema=schema, reasoning_effort=reasoning_effort, tools=tools, max_tool_calls=max_tool_calls,
+                    flex=False, demo=demo, use_cache=use_cache, _cache_key_override=key, **kwargs,
+                )
             raise
         except Exception as e:
             # Response may have been billed (e.g. structured-output parse failure): keep the worst case.

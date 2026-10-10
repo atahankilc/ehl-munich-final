@@ -1,4 +1,5 @@
-"""Verbatim signal extraction (luna, structured output). v2 = Q-018 fixes after the D-014 pilot."""
+"""Verbatim signal extraction (luna, structured output). v2 = Q-018 fixes after the D-014 pilot;
+v3 = one consistent scope rule for mixed verbatims and support-call questions (Q-020, D-024)."""
 
 import json
 import re
@@ -8,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from bmw_req.llm import LLM
 
-EXTRACTOR_VERSION = "extract-v2"
+EXTRACTOR_VERSION = "extract-v3"
 
 Category = Literal[
     "Exterior", "Interior", "Comfort & Space", "Infotainment & Digital", "Driving Experience",
@@ -24,6 +25,9 @@ class Signal(BaseModel):
     severity: Literal["low", "medium", "high"]
     need_statement: str = Field(description="The underlying customer need, solution-neutral, one sentence")
     quote: str = Field(description="Exact substring of the verbatim that supports this signal")
+    support_question: bool = Field(
+        description="True if the signal only shows the customer needed help or asked how a function works"
+    )
 
 
 class VerbatimResult(BaseModel):
@@ -43,8 +47,15 @@ For EVERY verbatim in the input return exactly one result with its verbatim_id.
 Extract each distinct customer signal (a verbatim can contain several, or none).
 
 Scope: customer-facing topics only. Out of scope: dealer/service/sales experience, pricing, financing,
-regulatory/homologation, engineering/component specifications. If a verbatim has only out-of-scope content
-or no usable content, set in_scope=false, give out_of_scope_reason and return no signals.
+regulatory/homologation, engineering/component specifications. Many verbatims mix out-of-scope content
+(dealer, service, recall handling, charging network) with a real product signal: extract every in-scope
+signal even if most of the verbatim is out of scope. If a verbatim has only out-of-scope content or no usable
+content (e.g. generic praise without a topic, unspecified "some issues"), set in_scope=false, give
+out_of_scope_reason and return no signals.
+
+Support questions: when the customer asked how a vehicle function works, or needed help to set it up
+(e.g. "Customer asked which regen setting to use"), extract a difficult_to_use signal with severity low
+and support_question=true. It is weak usability evidence. For every other signal support_question=false.
 
 feedback_type:
 - like: praise.
