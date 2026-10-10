@@ -63,7 +63,7 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 
 ## Next up (suggested order)
 
-- Validation (2026-10-10, `documents/validation-report.md`): duplicates fixed (D-035); Q-021 prompt part and Q-023 customer-voice gap addressed by D-038 — confirm and close them; thin future orientation (42/53 `today`).
+- Validation (2026-10-10, `documents/validation-report.md`): duplicates fixed (D-035); Q-021 and Q-023 closed by D-038, leftovers in Q-024; thin future orientation (42/53 `today`).
 
 0. Fill in Team & logistics (Q-007, Q-008); rehearse the demo path above.
 1. Ask BMW mentors: Q-005, Q-006, Q-015, Q-016 (Q-010 is now decided as non-blocking, D-030 — confirm).
@@ -148,3 +148,4 @@ Update the budget table after every paid run. Once the app exists, the source of
 - 2026-10-10 — PM app restructured for comprehension (D-036, Atahan: "I understand nothing from the frontend"): new Home, guided Review queue, Priorities-by-market board, plain-language labels (5 Series · USA, Strong evidence, Expected/Differentiator), wave stepper moved to Home, demo tour, trust-tier chart fixed, sidebar grouped Start here / Explore & trace / Under the hood. No pipeline or data change, no LLM spend. Tested with AppTest + browser on a throwaway copy, demo state restored. Not committed.
 - 2026-10-11 — "How it works" page (D-037, Atahan: show how data is handled step by step and how decisions are made): one requirement × car · market traced through 8 steps, each with the rule for all data (actor, model, live counts, AI spend) beside what it did to this requirement (real comment, extracted signal, theme, draft with evidence vs assumption, fit verdicts, score waterfall with bands, PM decisions, score across waves). Linked from Home, Review and the demo tour (now 8 steps). Read-only, no pipeline/schema change, no LLM spend. AppTest + browser on a DB copy; 47 tests pass. Not committed.
 - 2026-10-11 — Requirements as product decisions (D-038, Atahan's review of REQ-0006: defect restated as requirement, merged unrelated needs, China Must 72 with zero comments): defect-dominated pains → Quality hand-over page (`ui/quality.py`, CSV); derive-v7 requires a `product_decision`; strict merging in consolidation/dedup/linker; score-v3 (borrowed comment rate ×0.5, cap at best comment-backed market unless own study gap + competitor pressure, E3 0.75 / E4 0.5, one priority for Kano-basic). Demo DB: 39 requirements, 3 runs, 1,618 audit events; spend unchanged at $7.37. 50 tests pass. D-037 + D-038 committed and pushed (9d75545).
+- 2026-10-11 — Q-021 and Q-023 closed (D-038, Atahan); the parts D-038 didn't cover (proposals for evidence on decided requirements, web contradictions in the score) moved to Q-024.

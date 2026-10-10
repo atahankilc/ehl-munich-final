@@ -56,17 +56,20 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
   - But "safety" is out of scope (regulatory).
 - Working line (not decided): ADAS *experience* (usability, availability, comfort, trust) is in; safety/homologation performance is out.
 
-### Q-021 — Should the evidence linker change evidence of PM-decided requirements directly?
+### Q-024 — Leftovers from Q-021/Q-023 (evidence changes on decided requirements, web contradictions)
 - Owner: team · not blocking
-- Context: each wave the linker (luna) adds study/web links to ALL non-rejected requirements, including approved ones (e.g. REQ-0001, approved in wave 1, gained links in waves 2 and 3). AGENTS rule 5/6 and the brief list evidence changes as decision-relevant. It also over-links tangential web findings (REQ-0001 "tactile controls" got "A3 material quality", "EX30 comfort", "Japanese voice recognition" as supports), which inflates competitive pressure.
-- Options: (a) keep, (b) for approved/deferred requirements create `link_finding` change proposals instead, (c) b + a stricter relevance prompt / sol re-check for web links. Recommendation: (c).
-
-### Q-023 — Customer-voice factor barely separates markets
-- Owner: team · not blocking
-- Context: shrinkage (K = 150) toward the requirement's derivative-wide rate plus the log transform: targets with 0–2 verbatims get a median customer-voice value of 0.36 (max 0.54) vs 0.69 for 50+. E.g. REQ-0018 G60×EU, 1 of 91 verbatims → 0.54, and the rationale says "driven by customer voice". This blurs D-011 (markets are different customers).
-- Options: shrink toward a market-level baseline (all requirements in that market) instead of this requirement's other markets; or lower K; or show the borrowed share explicitly in the rationale. Contradicting findings also never lower a score (only text) — decide whether they should reduce confidence.
+- Context: D-038 closed most of Q-021 and Q-023. Two parts are still open:
+  - **Q-021 (b):** the linker still adds links to approved/deferred requirements directly in each wave. Rules 5/6 and the brief count evidence changes as decision-relevant, so they could become `link_finding` change proposals for the PM instead.
+  - **Q-023, contradictions:** web findings with `contradicts=true` still don't affect the score; only `supports` count. Study items already work both ways through the z-score.
+- Options: (a) leave both as they are and show them in the text only; (b) proposals for decided requirements plus a confidence cut when contradicting web evidence exists. Recommendation: (b), if there's time before the demo.
 
 ## Resolved
+
+### Q-021 — Linker over-linking → **same need, not same theme (option c, prompt part)** (D-038)
+- Atahan 2026-10-11: closed. The linker prompt now links only evidence about the same need and says that every web link raises the score. Still open: evidence on approved requirements becomes a proposal instead of a direct change (option b) → Q-024.
+
+### Q-023 — Customer voice barely separates markets → **score-v3: borrowed rate ×0.5, capped at the best comment-backed market** (D-038)
+- Atahan 2026-10-11: closed. A market without its own comment base borrows the line's rate at ×0.5, labelled "borrowed". It can't outrank the requirement's best comment-backed market unless it has its own study gap and competitor pressure. E3/E4 confidence cuts are stricter. Still open: contradicting web evidence lowering the score → Q-024.
 
 ### Q-022 — Cross-line duplicates from later waves → **dedup against the whole backlog, `extend` proposals** (D-035)
 - Atahan 2026-10-10: "fix the duplicates and rebuild the demo". Demo 53 → 39 requirements.
