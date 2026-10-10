@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KSHYH29KGBRGAX7682DZFB",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "src/bmw_req/ingest/common.py",
+    "src/bmw_req/ingest/options.py",
+    "src/bmw_req/ingest/sales.py",
+    "src/bmw_req/ingest/study.py",
+    "src/bmw_req/reference_data.py",
+    "src/bmw_req/research/agents.py",
+    "src/bmw_req/research/findings.py",
+    "src/bmw_req/research/plan.py",
+    "src/bmw_req/research/run.py",
+    "tests/test_ingest_data.py",
+    "tests/test_research.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 298,
+    "cache_creation_tokens": 651709,
+    "cache_read_tokens": 37601085,
+    "output_tokens": 167794,
+    "api_call_count": 149
+  }
+}
