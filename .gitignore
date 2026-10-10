@@ -1,1 +1,12 @@
 .idea
+challange information document
+
+# Secrets & local envs
+.env
+.env.*
+!.env.example
+.venv/
+node_modules/
+__pycache__/
+*.db
+.DS_Store
