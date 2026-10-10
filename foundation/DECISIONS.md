@@ -29,6 +29,16 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-021 | Demo slice G60 × US + G68 × CN; demo table set (Q-017) | accepted |
 | D-022 | Extraction v2 (Q-018 fixes) + `signal` / `verbatim_extraction` tables | accepted |
 | D-023 | Q-019 re-check of out-of-scope verdicts with sol; signal provenance column | accepted |
+| D-024 | Extraction v3: one scope rule, `support_question` flag (resolves Q-020) | accepted |
+| D-025 | Verbatim findings: embeddings + agglomerative clustering (0.35), per-market/per-wave metrics | accepted |
+| D-026 | Study, sales and option-list ingest; one study finding per item with z-score | accepted |
+| D-027 | Simulated ingest waves 1–3, LangGraph wave orchestrator (resolves Q-012) | accepted |
+| D-028 | Derivation v3 (sol), evidence linker, portfolio consolidation across lines | accepted |
+| D-029 | Scoring v1: weights, renormalization over available factors, gates, bands (resolves Q-004) | accepted |
+| D-030 | Feasibility is non-blocking realization context (resolves Q-010, option b) | accepted |
+| D-031 | Reference layer + web research agents with citation-filtered URLs and quote verification | accepted |
+| D-032 | PM app: Streamlit pages over one service layer; access events logged | accepted |
+| D-033 | Wrapper falls back from Flex to standard when Flex is unavailable; per-job run caps | accepted |
 
 Keep this index in sync when adding a decision.
 
@@ -330,3 +340,50 @@ Template:
   - New column `signal.llm_usage_id` (call/model that produced each signal), backfilled for existing signals; small column-migration helper in `db.py`.
 - Consequences: first-pass and re-check signals are distinguishable via `llm_usage.job`. The re-check used a looser rule than the first pass for "customer asked how X works" verbatims → Q-020.
 
+
+## D-024 — Extraction v3: one scope rule for all derivatives (resolves Q-020)
+- Date: 2026-10-10
+- Decided by: agent (Atahan delegated full authority over the challenge on 2026-10-10: "you are the sole competitor")
+- Status: accepted
+- Context: Q-020. v2 + sol re-check treated support-call questions differently depending on the pass; F70/G70 were not extracted yet, so the cheapest moment to make it consistent was before the full runs (Q-020 option c).
+- Decision: `extract-v3` for all 10,128 verbatims: mixed verbatims → extract every in-scope part; support-call questions → `difficult_to_use`, severity low, `support_question = 1`; generic praise or unspecified "issues" → out of scope. Scoring weights support questions ×0.5 (option a). v2 rows stay for comparison; everything downstream uses v3.
+- Validation: 50-verbatim check incl. 25 recheck flips; benchmark vs BMW labels (`scripts/benchmark_extraction.py`, aggregates only): G60 macro recall v2 0.707 / v3 0.693, lenient recall unchanged; v3 in-scope 91% vs 96% — the 213 newly excluded verbatims are mostly BMW "overall technology" likes and unclassified rows (generic praise), accepted.
+- Cost: ≈ $0.31 for all three derivatives (luna Flex).
+
+## D-025 — Verbatim findings by clustering
+- Date: 2026-10-10 · Decided by: agent · Status: accepted
+- Decision: signals embedded (`text-embedding-3-small`, `signal_embedding` vec table, rowid = signal.id); agglomerative clustering (cosine, average linkage, distance threshold 0.35) within derivative × polarity (improve vs like) × category; clusters with ≥ 3 distinct verbatims become findings (`finding_signal`, `finding_source` with the best quote per verbatim); luna labels title/summary/type/coherence. Findings span the derivative's markets; `metrics_json.by_wave[w].markets[m]` holds verbatims, share of that market's in-scope base, severity-weighted count, types, channels, engines.
+- Threshold sweep on G60 (0.30–0.50): 0.35 → 243 findings, 93% signal coverage, mean centroid cohesion 0.88. Result: G60 243, F70 166, G70 see STATE.
+- Consequence: findings are never rebuilt in place once requirements link to them (the CLI refuses).
+
+## D-026 — Study, sales, option-list ingest; study findings
+- Date: 2026-10-10 · Decided by: agent · Status: accepted
+- Decision: deterministic ingest (`bmw_req.ingest.study/sales/options`); study → `study_metric` with z-score/rank within each model × market column (CN/EU means, US net top2−bottom3); one `finding` per study item (`satisfaction_gap` z ≤ −0.8, `satisfaction_strength` z ≥ 0.8, else `satisfaction_level`) — only notable ones are shown to derivation, all can be linked by the evidence linker. Option lists: luna turns DE price-list pages into 458 equipment items, every source line verified against the page text ($0.02). US/CN equipment = DE is an assumption. F70 China 2024 sales cell is a formula with value 0 (noted).
+
+## D-027 — Simulated ingest waves and wave orchestrator (resolves Q-012)
+- Date: 2026-10-10 · Decided by: agent · Status: accepted
+- Decision: `source_item.wave`: feedback split 50/50 per derivative × channel × market stratum (seed 2026); wave 1 = first half + 2024 sales + option lists + reference + baseline web; wave 2 = second half + customer study + 2025/2030 sales; wave 3 = "market event" web research (2026 launches). Labelled as a simulation everywhere. `bmw_req.pipeline.graph` (LangGraph): open_wave → derive → link_evidence → fit_checks → prioritize. Clusters are computed on all data; a finding is visible from its first wave with wave-specific metrics (documented leak of cluster structure, not of counts).
+
+## D-028 — Derivation v3, evidence linker, portfolio consolidation
+- Date: 2026-10-10 · Decided by: agent · Status: accepted
+- Decision: sol (high effort, Flex) per vehicle line gets top-110 pain/want + top-30 strength findings with per-market metrics, notable study findings, web findings, market profiles, brand guardrails, sales and existing requirements; proposes NEW requirements only (incremental). Every cited finding/target validated; drafts without valid evidence dropped. derive-v3 prompt fixes after the dry run: incremental effort scale and evidence-based market targeting (v2 put nearly every requirement on every market and rated most effort L). Wave 1 drafts of all lines are consolidated by sol into portfolio requirements where the same need appears in several lines. After derivation the luna evidence linker attaches study items (relation from z: supports/contradicts/context) and web findings per target market.
+
+## D-029 — Scoring v1 (resolves Q-004)
+- Date: 2026-10-10 · Decided by: agent · Status: accepted
+- Decision: per target score = 100 × (Σ wᵢ·vᵢ / Σ wᵢ over factors WITH data) × confidence(E1 1.0 / E2 0.92 / E3 0.8 / E4 0.65) + market-fit modifier (+2/−5/−10) + effort (S 0 / M −3 / L −6), clipped 0–100. Default weights: customer voice 30, satisfaction gap 15, market volume 15, competitive pressure 15, future relevance 15, portfolio leverage 10 (PM-editable, versioned). Missing factors are renormalized and shown as explicit evidence gaps (fixes the CN bias); the evidence level keeps confidence honest. Brand fit is a gate only (no double counting). Bands Must ≥ 60, Should ≥ 45, else Could. Evidence level per target is deterministic (verbatim count/channels, study support, T1/T2 web). AI proposes priorities; a PM-confirmed priority that a later run would change becomes a `change_proposal` with the factor-level cause.
+
+## D-030 — Feasibility is non-blocking realization context (resolves Q-010)
+- Date: 2026-10-10 · Decided by: agent · Status: accepted
+- Decision: option (b). BMW lists "architecture" as out of scope and the platform/plant data is partly trade-press; feasibility is checked and shown ("realization context") but never blocks approval and is not a score factor. Brand fit `fail` still blocks approval unless a PM overrides with a rationale.
+
+## D-031 — Reference layer and web research agents
+- Date: 2026-10-10 · Decided by: agent · Status: accepted
+- Decision: curated reference data (`bmw_req/reference_data.py`) loaded with one `source_item(kind=reference)` per cited original source (96; 21 flagged unverified); platforms, plants, production, 21 competitor models, market profiles, BMW guardrails (status "proposed — PM sign-off needed"). Research agents (competitor scout, review miner, trend scout, market profile, market analyst; luna + web_search, ≤ 4 calls/task) return structured evidence; an item is kept only if its URL is among the response's citations (10 dropped), quotes verified by fetching the page where possible (131 verified). 41 tasks (6 tagged wave 3). Web findings grouped per derivative × market by luna (152). Spend $1.69.
+
+## D-032 — PM app
+- Date: 2026-10-10 · Decided by: agent · Status: accepted
+- Decision: Streamlit app (`app.py`, `ui/`), 11 pages (overview, portfolio, backlog, requirement detail, change inbox, market conflicts, findings explorer, weights & runs, audit trail, export, budget). All writes go through `bmw_req.service` (rationale + named actor mandatory, append-only audit). View and export are logged as access events. Challenge = sol answer over linked evidence + semantic search; its edits become change proposals.
+
+## D-033 — Flex fallback and per-job run caps
+- Date: 2026-10-10 · Decided by: agent · Status: accepted
+- Decision: on `429 flex_unavailable` the wrapper settles the reservation at $0 and retries once on standard processing (same cache key). Run caps in `run_extract` count only the run's own job, so parallel jobs can't trip them (a G60 run aborted for that reason).

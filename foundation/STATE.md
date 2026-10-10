@@ -4,15 +4,12 @@ _Last updated: 2026-10-10_
 
 ## Current phase
 
-**Phase 1 — Scaffolding (started 2026-10-10).**
-- Core direction decided: portfolio-level architecture, OpenAI, web-enriched knowledge base, brand-fit and plant/platform feasibility gates, per-market scoring, future-need projection, continuous re-prioritization, $100 model budget.
-- Stack decided (D-015–D-020): LangGraph, SQLite + sqlite-vec, no graph DB, Streamlit, Python 3.12/uv.
-- Scaffold in place: `pyproject.toml`, `src/bmw_req/` (config, SQLite, budget-guarded OpenAI wrapper with `llm_usage`), Streamlit `app.py` (budget view), 12 guard tests (no paid calls).
-- Demo slice + tables decided (D-021): full demo schema built, G60 feedback ingested (4,000 verbatims, counts match `data-inventory.md`).
-- Pilot run 2026-10-10: $0.0201 total, all quality checks passed except 1 paraphrased quote (see Pilot results).
-- Q-018 fixes applied (D-022, extract-v2) and full G60 extraction done: 4,000 verbatims → 5,400 signals, $0.1348, 0 failures (see G60 extraction results).
-- Q-019 re-check done (D-023): 111/268 out-of-scope verbatims flipped back, +118 signals → 5,518 total, $0.1342.
-- **Next: Q-020 decision (support-call signals), then findings (cluster signals per market), then requirement derivation for G60 × US.**
+**Phase 2 — End-to-end demo built (2026-10-10).** Atahan delegated the whole challenge to the agent ("full power, sole competitor").
+- Evidence layer complete: 10,128 verbatims (extract-v3, D-024), customer study (391 items), sales, option lists (458 items), reference layer (96 cited sources), web research (219 cited items, 152 web findings).
+- Findings: verbatim clusters G60 243 · F70 166 · G70 242 (D-025), 391 study findings (D-026).
+- Requirements pipeline: derivation (sol, derive-v5) → portfolio consolidation → evidence linker → fit checks → scoring v2 → change proposals, orchestrated per simulated wave (LangGraph, D-027–D-029).
+- PM app (Streamlit, 11 pages, D-032) with approve/reject/defer/edit/challenge/override/priority/inbox, audit trail, export.
+- Demo states via `scripts/demo_state.py` + `scripts/demo_build.py` (snapshots `evidence`, `wave1`, `demo`).
 
 ## Team & logistics (fill in — Q-007, Q-008)
 
@@ -59,26 +56,24 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 
 - Nothing.
 
+## Demo (how to run)
+
+- `uv run streamlit run app.py`. DB holds the full `demo` state; `uv run python scripts/demo_state.py restore wave1` for a live PM review from scratch (stop the app first). Rebuild: `scripts/demo_build.py`.
+- Story: Overview (workflow, funnel) → Portfolio → Backlog G60×US / G68×CN / G60×EU → Requirement REQ-0001 (evidence vs assumption, score breakdown, evidence chain, fit, decision, audit) → Change inbox (wave 2/3 proposals) → Market conflicts → Weights & runs (re-rank live, free) → Audit trail → Export.
+
 ## Next up (suggested order)
 
-0. Fill in Team & logistics.
-1. Ask BMW mentors: Q-005 (sources), Q-006 (scales + sample sizes), Q-010 (feasibility framing), Q-015 (sales volumes real?), Q-016 (ADAS scope).
-2. ~~Architecture discussion (Q-014)~~ → done, D-015–D-020.
-3. ~~Q-017~~ → D-021: demo slice G60 × US + G68 × CN; schema built.
-4. ~~Scaffold + budget-guarded wrapper~~ → done. `OPENAI_API_KEY` is in `.env` (Atahan). Atahan still to confirm the $95 OpenAI project limit + $45 alert. Next: the pilot (D-014: 50 verbatims + 5 requirements).
-5. Reference layer: load brands, segments, platforms, plants, production and sales from the seed docs (with source IDs) into SQLite (D-016).
-6. Ingest BMW data: G60 feedback done. Still to do: customer study, sales, option list; F70/G70 feedback; waves (Q-012).
-7. Signal extraction, market-segmented → findings with sources (LangGraph pipeline, D-015).
-8. Research agents (competitor, market, review, trend, market profile) → web evidence.
-9. Requirement derivation + future-need projection → fit checks → per-market scoring → prioritization runs + change proposals.
-10. PM review UI + audit trail + export.
-11. Demo script (multi-wave, shows re-prioritization over time).
+0. Fill in Team & logistics (Q-007, Q-008); rehearse the demo path above.
+1. Ask BMW mentors: Q-005, Q-006, Q-015, Q-016 (Q-010 is now decided as non-blocking, D-030 — confirm).
+2. PM sign-off of the proposed brand guardrails (D-031) — they gate approval.
+3. Quality levers (benchmarks in `data/eval/`): judge "measurable" (3.5) and "evidence-grounded" (3.6) are the weakest dimensions; top-20 pain coverage 65–75% after wave 1 (rest picked up in waves 2/3).
+4. Optional: async/background wave runs in the UI (currently blocking), wave-3 derivation cap (it still adds ~11 requirements).
 
 ## Budget (OpenAI, $100 total — plan in D-014)
 
 | Item | Value |
 |---|---|
-| Spent to date | **$0.2891** (pilot $0.0201 + G60 extraction $0.1348 + Q-019 re-check $0.1342, 2026-10-10). Source of truth: `llm_usage` in `data/app.db` / Streamlit page |
+| Spent to date | **$6.86** (2026-10-10): derivation $2.38 (incl. prompt iterations v2–v6, 4 wave-1 runs, waves 2–3 ×2), web research $1.69, fit checks $0.55, extraction $0.52, linker $0.23, recheck $0.13, benchmarks $0.09, challenge $0.08, consolidation $0.08, other $0.12, **plus a $1.00 reconciliation row** (usage rows lost in a failed demo restore, upper-bound estimate; bug fixed). Source of truth: `llm_usage` / Budget page |
 | Planned build spend | ≈ $60 (≈ $48 + 25% contingency) |
 | Warn / block non-demo / app hard stop | $45 / $70 / $90 |
 | Demo-day reserve | $20 ($70 → $90) |
@@ -145,3 +140,4 @@ Update the budget table after every paid run. Once the app exists, the source of
 - 2026-10-10 — Committed db695bd. Pilot (D-014) run: extraction (luna) + derivation (sol) modules, `scripts/pilot.py`; $0.0201 spent; results + re-estimate in STATE; Source D note corrected (Q-005, data-inventory); Q-018 opened for schema fixes. Pilot code not committed yet.
 - 2026-10-10 — Committed e7cabd9 (pilot). Q-018 → D-022 (extract-v2: `complaint` type, category definitions, quote check, no implicit cache writes; `signal`/`verbatim_extraction` tables; parallel runner). Full G60 extraction: 5,400 signals, $0.1348, 0 failures. Total spent $0.1549. Q-019 opened (out-of-scope over-exclusion). Not committed.
 - 2026-10-10 — Committed ed747bf. Q-019 re-check (D-023): signal provenance column + migration, recheck module; 111/268 flipped, +118 signals, $0.1342 (est. was $0.05); first attempt tripped own run cap (no calls made), re-run OK. Total spent $0.2891. Q-020 opened (support-call questions as evidence). Not committed.
+- 2026-10-10 — Full delegation from Atahan ("sole competitor"). Built the end-to-end demo: extract-v3 for all 10,128 verbatims (D-024, resolves Q-020); study/sales/option-list ingest (D-026); reference layer + web research agents (D-031, subagent); clustering findings (D-025); simulated waves + LangGraph orchestrator (D-027, Q-012); derivation v6 + consolidation + evidence linker (D-028); scoring v2 with shrinkage (D-029, Q-004); feasibility non-blocking (D-030, Q-010); Streamlit PM app, 11 pages (D-032, subagent); Flex fallback (D-033). Benchmarks: extraction vs BMW labels, requirement judge 3.83 → 4.26 → 4.02 (coverage 0.48 → 0.70), scoring robustness tau 0.93–0.96. Demo: 53 requirements, 165 targets, 3 runs, 1,632 audit events. Spent $6.86 total. 44 tests pass.

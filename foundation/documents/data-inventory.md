@@ -71,6 +71,7 @@ Sheets `F70`, `G60_G68`, `G70`; columns `market, market_code, volume_2024, volum
 | G60/G68 | 115k | 75k | 78k | 28k | 278.6k → 296k → 316k |
 | G70 | 13k | 10k | 12k | 7k | 34k → 42k → 52k |
 
+- The F70 sheet's China 2024 cell (C3) is a **formula** (`=-D3-C10`) with cached value 0, not a typed number (found at ingest 2026-10-10; stored as 0, formula kept in metadata).
 - **No powertrain split**, although `data_and_source.png` says "units by powertrain and region". Engine mix can only be inferred from feedback.
 - `G60_G68` is one combined sheet, with no G60/G68 split. CN is presumably the G68 LWB.
 - **Values look stylized and conflict with public data** (Q-015):

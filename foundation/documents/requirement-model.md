@@ -1,6 +1,6 @@
 # Requirement Model, Evidence Levels & Prioritization
 
-**Status: DRAFT v3** (adds per-market scoring D-011, future needs D-012, continuous re-prioritization D-013) — prioritization weights still open (Q-004).
+**Status: v4 — as built** (scoring v1, D-029, resolves Q-004; evidence levels computed per target; feasibility non-blocking D-030). Code: `bmw_req/pipeline/scoring.py`.
 
 ## Requirement fields (all required by BMW deliverable + our additions)
 
@@ -31,31 +31,42 @@
 | **E3 Weak** | Few verbatims or external-only (T2/T3) |
 | **E4 Assumption** | Forward-looking trend/expectation without current customer evidence |
 
-## Gates (before scoring counts)
+## Gates
 
-- **Brand fit = fail** → requirement cannot be approved for that target without a PM override + rationale.
-- **Feasibility = fail** (no platform/plant can deliver it for that market in time) → same.
-- `warn` results lower the score via the confidence factor and are shown prominently.
+- **Brand fit = fail** → the requirement cannot be approved without a PM override + rationale (`service.override_gate`).
+- **Feasibility** = realization context only (D-030): checked and shown, never blocking, not scored.
+- Fit checks: luna first, every warn/fail re-checked by sol (final verdict). `market` fit feeds a score modifier.
 
-## Prioritization (draft, explainable weighted score; base weights sum to 100 — final range and the known issues are open in Q-004)
+## Evidence level (per target, deterministic)
 
-| Factor | Signal | Default weight |
+| Level | Rule (verbatims = distinct verbatims of the target's derivative × market behind supporting findings) |
+|---|---|
+| E1 | ≥ 20 verbatims from ≥ 2 channels AND (study gap supports it OR a T1/T2 web finding) |
+| E2 | ≥ 15 verbatims, OR ≥ 3 verbatims + study/T1–T2 web, OR study + T1–T2 web |
+| E3 | any verbatim, study item or web finding |
+| E4 | nothing but assumptions |
+
+The requirement-level `evidence_level` = best target level.
+
+## Prioritization (scoring v1, D-029)
+
+`score = 100 × Σ wᵢ·vᵢ / Σ wᵢ (over factors WITH data for this target) × confidence + market-fit modifier + effort modifier`, clipped 0–100.
+
+| Factor (vᵢ ∈ 0–1) | Default weight | How |
 |---|---|---|
-| Customer pain / desire | dedup'd verbatim frequency, share of segment, severity (Defect/DTU > Want) | 25 |
-| Satisfaction gap | low study score / bottom-box vs. other models & categories | 15 |
-| Market volume & momentum | sales volume of this derivative × market, 2030 growth, share under pressure (e.g. China) | 15 |
-| Market-profile fit | how strongly climate, usage and culture of this market amplify the need (e.g. rear-seat comfort in CN chauffeur use, seat ventilation in hot climates) | modifier ±10 |
-| Competitive pressure | competitors in segment × market offer it / reviews cite it | 15 |
-| Portfolio leverage | number of derivatives/markets benefiting on same platform (carry-over) | 10 |
-| Future relevance | trend strength 3–5 yr, Kano drift, NK timing | 10 |
-| Evidence freshness | decay on old evidence unless re-confirmed (D-013) | multiplier 0.7–1.0 |
-| Brand & segment fit | strength of fit (pass strong / pass / warn) | 10 |
-| Evidence confidence | multiplier by evidence level | ×(1.0 / 0.85 / 0.7 / 0.5) |
-| Rough effort (optional) | S/M/L penalty (carry-over cheaper than derivative-specific) | −0…10 |
+| Customer voice | 30 | severity-weighted share of the market's in-scope feedback behind the supporting verbatim findings (log-saturating); support questions ×0.5; **no data** if the market has < 30 in-scope verbatims (CN, G70 EU) |
+| Satisfaction gap | 15 | linked study items for this model × market: −z/2 (pain) or +z/2 (must-not-lose); **no data** before wave 2 / without a linked item |
+| Market volume | 15 | BMW sales file (relative only, Q-015): 0.75 × units / max units + 0.25 × 2030 momentum |
+| Competitive pressure | 15 | tier-weighted sources of linked competitor-advantage / review-criticism web findings for the market (4 = saturated) |
+| Future relevance | 15 | horizon (today 0.3 / successor 0.6) + Kano drift to basic (+0.2) + trend/expectation findings (+0.1 each, ≤ 0.4) |
+| Portfolio leverage | 10 | targets / 4 (+0.2 platform-wide) |
+| Confidence | multiplier | E1 1.0 · E2 0.92 · E3 0.8 · E4 0.65 |
+| Market fit | modifier | pass +2 · warn −5 · fail −10 |
+| Effort | modifier | S 0 · M −3 · L −6 |
 
-Plus **"must not lose" flag** for strong delighters (Likes).
-
-PM can change weights in the UI; each change creates a new `weights_version`, an audit event and a prioritization run with a visible diff.
+- Missing factors are renormalized and listed as **evidence gaps** on screen — a market is not punished for missing data, but its evidence level and confidence stay honest (fixes the CN bias of v3).
+- Proposed priority bands: **Must ≥ 60, Should ≥ 45, Could < 45**. The AI proposal is shown next to the PM-confirmed priority.
+- Every target shows its factor breakdown, gaps, modifiers and a plain-language rationale; weights are PM-editable and versioned (`weights_version`, audited).
 
 ## Continuous re-prioritization (D-013)
 

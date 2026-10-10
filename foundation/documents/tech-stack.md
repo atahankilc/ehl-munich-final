@@ -26,8 +26,8 @@
 
 | Topic | Ref |
 |---|---|
-| Simulated ingest waves | Q-012 |
-| Clustering method, PDF parsing lib, export format | decide when the step is built |
+| Simulated ingest waves | decided, D-027 |
+| — (clustering: scikit-learn agglomerative on `text-embedding-3-small`, D-025; PDFs: `pdftotext`; export: JSON/CSV/Markdown, D-032) | decided |
 
 ## Requirements any chosen stack must meet
 - **Precompute:** run pipeline and research offline, cache results with retrieval timestamps, demo against the cache, and re-run only changed steps. Live web search in the demo is optional, with a cached fallback.

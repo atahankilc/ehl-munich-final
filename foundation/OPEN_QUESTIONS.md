@@ -4,21 +4,6 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
 
 ## Open
 
-### Q-004 — Prioritization logic
-- Owner: team / PM persona
-- Context: Must be explainable. Draft in `documents/requirement-model.md`.
-- Draft v2 includes market volume, portfolio leverage and brand fit factors plus brand/feasibility gates.
-- Questions: final default weights? PM-adjustable in UI (proposed: yes)?
-- Known issues in the draft (found in review 2026-10-10, to settle with the weights):
-  - **"0–100" is not true as written:** the base weights sum to 100, plus a ±10 market modifier and a −0…10 effort penalty, then multipliers.
-  - **Brand fit is counted twice:** as a gate and as a 10-point factor.
-  - **"warn lowers the score via the confidence factor"** conflicts with confidence being defined by evidence level.
-  - **Structural bias against CN (and against EU for G70):**
-    - There are no CN verbatims (and ~19 EU verbatims for G70), so these targets score 0 on "customer pain" (25 pts).
-    - They can never reach E1.
-    - Options: renormalize per target over the factors with data, or show "no verbatim evidence" as an explicit gap.
-  - **Satisfaction gap:** CN/EU means and US distributions aren't comparable, and neither has sample sizes (Q-006).
-
 ### Q-005 — How are the "Source A–D" feedback channels interpreted?
 - Owner: team (ask BMW mentors)
 - Context: Sources are anonymized. Observed patterns (`documents/data-inventory.md` §1) are hypotheses only:
@@ -43,29 +28,9 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
 - Owner: team
 - Questions: submission deadline, demo length, required format (video/live/slides), judging criteria.
 
-### Q-010 — Does BMW accept platform/plant feasibility as part of the solution?
-- Owner: team (ask BMW mentors)
-- Context:
-  - The brief puts technical/engineering requirements out of scope and explicitly names "**architecture**", which arguably covers vehicle platforms.
-  - D-009 (accepted) makes feasibility a blocking gate. Yet the platform mappings and plant volumes in `portfolio-reference.md` are mostly [Trade]/[Unverified].
-- Options for the team (not decided):
-  - (a) keep it as a blocking gate;
-  - (b) non-blocking "realization context" (warn/info only);
-  - (c) drop it.
-- Ask the mentors which framing helps rather than hurts.
-- New input (BMW support, 2026-10-10): BMW recommends tying concepts to R&D priorities and the NEUE KLASSE architecture strategy from the annual report. That suggests platform/strategy *context* is welcome. It doesn't settle whether a feasibility `fail` should block approval.
-
 ### Q-011 — How detailed can plant/platform reference data be?
 - Owner: team
 - Context: public sources give plant ↔ model/platform mapping and NK timing, rarely capacity or flexibility. Decide what granularity we claim, and mark the rest as assumptions.
-
-### Q-012 — How do we demo a ~2-year continuous process in a hackathon?
-- Owner: team
-- Context: D-013. The feedback data has **no dates**, so real time series aren't available.
-- Recommendation: simulate time with **ingest waves**, labelled clearly as a simulation:
-  - **Don't split waves by source:** the channels differ systematically (Q-005), so an A/B → C/D split would show channel differences as "changes over time".
-  - Instead: wave 1 = a stratified random half of the verbatims + 2024 sales; wave 2 = the other half + study + 2025 sales; wave 3 = an "event" from web research (e.g. a competitor launch or the China sales drop).
-- Show the priority timeline and AI change proposals between waves.
 
 ### Q-013 — Market profile sources
 - Owner: team
@@ -80,6 +45,7 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
   - G60/G68 China is 68k → 75k (+10%) for 2024 → 2025, while public figures say 5 Series China (China-built, CPCA) Jan–Nov 2025 = 107,348 and BMW+MINI China fell 12.5%.
   - F70 EU 85k vs. 1 Series Europe 91,931 (Dataforce).
   - There is no powertrain split, although the briefing promised one.
+- Also: F70 China 2024 is a formula cell (`=-D3-C10`, value 0) — another sign the file was constructed (2026-10-10).
 - Until answered: use the file as BMW-internal relative weights, don't blend it with public figures, and show the conflict (`data-inventory.md` §3, `portfolio-reference.md` §4).
 
 ### Q-016 — Is driver assistance (ADAS) in scope?
@@ -90,13 +56,19 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
   - But "safety" is out of scope (regulatory).
 - Working line (not decided): ADAS *experience* (usability, availability, comfort, trust) is in; safety/homologation performance is out.
 
-### Q-020 — Do "customer asked how X works" support calls count as usability evidence?
-- Owner: team / PM persona
-- Context: the Q-019 re-check (D-023) told sol that confusion about a function is a `difficult_to_use` signal. Of its 118 new signals, 80 are `difficult_to_use`, and 66 come from hotline-style verbatims ("Customer asked which regen setting to use. Writer explained…"). The first pass had judged these out of scope, so the same kind of verbatim is now treated differently depending on which pass saw it. They are identifiable (`signal.llm_usage_id` → `llm_usage.job LIKE 'recheck%'`).
-- Options: (a) keep them as weak usability evidence ("needed help to understand X"), weighted low in scoring; (b) drop the question-type ones, keep the ~38 others; (c) re-run the first pass with one consistent rule (new extractor version, ≈ $0.14 for G60).
-- Recommendation: (a) for now — tag them as `support_question` evidence in the findings step so they can't inflate usability pain silently; revisit (c) before the full F70/G70 runs.
-
 ## Resolved
+
+### Q-020 — Support-call questions → **kept as weak usability evidence, one consistent rule** (D-024)
+- Agent 2026-10-10 under Atahan's full delegation: extract-v3 re-extracted all derivatives with one rule; `signal.support_question` flags them and scoring weights them ×0.5.
+
+### Q-012 — Demoing a ~2-year process → **three simulated ingest waves** (D-027)
+- Stratified 50/50 verbatim split per derivative × channel × market; study + 2025 sales in wave 2; web "market event" in wave 3. Labelled SIMULATION in the UI.
+
+### Q-010 — Feasibility framing → **option (b), non-blocking realization context** (D-030)
+- Agent decision under full delegation; revisit if BMW mentors want it blocking.
+
+### Q-004 — Prioritization logic → **scoring v1** (D-029)
+- Renormalize over factors with data + explicit evidence gaps; brand fit gate only; PM-editable versioned weights; bands Must ≥ 60 / Should ≥ 45.
 
 ### Q-019 — Out-of-scope verdict drops usable verbatims → **re-checked with sol** (D-023)
 - Atahan 2026-10-10: "run the Q-019 re-check". 111 of 268 flipped back in scope (118 signals). Agent's 15–20% guess was far too low; but 66 of the new signals are support-call questions → Q-020.
