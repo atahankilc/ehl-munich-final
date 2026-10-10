@@ -1,0 +1,75 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4K2H0F9D9VZSA0CNK7TGRC6",
+  "session_id": "275dd734-e9da-4a7a-b2ad-aa3bb6628d6c",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T14:12:32.294911Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "save_step_count": 1,
+  "files_touched": [
+    ".env.example",
+    ".gitignore",
+    "AGENTS.md",
+    "app.py",
+    "foundation/DECISIONS.md",
+    "foundation/OPEN_QUESTIONS.md",
+    "foundation/README.md",
+    "foundation/STATE.md",
+    "foundation/documents/architecture.md",
+    "foundation/documents/knowledge-base.md",
+    "foundation/documents/tech-stack.md",
+    "pyproject.toml",
+    "src/bmw_req/__init__.py",
+    "src/bmw_req/config.py",
+    "src/bmw_req/db.py",
+    "src/bmw_req/llm/__init__.py",
+    "src/bmw_req/llm/budget.py",
+    "src/bmw_req/llm/client.py",
+    "src/bmw_req/llm/pricing.py",
+    "tests/test_budget.py",
+    "uv.lock"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "turn_id": "7ef947feefb6",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 38,
+    "cache_creation_tokens": 57440,
+    "cache_read_tokens": 1202227,
+    "output_tokens": 28067,
+    "api_call_count": 19
+  },
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T14:12:32.276866Z",
+    "agent_lines": 1840,
+    "agent_removed": 53,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 1840,
+    "total_lines_changed": 1893,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 1840,
+      "agent_lines_removed": 53
+    }
+  ]
+}
