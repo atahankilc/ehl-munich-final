@@ -90,12 +90,10 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
   - But "safety" is out of scope (regulatory).
 - Working line (not decided): ADAS *experience* (usability, availability, comfort, trust) is in; safety/homologation performance is out.
 
-### Q-017 — Demo slice & data-model scope
-- Owner: Atahan + team
-- Blocking: the domain tables (only `llm_usage` exists so far)
-- Context: split out of Q-014 when the stack was decided (D-015–D-020). Still open: (1) confirm or replace the proposed minimal demo path in `STATE.md` (G60 × US + G68 × CN); (2) which of the ~25 logical entities in `architecture.md` the demo actually builds (AGENTS rule 18).
-
 ## Resolved
+
+### Q-017 — Demo slice & data-model scope → **G60 × US + G68 × CN; logical model minus 3 folded tables** (D-021)
+- Delegated by Atahan 2026-10-10 ("do whatever you want"); agent decided.
 
 ### Q-014 — Architecture & framework choices → **LangGraph, SQLite, no graph DB, sqlite-vec, Streamlit** (D-015–D-020)
 - Answered by Atahan 2026-10-10: approved the agent's recommendation table and said to start scaffolding. Data-model scope and demo slice moved to Q-017.

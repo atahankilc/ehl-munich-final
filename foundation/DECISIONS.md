@@ -26,6 +26,7 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-018 | Vector search / RAG: sqlite-vec in the same SQLite file | accepted |
 | D-019 | UI: Streamlit | accepted |
 | D-020 | Scaffold conventions (Python 3.12/uv, OpenAI SDK direct, Pydantic, pytest) | accepted |
+| D-021 | Demo slice G60 × US + G68 × CN; demo table set (Q-017) | accepted |
 
 Keep this index in sync when adding a decision.
 
@@ -283,4 +284,22 @@ Template:
   - Budget guard per D-014: model prices in `bmw_req/llm/pricing.py`; a model without a price entry is refused; every call needs `max_output_tokens`; worst-case cost is reserved in `llm_usage` before the call (input estimated as UTF-8 bytes ÷ 2, deliberately high) and replaced by actual usage after it.
   - Tests with `pytest`, no paid calls in tests.
 - Consequences: logged cost includes the cache-write surcharge (1.25× input, D-014) from `usage.input_tokens_details.cache_write_tokens`. Flex is priced at −50% only when the response confirms `service_tier == "flex"`.
+
+## D-021 — Demo slice and demo table set (resolves Q-017)
+- Date: 2026-10-10
+- Decided by: agent (delegated by Atahan: "do whatever you want" on Q-017)
+- Status: accepted
+- Context: Q-017. The logical model in `architecture.md` has ~25 entities; AGENTS rule 18 says build only what the demo needs, but the demo must show D-011 (per-market), D-013 (re-prioritization over time) and the audit trail.
+- Decision:
+  - **Demo slice** = the proposed path in `STATE.md`: **G60 × US** (verbatims + study + sales) and **G68 × CN** (study + sales + web evidence); G60 × EU optional. F70/G70 use the same code later.
+  - **Tables built** (SQLite, `bmw_req/db.py`): all logical entities except three that are folded in:
+    - `segment` → text column on `vehicle_model`.
+    - `market_profile` → columns on `market` (one current profile per market; history via `audit_event`).
+    - `finding_scope` → nullable `vehicle_model_id` / `market_code` / `platform_id` on `finding` (one scope per finding).
+  - Added: `source_item.country` (feedback is per country; D-011 RoW groups stay visible), `source_embedding` (sqlite-vec, D-018), `llm_cache` (persist results, never re-run unchanged inputs — D-010 cost lever).
+  - `audit_event` is enforced append-only by SQLite triggers.
+  - Country → market mapping lives in the `market` rows (config, AGENTS rule 7). Europe incl. GB/NO → `EU`; US → `US`; CN → `CN`; everything else (JP, KR, CA, AU, ZA, …) → `RoW`.
+  - Raw xlsx parsing with `openpyxl` (no pandas in the app).
+- Alternatives considered: a minimal 8-table model without the continuity layer — rejected, D-013 must be demoed.
+- Consequences: one `ingest_batch` per raw file for now; splitting feedback into simulated waves is still Q-012.
 

@@ -8,7 +8,8 @@ _Last updated: 2026-10-10_
 - Core direction decided: portfolio-level architecture, OpenAI, web-enriched knowledge base, brand-fit and plant/platform feasibility gates, per-market scoring, future-need projection, continuous re-prioritization, $100 model budget.
 - Stack decided (D-015–D-020): LangGraph, SQLite + sqlite-vec, no graph DB, Streamlit, Python 3.12/uv.
 - Scaffold in place: `pyproject.toml`, `src/bmw_req/` (config, SQLite, budget-guarded OpenAI wrapper with `llm_usage`), Streamlit `app.py` (budget view), 12 guard tests (no paid calls).
-- **Next: Q-017 (demo slice + which tables to build), then the paid pilot (D-014).**
+- Demo slice + tables decided (D-021): full demo schema built, G60 feedback ingested (4,000 verbatims, counts match `data-inventory.md`).
+- **Next: design the verbatim classification/extraction step, then the paid pilot (D-014: 50 verbatims + 5 requirements).**
 
 ## Team & logistics (fill in — Q-007, Q-008)
 
@@ -20,7 +21,7 @@ _Last updated: 2026-10-10_
 | Demo format / length | _TODO_ |
 | Judging criteria (beyond the brief) | _TODO_ |
 
-## Proposed minimal demo path (for the team to confirm — not decided)
+## Minimal demo path (decided, D-021)
 
 One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's minimum of one derivative in one market (`challenge-brief.md`).
 - **Scope:** 5 Series (D-005).
@@ -60,10 +61,10 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 0. Fill in Team & logistics.
 1. Ask BMW mentors: Q-005 (sources), Q-006 (scales + sample sizes), Q-010 (feasibility framing), Q-015 (sales volumes real?), Q-016 (ADAS scope).
 2. ~~Architecture discussion (Q-014)~~ → done, D-015–D-020.
-3. **Q-017:** confirm or replace the proposed minimal demo path above, and pick the tables the demo needs.
-4. ~~Scaffold + budget-guarded wrapper~~ → done. Next: put `OPENAI_API_KEY` in `.env`, set the $95 OpenAI project limit + $45 alert, then run the pilot (D-014: 50 verbatims + 5 requirements).
+3. ~~Q-017~~ → D-021: demo slice G60 × US + G68 × CN; schema built.
+4. ~~Scaffold + budget-guarded wrapper~~ → done. `OPENAI_API_KEY` is in `.env` (Atahan). Atahan still to confirm the $95 OpenAI project limit + $45 alert. Next: the pilot (D-014: 50 verbatims + 5 requirements).
 5. Reference layer: load brands, segments, platforms, plants, production and sales from the seed docs (with source IDs) into SQLite (D-016).
-6. Ingest BMW data for the demo slice first, then all derivatives, organized into ingest waves (Q-012).
+6. Ingest BMW data: G60 feedback done. Still to do: customer study, sales, option list; F70/G70 feedback; waves (Q-012).
 7. Signal extraction, market-segmented → findings with sources (LangGraph pipeline, D-015).
 8. Research agents (competitor, market, review, trend, market profile) → web evidence.
 9. Requirement derivation + future-need projection → fit checks → per-market scoring → prioritization runs + change proposals.
@@ -106,3 +107,4 @@ Update this table after every paid run. Once the app exists, the source of truth
 - 2026-10-10 — Budget re-baselined (D-014). BMW Group Report 2025 extracted (`documents/bmw-annual-report-2025.md`, page-cited); `portfolio-reference.md` upgraded to primary sources. No code, no commit.
 - 2026-10-10 — Decision hygiene: undecided stack items reworded as Q-014 candidates (tech-stack, D-010 note, STATE, Q-002, README, knowledge-base). Usability: decision index, lighter session-start read list, glossary, fresh-clone setup, team/logistics placeholders, proposed demo path, duplicates removed. No code, no commit.
 - 2026-10-10 — Atahan approved the stack table → D-015–D-020, Q-014 resolved, Q-017 opened. Scaffold: pyproject/uv, `src/bmw_req` (config, SQLite + sqlite-vec, budget-guarded OpenAI wrapper per D-014), Streamlit budget page, 12 tests passing. No paid calls, no commit.
+- 2026-10-10 — Scaffold committed (65d3952). Q-017 delegated → D-021: demo slice G60 × US + G68 × CN, demo schema (audit append-only via triggers, sqlite-vec, llm_cache), G60 feedback ingest (4,000 verbatims, verified vs. inventory). 16 tests passing. No paid calls.

@@ -13,6 +13,7 @@ from bmw_req.llm import LLM, BudgetExceeded, budget
 def fake_response(input_tokens=1000, cached=0, cache_write=0, output=200, reasoning=50, tier="default", searches=0):
     return NS(
         id="resp_test",
+        status="completed",
         model="gpt-6-luna",
         service_tier=tier,
         output_text="ok",
@@ -78,7 +79,7 @@ def test_unknown_model_refused():
 
 def test_call_is_reserved_then_settled(conn):
     llm = make_llm(conn)
-    res = llm.generate(job="t", tier="fast", input="hello", max_output_tokens=500)
+    res = llm.generate(job="t", tier="fast", input="hello", max_output_tokens=500, use_cache=False)
     row = conn.execute("SELECT * FROM llm_usage WHERE id = ?", (res.usage_id,)).fetchone()
     assert row["status"] == "completed"
     assert row["reserved_usd"] > row["cost_usd"] > 0
@@ -104,6 +105,15 @@ def test_non_demo_blocked_above_70_demo_allowed(conn):
     llm.generate(job="t", tier="smart", input="x" * 1000, max_output_tokens=1000, demo=True)
 
 
+def test_identical_request_served_from_cache(conn):
+    llm = make_llm(conn)
+    first = llm.generate(job="t", tier="fast", input="same", max_output_tokens=10)
+    second = llm.generate(job="t", tier="fast", input="same", max_output_tokens=10)
+    assert not first.cached and second.cached and second.cost_usd == 0
+    assert len(llm.client.responses.calls) == 1
+    assert conn.execute("SELECT COUNT(*) FROM llm_usage").fetchone()[0] == 1
+
+
 def test_hard_stop_applies_to_demo(conn):
     preload(conn, 89.999)
     with pytest.raises(BudgetExceeded, match="Hard stop"):
@@ -118,9 +128,11 @@ def test_open_reservations_count(conn):
 
 def test_flex_priced_only_when_confirmed(conn):
     llm = make_llm(conn, fake_response(tier="default"))
-    std = llm.generate(job="t", tier="fast", input="x", max_output_tokens=10, flex=True)
+    std = llm.generate(job="t", tier="fast", input="x", max_output_tokens=10, flex=True, use_cache=False)
     assert llm.client.responses.calls[0]["service_tier"] == "flex"
-    flex = make_llm(conn, fake_response(tier="flex")).generate(job="t", tier="fast", input="x", max_output_tokens=10, flex=True)
+    flex = make_llm(conn, fake_response(tier="flex")).generate(
+        job="t", tier="fast", input="x", max_output_tokens=10, flex=True, use_cache=False
+    )
     assert flex.cost_usd == pytest.approx(std.cost_usd * 0.5)
 
 

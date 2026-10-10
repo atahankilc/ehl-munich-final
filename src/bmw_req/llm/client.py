@@ -1,5 +1,6 @@
 """The only path to OpenAI (D-014, D-015, D-020). Every call is reserved, logged and settled."""
 
+import hashlib
 import json
 from dataclasses import dataclass
 from typing import Any, Literal
@@ -19,9 +20,10 @@ FLEX_TIMEOUT_S = 900.0
 class LLMResult:
     text: str
     parsed: Any
-    usage_id: int
+    usage_id: int | None     # None on a cache hit
     cost_usd: float
-    response: Any
+    response: Any            # None on a cache hit
+    cached: bool = False
 
 
 class LLM:
@@ -47,14 +49,25 @@ class LLM:
         max_tool_calls: int | None = None,
         flex: bool = False,
         demo: bool = False,
+        use_cache: bool = True,
         **kwargs,
     ) -> LLMResult:
-        """Call the Responses API. `schema` → structured output parsed into that Pydantic model."""
+        """Call the Responses API. `schema` → structured output parsed into that Pydantic model.
+
+        Identical requests are served from `llm_cache` for free (D-010) unless use_cache=False.
+        """
         if not max_output_tokens or max_output_tokens <= 0:
             raise ValueError("max_output_tokens is required on every call (D-014)")
         if tools and not max_tool_calls:
             raise ValueError("Calls with tools need max_tool_calls (D-014 web-search cap)")
         model = self.model_for(tier)
+        key = _cache_key(model, instructions, input, schema, reasoning_effort, tools, max_tool_calls, max_output_tokens, kwargs)
+        if use_cache:
+            hit = self.conn.execute("SELECT output_text FROM llm_cache WHERE key = ?", (key,)).fetchone()
+            if hit is not None:
+                text = hit["output_text"]
+                parsed = schema.model_validate_json(text) if schema is not None else None
+                return LLMResult(text=text, parsed=parsed, usage_id=None, cost_usd=0.0, response=None, cached=True)
         prompt_text = (instructions or "") + (input if isinstance(input, str) else json.dumps(input, default=str))
         reserved = budget.worst_case_usd(
             model, budget.estimate_tokens(prompt_text), max_output_tokens, max_tool_calls or 0
@@ -107,6 +120,11 @@ class LLM:
             response_id=response.id,
             **counts,
         )
+        if getattr(response, "status", "completed") == "completed":
+            self.conn.execute(
+                "INSERT OR REPLACE INTO llm_cache (key, job, model, output_text, llm_usage_id) VALUES (?, ?, ?, ?, ?)",
+                (key, job, model, response.output_text, usage_id),
+            )
         return LLMResult(
             text=response.output_text,
             parsed=getattr(response, "output_parsed", None),
@@ -128,3 +146,19 @@ class LLM:
         cost = budget.actual_usd(model, input_tokens=tokens)
         budget.settle(self.conn, usage_id, status="completed", cost_usd=cost, input_tokens=tokens)
         return [d.embedding for d in response.data]
+
+
+def _cache_key(model, instructions, input, schema, reasoning_effort, tools, max_tool_calls, max_output_tokens, extra) -> str:
+    payload = {
+        "model": model,
+        "instructions": instructions,
+        "input": input,
+        "schema": schema.model_json_schema() if schema is not None else None,
+        "reasoning_effort": reasoning_effort,
+        "tools": tools,
+        "max_tool_calls": max_tool_calls,
+        "max_output_tokens": max_output_tokens,
+        "extra": extra,
+    }
+    return hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode()).hexdigest()
+

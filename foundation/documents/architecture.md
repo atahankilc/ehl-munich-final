@@ -1,6 +1,6 @@
 # Architecture & Workflow
 
-**Status: DRAFT v3 — conceptual.** The workflow, entities and rules below are the agreed *concept* (D-005, D-008–D-013). The *technical* stack is decided (LangGraph, SQLite, sqlite-vec, no graph DB, Streamlit — D-015–D-020, see `tech-stack.md`). The data model below is still a logical model; which entities the demo builds is open (Q-017).
+**Status: DRAFT v3 — conceptual.** The workflow, entities and rules below are the agreed *concept* (D-005, D-008–D-013). The *technical* stack is decided (LangGraph, SQLite, sqlite-vec, no graph DB, Streamlit — D-015–D-020, see `tech-stack.md`). The data model below is built in SQLite (`src/bmw_req/db.py`) per D-021, with three entities folded in: `segment` → `vehicle_model.segment`, `market_profile` → columns on `market`, `finding_scope` → scope columns on `finding`. Added: `source_item.country`, `source_embedding` (sqlite-vec), `llm_cache`.
 
 ## Guiding principle
 
@@ -97,14 +97,15 @@ score_snapshot(run_id, requirement_id, vehicle_model_id, market_code, score, bre
 change_proposal(id, run_id, requirement_id, target?, field, old_value, proposed_value, reason,
                 evidence_delta_json, status[open|accepted|rejected], decided_by, decided_at, decision_rationale)
 weights_version(id, weights_json, created_by, created_at, rationale)
-llm_usage(id, ts, job, model, input_tokens, cached_tokens, output_tokens, search_calls, cost_usd)   -- budget tracking (D-010)
+llm_usage(id, ts, job, model, status, reserved_usd, cost_usd, tokens…, search_calls)   -- budget guard (D-014)
+llm_cache(key, model, output_text, llm_usage_id)   -- identical requests never re-billed (D-010)
 ```
 
 Requirement IDs are global (`REQ-0001`); scope lives in `requirement_target`, so one requirement can apply to several derivatives/markets (e.g. an infotainment UX fix across all CLAR cars).
 
 ## Audit trail rules
 
-- Append-only: no UPDATE/DELETE on `audit_event`.
+- Append-only: no UPDATE/DELETE on `audit_event` (enforced by SQLite triggers).
 - Every mutation of requirement content, targets, score, priority, evidence links, fit checks or status → one event (who/what, when, before/after, rationale).
 - AI events record model name + prompt/agent version; web research events record queries and URLs.
 - Access events (view/export) logged as well.

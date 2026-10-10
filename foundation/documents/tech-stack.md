@@ -18,13 +18,16 @@
 | OpenAI call path | OpenAI Python SDK, Responses API, inside `bmw_req.llm` (incl. `web_search`) | D-020 |
 | Structured output | Pydantic models → `responses.parse` | D-020 |
 | Tests | `pytest`, no paid calls | D-020 |
+| Data model | Demo table set in `src/bmw_req/db.py` | D-021 |
+| Excel parsing | `openpyxl` (no pandas in the app) | D-021 |
+| Ingest | `uv run python -m bmw_req.ingest G60` — seeds brand/markets/models, one `source_item` per verbatim ID | D-021 |
 
 ## Still open
 
 | Topic | Ref |
 |---|---|
-| Demo slice and which logical entities get tables | Q-017 |
-| Clustering method, Excel/PDF parsing libs, export format | decide when the step is built |
+| Simulated ingest waves | Q-012 |
+| Clustering method, PDF parsing lib, export format | decide when the step is built |
 
 ## Requirements any chosen stack must meet
 - **Precompute:** run pipeline and research offline, cache results with retrieval timestamps, demo against the cache, and re-run only changed steps. Live web search in the demo is optional, with a cached fallback.
@@ -42,6 +45,7 @@
 - After the call, the row is settled with actual tokens (cached, cache-write, reasoning), search calls and cost. Flex is discounted only if the response confirms `service_tier == "flex"`.
 - API/connection errors settle at $0; any other failure after the request (e.g. parse error) keeps the worst case.
 - A crashed process leaves a `reserved` row that keeps counting — settle or delete it by hand.
+- Identical requests (same model, prompt, schema, params) are served from `llm_cache` at $0; pass `use_cache=False` to force a new call.
 - Streamlit `app.py` shows spend, committed and the usage log.
 
 ## Local machine notes
