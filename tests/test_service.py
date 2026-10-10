@@ -151,6 +151,38 @@ def test_rejecting_proposal_changes_nothing(conn):
     assert events(conn, "reject_proposal")[0]["rationale"] == "Original wording is clearer"
 
 
+def test_rejecting_new_requirement_drops_it(conn):
+    pid = conn.execute("""INSERT INTO change_proposal (requirement_id, field, proposed_value, reason, kind)
+                          VALUES ('REQ-0001', 'status', 'proposed', 'x', 'new_requirement')""").lastrowid
+    service.decide_proposal(conn, pid, False, PM, "Duplicates an existing requirement")
+    assert status(conn) == "rejected"
+    ev = events(conn, "set_status")[0]
+    assert ev["actor_type"] == "human" and ev["new_value"] == "rejected" and "Duplicates" in ev["rationale"]
+
+
+def test_duplicate_draft_becomes_extend_proposal_and_accept_applies_it(conn):
+    from bmw_req.pipeline.requirements import ExistingMatch, RequirementDraft, TargetDraft, propose_extensions
+
+    d = RequirementDraft(
+        title="Pair phones fast", description="d", category="Infotainment & Digital", target_metric="m",
+        acceptance_criteria="a", horizon="today", horizon_reason="r", kano_class="basic", kano_drift="stable",
+        must_not_lose=False, effort="S", effort_reason="r",
+        targets=[TargetDraft(vehicle_model_id="G60", market_code="US", realization="platform_wide", market_note="dup"),
+                 TargetDraft(vehicle_model_id="G70", market_code="US", realization="platform_wide", market_note="new")],
+        supporting_finding_ids=[1, 2], conflicting_finding_ids=[], conflicting_evidence="none found",
+        evidence_summary="e", assumptions=[], uncertainties=[])
+    propose_extensions(conn, [(d, ExistingMatch(draft_index=0, existing_id="REQ-0001", reason="same need"))], wave=2, model="m")
+    p = conn.execute("SELECT * FROM change_proposal WHERE kind = 'extend'").fetchone()
+    assert p["requirement_id"] == "REQ-0001" and "G70×US" in p["proposed_value"] and "G60×US" not in p["proposed_value"]
+    assert conn.execute("SELECT COUNT(*) FROM requirement").fetchone()[0] == 1   # no duplicate created
+    assert events(conn, "match_existing")[0]["actor_type"] == "ai"
+    n_targets = conn.execute("SELECT COUNT(*) FROM requirement_target").fetchone()[0]
+    service.decide_proposal(conn, p["id"], True, PM, "Same need, extend to the 7 Series")
+    assert conn.execute("SELECT COUNT(*) FROM requirement_target").fetchone()[0] == n_targets + 1
+    assert conn.execute("SELECT relation FROM requirement_finding WHERE finding_id = 2").fetchone()[0] == "supports"
+    assert [e["actor_type"] for e in events(conn, "add_target")] == ["human"]
+
+
 def test_audit_is_append_only_and_access_logged(conn):
     service.log_access(conn, PM, "view", "requirement", "REQ-0001")
     service.log_access(conn, PM, "export", "export", "requirements.json", "3 requirements")

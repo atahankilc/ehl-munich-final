@@ -10,6 +10,8 @@ borderColor = "#dde2e8"
 
 [server]
 runOnSave = false
+# confidential BMW data (AGENTS rule 1): serve on this machine only, not on the LAN/internet
+address = "localhost"
 
 [browser]
 gatherUsageStats = false

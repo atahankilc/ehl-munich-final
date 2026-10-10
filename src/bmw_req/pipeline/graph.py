@@ -80,14 +80,29 @@ def node_derive(state: WaveState) -> WaveState:
                 break
             items = [(requirements.lines_of(d), d) for d in merged]
         log.append(f"portfolio consolidation: {len(drafts)} drafts → {len(merged)} requirements")
+    if wave > 1 and merged:
+        # Q-022: a later wave must not re-create a need the backlog (any line) already holds
+        matches = requirements.match_existing(llm, merged, requirements.existing_for_match(conn), job=f"match_existing:w{wave}")
+        dup = [(merged[m.draft_index], m) for m in matches if m.existing_id]
+        if dup:
+            log += requirements.propose_extensions(conn, dup, wave=wave, model=llm.model_for("smart"))
+        merged = [merged[m.draft_index] for m in matches if not m.existing_id]
+        log.append(f"dedup vs existing backlog: {len(dup)} draft(s) → extend proposals, {len(merged)} new")
     ids = requirements.store(conn, merged, model=llm.model_for("smart"), usage_id=None, wave=wave)
     if wave > 1 and ids:
         conn.execute("BEGIN IMMEDIATE")
         for rid in ids:
+            # say honestly whether the draft rests on evidence that arrived in this wave
+            new = conn.execute(
+                """SELECT COUNT(*) FROM requirement_finding rf JOIN finding f ON f.id = rf.finding_id
+                   WHERE rf.requirement_id = ? AND rf.relation = 'supports' AND f.first_wave = ?""", (rid, wave)).fetchone()[0]
+            reason = (f"New evidence in {WAVES[wave]['label']} ({new} new finding(s)) supports a need the existing "
+                      "requirements don't cover" if new else
+                      f"Raised in {WAVES[wave]['label']} from earlier evidence that no existing requirement cites "
+                      "(no new finding in this wave)")
             conn.execute(
                 """INSERT INTO change_proposal (requirement_id, field, old_value, proposed_value, reason, kind)
-                   VALUES (?, 'status', NULL, 'proposed', ?, 'new_requirement')""",
-                (rid, f"New evidence in {WAVES[wave]['label']} supports a need the existing requirements don't cover"))
+                   VALUES (?, 'status', NULL, 'proposed', ?, 'new_requirement')""", (rid, reason))
         conn.execute("COMMIT")
     log.append(f"stored {len(ids)} new requirement(s): {', '.join(ids)}")
     return {"new_requirements": ids, "log": log}
@@ -102,7 +117,8 @@ def node_link(state: WaveState) -> WaveState:
 
 def node_fit(state: WaveState) -> WaveState:
     conn = connect()
-    n = fit.run(conn, state.get("new_requirements") or [])
+    ids = sorted(set(state.get("new_requirements") or []) | set(fit.unchecked_requirements(conn)))
+    n = fit.run(conn, ids)
     return {"log": state.get("log", []) + [f"fit checks for {n} requirement(s)"]}
 
 

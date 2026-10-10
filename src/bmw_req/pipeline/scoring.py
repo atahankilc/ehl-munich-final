@@ -356,12 +356,12 @@ def run_prioritization(conn: sqlite3.Connection, *, wave: int, trigger: str, ini
                        WHERE requirement_id = ? AND vehicle_model_id = ? AND market_code = ?""",
                     (b["score"], json.dumps(b, ensure_ascii=False), prio, b["evidence_level"], run_id, rid, *key))
                 confirmed = t["priority"]
+                if confirmed:
+                    # an open proposal from an earlier run is stale once this run has scored the target again
+                    conn.execute(
+                        """UPDATE change_proposal SET status = 'superseded' WHERE requirement_id = ? AND vehicle_model_id = ?
+                           AND market_code = ? AND field = 'priority' AND status = 'open'""", (rid, *key))
                 if confirmed and confirmed != prio:
-                    open_p = conn.execute(
-                        """SELECT id FROM change_proposal WHERE requirement_id = ? AND vehicle_model_id = ? AND market_code = ?
-                           AND field = 'priority' AND status = 'open'""", (rid, *key)).fetchone()
-                    if open_p:
-                        conn.execute("UPDATE change_proposal SET status = 'superseded' WHERE id = ?", (open_p["id"],))
                     conn.execute(
                         """INSERT INTO change_proposal (run_id, requirement_id, vehicle_model_id, market_code, field, old_value,
                                proposed_value, reason, evidence_delta_json, kind)

@@ -19,7 +19,7 @@ if props.empty:
 props["kind"] = props["kind"].fillna("priority")
 open_p = props[props["status"] == "open"]
 KINDS = [("priority", "Priority changes"), ("content", "Content edits"), ("link_finding", "Evidence links"),
-         ("new_requirement", "New requirements"), ("status", "Status")]
+         ("new_requirement", "New requirements"), ("extend", "Merge into existing"), ("status", "Status")]
 me = actor()
 
 c = st.columns(len(KINDS) - 1)
@@ -47,6 +47,20 @@ else:
                         md(f"Link finding **F{esc(fid)}** as {chip(p.proposed_value, 'pass')}"
                            + (f" — {esc(f.iloc[0]['source_kind'])}: <i>{esc(short(f.iloc[0]['title'], 120))}</i>"
                               if f is not None and not f.empty else ""))
+                    elif k == "extend":
+                        delta = loads(p.evidence_delta_json, {}) or {}
+                        md(f"A new AI draft — <i>{esc(delta.get('draft_title', ''))}</i> — states the same need as "
+                           f"<b>{esc(p.requirement_id)}</b>. Instead of a duplicate, the AI proposes to extend it: "
+                           f"<b>{esc(p.proposed_value)}</b>.")
+                        if delta.get("targets"):
+                            for t in delta["targets"]:
+                                st.caption(f"{t['vehicle_model_id']} × {t['market_code']} ({t.get('realization') or '–'}): "
+                                           f"{short(t.get('market_note'), 220)}")
+                        fids = [*delta.get("supports", []), *delta.get("contradicts", [])]
+                        if fids:
+                            fl = q(f"SELECT id, source_kind, title FROM finding WHERE id IN ({','.join('?' * len(fids))})",
+                                   tuple(int(x) for x in fids))
+                            st.caption(" · ".join(f"F{r.id} {r.source_kind}: {short(r.title, 60)}" for r in fl.itertuples()))
                     elif k == "new_requirement":
                         md("New AI-drafted requirement — accept to keep it in the backlog as <b>proposed</b>, "
                            "reject to drop it from review.")

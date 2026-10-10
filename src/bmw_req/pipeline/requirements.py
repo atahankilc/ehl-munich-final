@@ -308,6 +308,100 @@ def consolidate(llm: LLM, drafts: list[tuple[str, RequirementDraft]], job: str) 
     return merged, notes
 
 
+# ---------------------------------------------------------------------------------------------- dedup vs existing (Q-022)
+class ExistingMatch(BaseModel):
+    draft_index: int
+    existing_id: str | None = Field(description="ID of the existing requirement that states the SAME customer need, or null")
+    reason: str
+
+
+class ExistingMatchResult(BaseModel):
+    matches: list[ExistingMatch]
+
+
+MATCH_INSTRUCTIONS = """You keep a BMW PORTFOLIO requirement backlog free of duplicates. New drafts come from a later
+review wave; the existing requirements may belong to other vehicle lines (1, 5, 7 Series). For every draft, return
+the ID of the existing requirement that states the SAME customer need in the same direction — even if it targets
+other derivatives/markets or has other numeric targets (the draft would then add its targets and evidence to it).
+Return null if the draft is a different need, a clearly narrower/other sub-need with its own customer value, or
+genuinely segment-specific (e.g. luxury rear lounge vs compact practicality). Return exactly one entry per draft."""
+
+
+def match_existing(llm: LLM, drafts: list["RequirementDraft"], existing: list[dict], job: str) -> list[ExistingMatch]:
+    """Map each new draft to an existing requirement with the same need (or None). Unknown IDs are dropped."""
+    if not drafts or not existing:
+        return [ExistingMatch(draft_index=i, existing_id=None, reason="no existing requirements") for i in range(len(drafts))]
+    payload = {
+        "existing": existing,
+        "drafts": [{"index": i, "lines": lines_of(d), "title": d.title, "category": d.category,
+                    "description": d.description, "target_metric": d.target_metric} for i, d in enumerate(drafts)],
+    }
+    res = llm.generate(job=job, tier="smart", instructions=MATCH_INSTRUCTIONS, input=json.dumps(payload, ensure_ascii=False),
+                       schema=ExistingMatchResult, reasoning_effort="medium", max_output_tokens=8000, flex=True)
+    ids = {e["id"] for e in existing}
+    by_idx = {m.draft_index: m for m in res.parsed.matches if 0 <= m.draft_index < len(drafts)}
+    out = []
+    for i in range(len(drafts)):
+        m = by_idx.get(i)
+        if m is None or m.existing_id not in ids:
+            m = ExistingMatch(draft_index=i, existing_id=None, reason=m.reason if m else "not matched")
+        out.append(m)
+    return out
+
+
+def existing_for_match(conn: sqlite3.Connection) -> list[dict]:
+    """Non-rejected requirements of ALL lines, compact, as match candidates."""
+    out = []
+    for r in conn.execute("SELECT id, title, category, description FROM requirement WHERE status != 'rejected' ORDER BY id"):
+        tg = [f"{t[0]}×{t[1]}" for t in conn.execute(
+            "SELECT vehicle_model_id, market_code FROM requirement_target WHERE requirement_id = ?", (r["id"],))]
+        out.append({"id": r["id"], "title": r["title"], "category": r["category"], "description": r["description"],
+                    "targets": tg})
+    return out
+
+
+def propose_extensions(conn: sqlite3.Connection, pairs: list[tuple["RequirementDraft", ExistingMatch]], *, wave: int,
+                       model: str) -> list[str]:
+    """A draft that restates an existing requirement becomes an `extend` change proposal on it (new targets + new
+    evidence links) instead of a duplicate requirement. The PM decides (AGENTS rule 5). Returns log lines."""
+    log = []
+    conn.execute("BEGIN IMMEDIATE")
+    try:
+        for d, m in pairs:
+            rid = m.existing_id
+            have_t = {(t[0], t[1]) for t in conn.execute(
+                "SELECT vehicle_model_id, market_code FROM requirement_target WHERE requirement_id = ?", (rid,))}
+            have_f = {r[0] for r in conn.execute("SELECT finding_id FROM requirement_finding WHERE requirement_id = ?", (rid,))}
+            targets = [{"vehicle_model_id": t.vehicle_model_id, "market_code": t.market_code, "realization": t.realization,
+                        "market_note": t.market_note} for t in d.targets if (t.vehicle_model_id, t.market_code) not in have_t]
+            sup = [f for f in d.supporting_finding_ids if f not in have_f]
+            con = [f for f in d.conflicting_finding_ids if f not in have_f and f not in sup]
+            audit(conn, actor_type="ai", actor_id="pipeline.requirements", action="match_existing", entity_type="requirement",
+                  entity_id=rid, field="duplicate_draft",
+                  new={"draft_title": d.title, "new_targets": [f"{t['vehicle_model_id']}×{t['market_code']}" for t in targets],
+                       "new_supports": sup, "new_contradicts": con, "wave": wave},
+                  rationale=m.reason, model=model, prompt_ref=PROMPT_VERSION)
+            if not targets and not sup and not con:
+                log.append(f"  draft '{d.title}' = {rid}: nothing new, dropped")
+                continue
+            summary = "; ".join(x for x in (
+                ("add targets " + ", ".join(f"{t['vehicle_model_id']}×{t['market_code']}" for t in targets)) if targets else "",
+                (f"link {len(sup)} supporting finding(s)") if sup else "",
+                (f"link {len(con)} contradicting finding(s)") if con else "") if x)
+            conn.execute(
+                """INSERT INTO change_proposal (requirement_id, field, old_value, proposed_value, reason, evidence_delta_json, kind)
+                   VALUES (?, 'extend', NULL, ?, ?, ?, 'extend')""",
+                (rid, summary, f"Same need raised again in wave {wave} ('{d.title}'): {m.reason}",
+                 json.dumps({"draft_title": d.title, "draft_description": d.description, "targets": targets,
+                             "supports": sup, "contradicts": con, "wave": wave}, ensure_ascii=False)))
+            log.append(f"  draft '{d.title}' = {rid}: extend proposal ({summary})")
+        conn.execute("COMMIT")
+    except BaseException:
+        conn.execute("ROLLBACK")
+        raise
+    return log
+
+
 def next_req_id(conn: sqlite3.Connection) -> int:
     r = conn.execute("SELECT MAX(CAST(SUBSTR(id, 5) AS INTEGER)) FROM requirement").fetchone()[0]
     return (r or 0) + 1

@@ -81,6 +81,8 @@ def pm_decide_inbox(conn):
                 "Not downgrading to Could on one wave of data; keep and watch."))
         elif p["kind"] == "new_requirement":
             service.decide_proposal(conn, p["id"], True, PM, TAG + "New evidence-backed need; add to the backlog as proposed.")
+        elif p["kind"] == "extend":
+            service.decide_proposal(conn, p["id"], True, PM, TAG + "Same need as the existing requirement; extend it rather than keep a duplicate.")
         else:
             continue
         log.append(f"decided proposal {p['id']} ({p['kind']})")

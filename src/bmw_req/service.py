@@ -150,6 +150,34 @@ def set_finding_link(conn, req_id: str, finding_id: int, relation: str | None, a
         raise
 
 
+def extend_requirement(conn, req_id: str, delta: dict, actor: str, rationale: str) -> None:
+    """PM merges a duplicate AI draft into an existing requirement (Q-022): its new targets and evidence links.
+    New targets are scored by the next prioritization run and fit-checked in the next wave."""
+    _need(actor, rationale)
+    _tx(conn)
+    try:
+        for t in delta.get("targets", []):
+            cur = conn.execute(
+                """INSERT OR IGNORE INTO requirement_target (requirement_id, vehicle_model_id, market_code, realization, rationale)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (req_id, t["vehicle_model_id"], t["market_code"], t.get("realization"), t.get("market_note")))
+            if cur.rowcount:
+                audit(conn, actor_type="human", actor_id=actor, action="add_target", entity_type="requirement",
+                      entity_id=req_id, field="target", new={"target": f"{t['vehicle_model_id']}×{t['market_code']}",
+                                                             "realization": t.get("realization")}, rationale=rationale)
+        for rel in ("supports", "contradicts"):
+            for fid in delta.get(rel, []):
+                cur = conn.execute("INSERT OR IGNORE INTO requirement_finding (requirement_id, finding_id, relation) VALUES (?, ?, ?)",
+                                   (req_id, int(fid), rel))
+                if cur.rowcount:
+                    audit(conn, actor_type="human", actor_id=actor, action="edit_evidence", entity_type="requirement",
+                          entity_id=req_id, field=f"finding:{fid}", old=None, new=rel, rationale=rationale)
+        conn.execute("COMMIT")
+    except BaseException:
+        conn.execute("ROLLBACK")
+        raise
+
+
 def decide_proposal(conn, proposal_id: int, accept: bool, actor: str, rationale: str) -> None:
     """Accept or reject an AI change proposal. Accepting applies it (priority / content / link / new requirement)."""
     _need(actor, rationale)
@@ -172,6 +200,13 @@ def decide_proposal(conn, proposal_id: int, accept: bool, actor: str, rationale:
                              f"Accepted AI proposal #{proposal_id}: {rationale}")
         elif kind == "new_requirement":
             set_status(conn, p["requirement_id"], "proposed", actor, f"Accepted new AI requirement #{proposal_id}: {rationale}")
+        elif kind == "extend":
+            extend_requirement(conn, p["requirement_id"], json.loads(p["evidence_delta_json"] or "{}"), actor,
+                               f"Accepted AI proposal #{proposal_id}: {rationale}")
+    elif (p["kind"] == "new_requirement" and conn.execute(
+            "SELECT status FROM requirement WHERE id = ?", (p["requirement_id"],)).fetchone()[0] == "proposed"):
+        # rejecting a new AI requirement drops it from review (otherwise it stays in the backlog and keeps being scored)
+        set_status(conn, p["requirement_id"], "rejected", actor, f"Rejected new AI requirement #{proposal_id}: {rationale}")
     _tx(conn)
     try:
         conn.execute("""UPDATE change_proposal SET status = ?, decided_by = ?, decided_at = strftime('%Y-%m-%dT%H:%M:%fZ','now'),

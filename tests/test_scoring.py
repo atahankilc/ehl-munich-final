@@ -81,3 +81,13 @@ def test_weight_change_is_audited(conn):
     scoring.set_weights(conn, w, "pm", "customer voice matters more")
     ev = conn.execute("SELECT * FROM audit_event WHERE action = 'change_weights'").fetchone()
     assert ev["actor_type"] == "human" and json.loads(ev["new_value"])["customer_voice"] == 50
+
+
+def test_stale_priority_proposal_superseded_when_run_agrees(conn):
+    scoring.run_prioritization(conn, wave=1, trigger="new_evidence", initiated_by="system")
+    ai = conn.execute("SELECT proposed_priority FROM requirement_target WHERE market_code = 'US'").fetchone()[0]
+    set_priority(conn, "REQ-0001", "G60", "US", ai, "pm", "confirmed in review")
+    conn.execute("""INSERT INTO change_proposal (requirement_id, vehicle_model_id, market_code, field, old_value,
+                        proposed_value, kind) VALUES ('REQ-0001', 'G60', 'US', 'priority', ?, 'Must', 'priority')""", (ai,))
+    scoring.run_prioritization(conn, wave=1, trigger="pm_request", initiated_by="system")   # same evidence → agrees with PM
+    assert conn.execute("SELECT COUNT(*) FROM change_proposal WHERE status = 'open'").fetchone()[0] == 0

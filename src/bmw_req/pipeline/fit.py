@@ -129,16 +129,33 @@ def store(conn: sqlite3.Connection, req_id: str, res: FitResult, model: str, tar
         raise
 
 
+UNCHECKED = """SELECT * FROM requirement_target t WHERE requirement_id = ? AND NOT EXISTS (SELECT 1 FROM fit_check f
+               WHERE f.requirement_id = t.requirement_id AND f.vehicle_model_id = t.vehicle_model_id
+               AND f.market_code = t.market_code AND f.check_type = 'brand')"""
+
+
+def unchecked_requirements(conn: sqlite3.Connection) -> list[str]:
+    """Requirements with at least one target that has no fit check yet (new ones, or targets the PM added by
+    accepting an `extend` proposal, Q-022)."""
+    return [r[0] for r in conn.execute(
+        """SELECT DISTINCT t.requirement_id FROM requirement_target t JOIN requirement r ON r.id = t.requirement_id
+           WHERE r.status != 'rejected' AND NOT EXISTS (SELECT 1 FROM fit_check f WHERE f.requirement_id = t.requirement_id
+           AND f.vehicle_model_id = t.vehicle_model_id AND f.market_code = t.market_code AND f.check_type = 'brand')
+           ORDER BY 1""")]
+
+
 def run(conn: sqlite3.Connection, req_ids: list[str] | None = None, workers: int = 6) -> int:
+    """Check the targets of `req_ids` (default: all requirements with unchecked targets) that have no fit check yet."""
     if req_ids is None:
-        req_ids = [r[0] for r in conn.execute(
-            "SELECT id FROM requirement WHERE id NOT IN (SELECT DISTINCT requirement_id FROM fit_check) ORDER BY id")]
+        req_ids = unchecked_requirements(conn)
 
     def work(rid):
         c = connect()
         llm = LLM(conn=c)
         req = dict(c.execute("SELECT * FROM requirement WHERE id = ?", (rid,)).fetchone())
-        targets = [dict(t) for t in c.execute("SELECT * FROM requirement_target WHERE requirement_id = ?", (rid,))]
+        targets = [dict(t) for t in c.execute(UNCHECKED, (rid,))]
+        if not targets:
+            return rid
         res, usage = check(llm, c, req, targets)
         store(c, rid, res, usage[-1][1], targets)
         return rid
