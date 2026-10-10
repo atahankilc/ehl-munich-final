@@ -24,6 +24,7 @@ def page(path: str, **kw):
 PAGES = {
     "Start here": [
         page("ui/home.py", title="Home", icon=":material/home:", default=True),
+        page("ui/journey.py", title="How it works", icon=":material/route:"),
         page("ui/review.py", title="Review requirements", icon=":material/fact_check:"),
         page("ui/board.py", title="Priorities by market", icon=":material/view_kanban:"),
         page("ui/inbox.py", title="AI suggestions", icon=":material/inbox:"),
@@ -48,6 +49,9 @@ TOUR = [
     ("ui/home.py", "The question and where we are",
      "BMW asks what the next 5 / 1 / 7 Series should offer. The AI turned 10k customer comments, a study, sales and "
      "web research into ranked requirements. Three simulated waves stand for ~2 years of new evidence."),
+    ("ui/journey.py", "Follow one requirement, step by step",
+     "One customer's words → the AI's signal → a theme → the requirement → brand/market fit → the score arithmetic → "
+     "the PM's decision → re-scoring in later waves. Left: the rule for all data. Right: what it did here."),
     ("ui/review.py", "Review one requirement",
      "Plain language: the customer need, the evidence behind it (comments, study, competitors) and the AI's "
      "suggested priority per car and market. The PM approves, rejects or defers — always with a reason."),

@@ -25,6 +25,9 @@ for c, (n, title, text, who) in zip(cols, steps):
     with c:
         md(f"<div class='card' style='min-height:118px'><h4>{n} · {title} "
            f"{chip(who, 'approved' if who == 'You' else 'proposed')}</h4><div class='muted'>{text}</div></div>")
+if st.button("See every step on a real requirement — from one customer comment to your decision",
+             icon=":material/route:", type="tertiary"):
+    st.switch_page("ui/journey.py")
 
 # ------------------------------------------------------------------------------------------------ where we are
 st.subheader("Where we are")

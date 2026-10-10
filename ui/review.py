@@ -154,7 +154,11 @@ with st.expander("Why these scores?"):
     for t in tg.itertuples():
         b = loads(t.score_breakdown_json, {}) or {}
         md(f"<b>{esc(plain_target(t.vehicle_model_id, t.market_code))}</b> — {esc(b.get('rationale', '–'))}")
-    if st.button("Full score breakdown and evidence chain", icon=":material/open_in_new:"):
+    x, y = st.columns(2)
+    if x.button("Walk through it step by step", icon=":material/route:", type="primary"):
+        st.session_state["req_id"] = rid
+        st.switch_page("ui/journey.py")
+    if y.button("Full score breakdown and evidence chain", icon=":material/open_in_new:"):
         open_requirement(rid)
 with st.expander("What the AI assumes about the next 3–5 years, and what could make it wrong"):
     a, u = st.columns(2)

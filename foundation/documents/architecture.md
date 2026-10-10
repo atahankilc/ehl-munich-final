@@ -115,7 +115,7 @@ Requirement IDs are global (`REQ-0001`); scope lives in `requirement_target`, so
 
 ## Key UI views (planned)
 
-- **Organised by the PM's job (D-036):** *Start here* = Home (question, wave stepper, what needs a decision, top priorities), Review requirements (guided queue, one requirement at a time in plain language), Priorities by market (Must/Should/Could board + market comparison), AI suggestions (the change inbox). *Explore & trace* and *Under the hood* hold the detail views below. Optional demo tour (7 steps).
+- **Organised by the PM's job (D-036):** *Start here* = Home (question, wave stepper, what needs a decision, top priorities), Review requirements (guided queue, one requirement at a time in plain language), Priorities by market (Must/Should/Could board + market comparison), AI suggestions (the change inbox), plus How it works (D-037: one requirement traced step by step — rule for all data on the left, its concrete effect on this requirement on the right, score as a waterfall). *Explore & trace* and *Under the hood* hold the detail views below. Optional demo tour (8 steps).
 - **Portfolio matrix** — derivatives × markets, with platform and plant, sales trend, top findings, requirement count.
 - **Requirement detail** — evidence chain (sources → findings → requirement), fit checks, score breakdown, audit timeline, approve/reject/edit/challenge.
 - **Competitor view** — per segment × market: who sells what, strengths, gaps vs. BMW.

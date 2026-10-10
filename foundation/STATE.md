@@ -1,6 +1,6 @@
 # Project State
 
-_Last updated: 2026-10-10_
+_Last updated: 2026-10-11_
 
 ## Current phase
 
@@ -8,7 +8,7 @@ _Last updated: 2026-10-10_
 - Evidence layer complete: 10,128 verbatims (extract-v3, D-024), customer study (391 items), sales, option lists (458 items), reference layer (96 cited sources), web research (219 cited items, 152 web findings).
 - Findings: verbatim clusters G60 243 · F70 166 · G70 242 (D-025), 391 study findings (D-026).
 - Requirements pipeline: derivation (sol, derive-v6) → portfolio consolidation → dedup vs backlog (D-035) → evidence linker → fit checks → scoring v2 → change proposals, orchestrated per simulated wave (LangGraph, D-027–D-029).
-- PM app (Streamlit, D-032, restructured D-036: Home → Review → Priorities by market → AI suggestions, plus detail pages and a demo tour) with approve/reject/defer/edit/challenge/override/priority/inbox, audit trail, export.
+- PM app (Streamlit, D-032, restructured D-036, D-037: Home → How it works → Review → Priorities by market → AI suggestions, plus detail pages and a demo tour) with approve/reject/defer/edit/challenge/override/priority/inbox, audit trail, export.
 - Demo states via `scripts/demo_state.py` + `scripts/demo_build.py` (snapshots `evidence`, `wave1`, `demo`).
 
 ## Team & logistics (fill in — Q-007, Q-008)
@@ -59,7 +59,7 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 ## Demo (how to run)
 
 - `uv run streamlit run app.py`. DB holds the full `demo` state; `uv run python scripts/demo_state.py restore wave1` for a live PM review from scratch (stop the app first). Rebuild: `scripts/demo_build.py`.
-- Story: switch on **Demo tour** in the sidebar — Home (question, waves, what needs a decision) → Review requirements (one requirement: need, evidence, AI suggestion, decide) → Priorities by market (5 Series USA vs China) → AI suggestions (priority changes, new requirements, merges) → Requirement details (score breakdown, evidence chain, fit, audit) → Audit trail → Export.
+- Story: switch on **Demo tour** in the sidebar — Home (question, waves, what needs a decision) → How it works (one requirement step by step: comment → signal → theme → requirement → fit → score waterfall → PM decision → re-scoring) → Review requirements (one requirement: need, evidence, AI suggestion, decide) → Priorities by market (5 Series USA vs China) → AI suggestions (priority changes, new requirements, merges) → Requirement details (score breakdown, evidence chain, fit, audit) → Audit trail → Export.
 
 ## Next up (suggested order)
 
@@ -146,3 +146,4 @@ Update the budget table after every paid run. Once the app exists, the source of
 - 2026-10-10 — Validation pass (judge + QA): deliverable checklist, 3 end-to-end traces, scope/brand check, live PM flow on `wave1` (AppTest + browser, restored afterwards). Fixed D-034 (rejected new requirement now `rejected`, stale priority proposals superseded, honest wave cause, Streamlit on localhost); +2 tests (46 pass); Q-021–Q-023 opened; report in `documents/validation-report.md`. Spent $0.06. Not committed.
 - 2026-10-10 — Q-022 fixed (D-035): later waves match new drafts against the whole backlog; duplicates become `extend` proposals (inbox tab "Merge into existing"); fit checks cover every unchecked target. Demo rebuilt: 39 requirements, 151 targets, 3 runs, 1,606 audit events, 7 open merge proposals; coverage F70 0.95 · G60 0.95 · G70 0.75. 47 tests pass. Spent $0.45. Not committed.
 - 2026-10-10 — PM app restructured for comprehension (D-036, Atahan: "I understand nothing from the frontend"): new Home, guided Review queue, Priorities-by-market board, plain-language labels (5 Series · USA, Strong evidence, Expected/Differentiator), wave stepper moved to Home, demo tour, trust-tier chart fixed, sidebar grouped Start here / Explore & trace / Under the hood. No pipeline or data change, no LLM spend. Tested with AppTest + browser on a throwaway copy, demo state restored. Not committed.
+- 2026-10-11 — "How it works" page (D-037, Atahan: show how data is handled step by step and how decisions are made): one requirement × car · market traced through 8 steps, each with the rule for all data (actor, model, live counts, AI spend) beside what it did to this requirement (real comment, extracted signal, theme, draft with evidence vs assumption, fit verdicts, score waterfall with bands, PM decisions, score across waves). Linked from Home, Review and the demo tour (now 8 steps). Read-only, no pipeline/schema change, no LLM spend. AppTest + browser on a DB copy; 47 tests pass. Not committed.
