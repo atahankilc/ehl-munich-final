@@ -1,0 +1,78 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KVPME15NNES2BJ7QNQC6WR",
+  "session_id": "56713ac8-e06e-40fa-b1d3-1eedd5ed6b63",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T21:32:30.788345Z",
+  "branch": "validation-dedup",
+  "checkpoints_count": 2,
+  "save_step_count": 1,
+  "files_touched": [
+    "README.md",
+    "foundation/DECISIONS.md",
+    "foundation/OPEN_QUESTIONS.md",
+    "foundation/STATE.md",
+    "foundation/documents/architecture.md",
+    "foundation/documents/validation-report.md"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "turn_id": "f0afe288c810",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 176,
+    "cache_creation_tokens": 414190,
+    "cache_read_tokens": 16250194,
+    "output_tokens": 69681,
+    "api_call_count": 88
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "claude-skill-toolu_016vmXMbpEXNR8vKRi5heFxq",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "claude-in-chrome"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "f0afe288c810",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 346,
+        "end": 347,
+        "entry_ids": [
+          "e97a40c4-51d2-4521-aca3-d3a5f9ab7ec7"
+        ],
+        "tool_use_id": "toolu_016vmXMbpEXNR8vKRi5heFxq"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_016vmXMbpEXNR8vKRi5heFxq"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: claude-in-chrome",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T21:32:30.714115Z",
+    "agent_lines": 97,
+    "agent_removed": 7,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 97,
+    "total_lines_changed": 104,
+    "agent_percentage": 100,
+    "metric_version": 2
+  }
+}
