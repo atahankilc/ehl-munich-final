@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_018BUxwhh7M1tK6iRTf1SMt2",
+  "agent_id": "ad4594fc4e0c44389",
+  "subagent_type": "general-purpose",
+  "task_description": "Research competitors & brand positioning",
+  "token_usage": {
+    "input_tokens": 42,
+    "cache_creation_tokens": 129593,
+    "cache_read_tokens": 1461174,
+    "output_tokens": 14616,
+    "api_call_count": 21
+  },
+  "started_at": "2026-10-10T14:19:50.202464+02:00",
+  "completed_at": "2026-10-10T15:09:40.166863+02:00"
+}
