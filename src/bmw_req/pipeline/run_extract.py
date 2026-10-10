@@ -60,12 +60,7 @@ def store(conn, chunk: list[dict], batch, usage_id: int | None, model: str) -> d
             for s in r.signals:
                 ok = quote_ok(s.quote, v["text"])
                 unverified += not ok
-                conn.execute(
-                    "INSERT INTO signal (source_item_id, extractor_version, category, topic, feedback_type, severity,"
-                    " need_statement, quote, quote_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    (v["source_item_id"], EXTRACTOR_VERSION, s.category, s.topic, s.feedback_type, s.severity,
-                     s.need_statement, s.quote, int(ok)),
-                )
+                insert_signal(conn, v["source_item_id"], s, ok, usage_id)
                 signals += 1
             stored += 1
         conn.execute(
@@ -79,6 +74,15 @@ def store(conn, chunk: list[dict], batch, usage_id: int | None, model: str) -> d
         conn.execute("ROLLBACK")
         raise
     return {"stored": stored, "signals": signals, "unverified_quotes": unverified}
+
+
+def insert_signal(conn, source_item_id: int, s, quote_verified: bool, usage_id: int | None) -> None:
+    conn.execute(
+        "INSERT INTO signal (source_item_id, extractor_version, category, topic, feedback_type, severity,"
+        " need_statement, quote, quote_verified, llm_usage_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (source_item_id, EXTRACTOR_VERSION, s.category, s.topic, s.feedback_type, s.severity,
+         s.need_statement, s.quote, int(quote_verified), usage_id),
+    )
 
 
 _local = threading.local()

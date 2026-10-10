@@ -86,3 +86,26 @@ def test_extraction_store_flags_quotes_and_skips_invented(conn):
     assert stats == {"stored": 1, "signals": 2, "unverified_quotes": 1}
     assert [v["id"] for v in pending(conn, "G60", None)] == ["G60-2"]   # missing ID stays pending
     assert quote_ok("Seats are", "the  seats are hard") and not quote_ok("", "x")
+
+
+def test_recheck_flips_with_audit_and_confirms(conn):
+    from bmw_req.pipeline import recheck
+    from bmw_req.pipeline.extract import EXTRACTOR_VERSION, BatchResult
+
+    for i, text in [(1, "salesman said it only charges to 80%, i hated that"), (2, "dealer was rude")]:
+        conn.execute("INSERT INTO source_item (id, kind, ref, external_id, vehicle_model_id, text, meta_json)"
+                     " VALUES (?, 'feedback', ?, ?, 'G60', ?, '{\"engine\": \"BEV\"}')", (i, f"f#{i}", f"G60-{i}", text))
+        conn.execute("INSERT INTO verbatim_extraction (source_item_id, extractor_version, in_scope, out_of_scope_reason)"
+                     " VALUES (?, ?, 0, 'dealer')", (i, EXTRACTOR_VERSION))
+    chunk = recheck.pending(conn, "G60")
+    assert len(chunk) == 2
+    sig = dict(category="Range & Charging", topic="DC charging", feedback_type="complaint", severity="medium",
+               need_statement="n", quote="only charges to 80%")
+    batch = BatchResult.model_validate({"results": [
+        {"verbatim_id": "G60-1", "in_scope": True, "out_of_scope_reason": None, "signals": [sig]},
+        {"verbatim_id": "G60-2", "in_scope": False, "out_of_scope_reason": "dealer only", "signals": []},
+    ]})
+    stats = recheck.store(conn, chunk, batch, None, "m")
+    assert (stats["flipped"], stats["confirmed"], stats["signals"]) == (1, 1, 1)
+    assert conn.execute("SELECT in_scope FROM verbatim_extraction WHERE source_item_id = 1").fetchone()[0] == 1
+    assert conn.execute("SELECT COUNT(*) FROM audit_event WHERE action = 'recheck_scope'").fetchone()[0] == 1

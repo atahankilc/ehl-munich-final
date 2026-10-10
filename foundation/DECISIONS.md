@@ -28,6 +28,7 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-020 | Scaffold conventions (Python 3.12/uv, OpenAI SDK direct, Pydantic, pytest) | accepted |
 | D-021 | Demo slice G60 × US + G68 × CN; demo table set (Q-017) | accepted |
 | D-022 | Extraction v2 (Q-018 fixes) + `signal` / `verbatim_extraction` tables | accepted |
+| D-023 | Q-019 re-check of out-of-scope verdicts with sol; signal provenance column | accepted |
 
 Keep this index in sync when adding a decision.
 
@@ -318,4 +319,14 @@ Template:
   - Runner `bmw_req.pipeline.run_extract`: 25 verbatims per call, parallel Flex calls (16 workers), retry with backoff on rate-limit/timeout/5xx, per-run spend cap (default $1), idempotent per extractor version; one `audit_event` per batch (actor ai, model, prompt_ref = extractor version).
 - Alternatives considered: storing signals in `source_item.meta_json` — rejected, not queryable for clustering.
 - Consequences: changing the prompt means a new `EXTRACTOR_VERSION`; old results stay for comparison.
+
+## D-023 — Re-check out-of-scope verdicts with sol (Q-019 option a)
+- Date: 2026-10-10
+- Decided by: Atahan ("run the Q-019 re-check"); implementation by agent
+- Status: accepted
+- Decision:
+  - `bmw_req.pipeline.recheck`: verbatims with `in_scope = 0` are re-examined by sol (low effort, Flex) with the first-pass reason and an instruction to extract in-scope parts of mixed verbatims.
+  - A flip updates `verbatim_extraction` (in_scope, `recheck_llm_usage_id`), adds signals under the same extractor version, and writes an `audit_event` with before/after. Confirmed verdicts only get `recheck_llm_usage_id`.
+  - New column `signal.llm_usage_id` (call/model that produced each signal), backfilled for existing signals; small column-migration helper in `db.py`.
+- Consequences: first-pass and re-check signals are distinguishable via `llm_usage.job`. The re-check used a looser rule than the first pass for "customer asked how X works" verbatims → Q-020.
 

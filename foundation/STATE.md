@@ -11,7 +11,8 @@ _Last updated: 2026-10-10_
 - Demo slice + tables decided (D-021): full demo schema built, G60 feedback ingested (4,000 verbatims, counts match `data-inventory.md`).
 - Pilot run 2026-10-10: $0.0201 total, all quality checks passed except 1 paraphrased quote (see Pilot results).
 - Q-018 fixes applied (D-022, extract-v2) and full G60 extraction done: 4,000 verbatims → 5,400 signals, $0.1348, 0 failures (see G60 extraction results).
-- **Next: Q-019 decision, then findings (cluster signals per market), then requirement derivation for G60 × US.**
+- Q-019 re-check done (D-023): 111/268 out-of-scope verbatims flipped back, +118 signals → 5,518 total, $0.1342.
+- **Next: Q-020 decision (support-call signals), then findings (cluster signals per market), then requirement derivation for G60 × US.**
 
 ## Team & logistics (fill in — Q-007, Q-008)
 
@@ -77,7 +78,7 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 
 | Item | Value |
 |---|---|
-| Spent to date | **$0.1549** (pilot $0.0201 + G60 extraction $0.1348, 2026-10-10). Source of truth: `llm_usage` in `data/app.db` / Streamlit page |
+| Spent to date | **$0.2891** (pilot $0.0201 + G60 extraction $0.1348 + Q-019 re-check $0.1342, 2026-10-10). Source of truth: `llm_usage` in `data/app.db` / Streamlit page |
 | Planned build spend | ≈ $60 (≈ $48 + 25% contingency) |
 | Warn / block non-demo / app hard stop | $45 / $70 / $90 |
 | Demo-day reserve | $20 ($70 → $90) |
@@ -103,7 +104,15 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 - Feedback types: like 2,777 · complaint 851 · want 699 · defect 580 · difficult_to_use 493.
 - Top categories: Infotainment & Digital 1,023 · Driving Experience 901 · Comfort & Space 781 · Interior 572 · Exterior 550.
 - 33 signals (0.6%) have unverified quotes — mostly stitched with "…" or a changed word form ("enjoy" vs "enjoys"); flagged, not dropped.
-- Out-of-scope verdicts drop some usable content → Q-019.
+- Out-of-scope verdicts drop some usable content → Q-019 → re-check below.
+
+## Q-019 re-check results (2026-10-10, `bmw_req.pipeline.recheck`, sol low, Flex)
+
+- 11 calls, **$0.1342** (agent had estimated ≈ $0.05 — off by 2.7×: sol output 1.2–2k tokens/call at $5/M Flex). Avg 3.4k in / 1.6k out per call.
+- First attempt: 7 of 11 batches refused by the run's own $0.30 cap, because the cap counts open reservations and each sol call reserves ≈ $0.13 worst case (4 in flight ≈ $0.53). No API calls were made for them; re-run with a $1 cap finished them. Lesson: size run caps to workers × worst-case reservation.
+- **111 of 268 flipped to in scope, 157 confirmed out of scope; 118 new signals**, 0 unverified quotes, 0 missing IDs.
+- New signals: difficult_to_use 80 (66 of them hotline questions like "customer asked which regen setting to use"), like 17, defect 12, complaint 5, want 4. Real recoveries include "only fast charged to 80%, which i really hated", a flat-tire defect, oil-dipstick want, removed gesture control. The question-type ones are a looser rule than the first pass applied → Q-020.
+- G60 now: 3,843 in-scope verbatims, **5,518 signals**.
 - Re-estimate: extraction for all 10.1k verbatims ≈ $0.34/run, below D-014's $0.47/run.
 
 Update the budget table after every paid run. Once the app exists, the source of truth is the wrapper's usage log.
@@ -135,3 +144,4 @@ Update the budget table after every paid run. Once the app exists, the source of
 - 2026-10-10 — Scaffold committed (65d3952). Q-017 delegated → D-021: demo slice G60 × US + G68 × CN, demo schema (audit append-only via triggers, sqlite-vec, llm_cache), G60 feedback ingest (4,000 verbatims, verified vs. inventory). 16 tests passing. No paid calls.
 - 2026-10-10 — Committed db695bd. Pilot (D-014) run: extraction (luna) + derivation (sol) modules, `scripts/pilot.py`; $0.0201 spent; results + re-estimate in STATE; Source D note corrected (Q-005, data-inventory); Q-018 opened for schema fixes. Pilot code not committed yet.
 - 2026-10-10 — Committed e7cabd9 (pilot). Q-018 → D-022 (extract-v2: `complaint` type, category definitions, quote check, no implicit cache writes; `signal`/`verbatim_extraction` tables; parallel runner). Full G60 extraction: 5,400 signals, $0.1348, 0 failures. Total spent $0.1549. Q-019 opened (out-of-scope over-exclusion). Not committed.
+- 2026-10-10 — Committed ed747bf. Q-019 re-check (D-023): signal provenance column + migration, recheck module; 111/268 flipped, +118 signals, $0.1342 (est. was $0.05); first attempt tripped own run cap (no calls made), re-run OK. Total spent $0.2891. Q-020 opened (support-call questions as evidence). Not committed.

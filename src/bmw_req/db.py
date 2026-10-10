@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS finding_source (
 CREATE TABLE IF NOT EXISTS verbatim_extraction (   -- one row per verbatim × extractor version (D-022)
     source_item_id INTEGER NOT NULL REFERENCES source_item(id), extractor_version TEXT NOT NULL,
     in_scope INTEGER NOT NULL, out_of_scope_reason TEXT, llm_usage_id INTEGER REFERENCES llm_usage(id),
+    recheck_llm_usage_id INTEGER REFERENCES llm_usage(id),   -- second-pass check of an out-of-scope verdict (D-023)
     created_at TEXT NOT NULL DEFAULT {NOW},
     PRIMARY KEY (source_item_id, extractor_version)
 );
@@ -89,6 +90,7 @@ CREATE TABLE IF NOT EXISTS signal (                -- AI-extracted customer sign
     extractor_version TEXT NOT NULL, category TEXT NOT NULL, topic TEXT, feedback_type TEXT NOT NULL,
     severity TEXT, need_statement TEXT, quote TEXT,
     quote_verified INTEGER NOT NULL,   -- quote is a contiguous span of the verbatim (whitespace/case normalized)
+    llm_usage_id INTEGER REFERENCES llm_usage(id),   -- call (and so model) that produced it (D-023)
     FOREIGN KEY (source_item_id, extractor_version) REFERENCES verbatim_extraction(source_item_id, extractor_version)
 );
 CREATE INDEX IF NOT EXISTS ix_signal_source ON signal(source_item_id);
@@ -209,4 +211,26 @@ def connect(path: Path | str | None = None) -> sqlite3.Connection:
     conn.execute("PRAGMA busy_timeout=10000")
     conn.execute("PRAGMA foreign_keys=ON")
     conn.executescript(SCHEMA)
+    _migrate(conn)
     return conn
+
+
+# Columns added after a table was first created: (table, column, definition). CREATE IF NOT EXISTS
+# doesn't add them to an existing DB.
+MIGRATIONS = [
+    ("signal", "llm_usage_id", "INTEGER REFERENCES llm_usage(id)"),
+    ("verbatim_extraction", "recheck_llm_usage_id", "INTEGER REFERENCES llm_usage(id)"),
+]
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    for table, column, definition in MIGRATIONS:
+        cols = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+        if column not in cols:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+            if (table, column) == ("signal", "llm_usage_id"):
+                # Backfill: until D-023 every signal came from its verbatim's first-pass call.
+                conn.execute(
+                    """UPDATE signal SET llm_usage_id = (SELECT e.llm_usage_id FROM verbatim_extraction e
+                       WHERE e.source_item_id = signal.source_item_id AND e.extractor_version = signal.extractor_version)"""
+                )

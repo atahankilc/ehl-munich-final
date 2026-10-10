@@ -90,12 +90,16 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
   - But "safety" is out of scope (regulatory).
 - Working line (not decided): ADAS *experience* (usability, availability, comfort, trust) is in; safety/homologation performance is out.
 
-### Q-019 — Out-of-scope verdict drops some usable verbatims
-- Owner: agent (proposal), team to OK
-- Context: full G60 run (extract-v2) marked 268/4,000 verbatims out of scope (B 158, A 103, C 5, D 2). Spot check of 14: most are right (dealer/service calls, charger etiquette, generic "going well"), but 2–3 contain a real product signal next to dealer content, e.g. "only fast charged to 80%, which i really hated" dropped because a salesperson is mentioned; "why is there an 80% charging limit" is arguably a range/usability signal. Rough guess from that sample: ~15–20% of the 268 (≈ 40–55 verbatims) lost.
-- Options: (a) re-check only the 268 with sol, asking "is there any in-scope signal?" (≈ $0.05); (b) prompt tweak "extract in-scope parts even if the verbatim is mostly about dealer/service" → new extractor version, full re-run ≈ $0.14; (c) accept the loss. Recommendation: (a).
+### Q-020 — Do "customer asked how X works" support calls count as usability evidence?
+- Owner: team / PM persona
+- Context: the Q-019 re-check (D-023) told sol that confusion about a function is a `difficult_to_use` signal. Of its 118 new signals, 80 are `difficult_to_use`, and 66 come from hotline-style verbatims ("Customer asked which regen setting to use. Writer explained…"). The first pass had judged these out of scope, so the same kind of verbatim is now treated differently depending on which pass saw it. They are identifiable (`signal.llm_usage_id` → `llm_usage.job LIKE 'recheck%'`).
+- Options: (a) keep them as weak usability evidence ("needed help to understand X"), weighted low in scoring; (b) drop the question-type ones, keep the ~38 others; (c) re-run the first pass with one consistent rule (new extractor version, ≈ $0.14 for G60).
+- Recommendation: (a) for now — tag them as `support_question` evidence in the findings step so they can't inflate usability pain silently; revisit (c) before the full F70/G70 runs.
 
 ## Resolved
+
+### Q-019 — Out-of-scope verdict drops usable verbatims → **re-checked with sol** (D-023)
+- Atahan 2026-10-10: "run the Q-019 re-check". 111 of 268 flipped back in scope (118 signals). Agent's 15–20% guess was far too low; but 66 of the new signals are support-call questions → Q-020.
 
 ### Q-018 — Extraction schema fixes after the pilot → **applied in extract-v2** (D-022)
 - Atahan 2026-10-10: "apply the Q-018 fixes". Verified on the 50 pilot verbatims, then full G60 run.
