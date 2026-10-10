@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KSJ3C14C0BXEB8RBJX404T",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app.py",
+    "tests/test_service.py",
+    "ui/audit.py",
+    "ui/backlog.py",
+    "ui/budget.py",
+    "ui/common.py",
+    "ui/conflicts.py",
+    "ui/export.py",
+    "ui/findings.py",
+    "ui/inbox.py",
+    "ui/overview.py",
+    "ui/portfolio.py",
+    "ui/requirement.py",
+    "ui/weights.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 298,
+    "cache_creation_tokens": 651709,
+    "cache_read_tokens": 37601085,
+    "output_tokens": 167794,
+    "api_call_count": 149
+  }
+}

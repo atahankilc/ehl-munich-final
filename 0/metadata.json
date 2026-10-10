@@ -1,0 +1,49 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KSJ3C14C0BXEB8RBJX404T",
+  "session_id": "bacd3b1d-4756-430b-bc24-1896d160c515",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T20:55:06.357771Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "save_step_count": 1,
+  "files_touched": [
+    "app.py",
+    "tests/test_service.py",
+    "ui/audit.py",
+    "ui/backlog.py",
+    "ui/budget.py",
+    "ui/common.py",
+    "ui/conflicts.py",
+    "ui/export.py",
+    "ui/findings.py",
+    "ui/inbox.py",
+    "ui/overview.py",
+    "ui/portfolio.py",
+    "ui/requirement.py",
+    "ui/weights.py"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "turn_id": "e18552e2d12f",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 298,
+    "cache_creation_tokens": 651709,
+    "cache_read_tokens": 37601085,
+    "output_tokens": 167794,
+    "api_call_count": 149
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T20:55:06.145055Z",
+    "agent_lines": 2288,
+    "agent_removed": 13,
+    "human_added": 18,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 2306,
+    "total_lines_changed": 2319,
+    "agent_percentage": 99.22380336351875,
+    "metric_version": 2
+  }
+}
