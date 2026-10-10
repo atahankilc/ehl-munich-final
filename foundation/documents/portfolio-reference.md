@@ -23,24 +23,24 @@ BMW rarely names its platforms in official press releases. Most platform-to-mode
 | **FAAR** (successor to UKL2) | FWD/AWD, multi-energy | 1 Series F70, 2 Series Gran Coupé F74, 2 Series Active Tourer U06, X1 U11 + iX1, X2 U10 + iX2, China LWB X1/iX1, MINI Countryman U25 (ICE + BEV) | [Trade] S22, S23. **Conflict:** Wikipedia describes F70 as "UKL2", while bmwblog and others call it FAAR (an evolution of UKL). CnEVPost (S19) calls the China iX1 "CLAR", which is almost certainly wrong |
 | MINI legacy UKL | FWD ICE | MINI Cooper 3-door F66, 5-door F65, Convertible F67 (Oxford) | [Unverified] codes; Oxford assignment [BMW] S16 |
 | MINI / Great Wall "Spotlight" BEV | FWD BEV | MINI Cooper E/SE J01, Aceman J05 (Zhangjiagang, China; 50:50 JV with Great Wall) | [Trade] S12 |
-| **Neue Klasse (NK)** | Gen6 eDrive, 800 V, cylindrical cells, "superbrain" E/E architecture. BEV-first, but the 8th-gen 3 Series also brings NK design and tech to ICE derivatives | iX3 NA5 (since Oct 2025), i3 sedan NA0 (since Aug 2026); planned: iX3 LWB NA6 (China), i3 Touring NA1, iX4 NA7, i4 Coupé/Convertible NA2/NA3, i7 successor ND0, i1 NB0 (rumoured), NK electric X1 NB5/NB6, NK M cars (ZA0 M3, etc.) | NA5/NA0 and plants [BMW] S7, S9, S10. Codes and future list [Trade] S21 (bmwblog, 12 Dec 2025) |
+| **Neue Klasse (NK)** — BMW's own name for the iX3 base: "new cluster architecture (NCAR)", BEV-only [BMW] AR25 p. 46 | Gen6 eDrive, 800 V, cylindrical cells, "superbrain" E/E architecture. BEV-first, but the 8th-gen 3 Series also brings NK design and tech to ICE derivatives | iX3 NA5 (since Oct 2025), i3 sedan NA0 (since Aug 2026); planned: iX3 LWB NA6 (China), i3 Touring NA1, iX4 NA7, i4 Coupé/Convertible NA2/NA3, i7 successor ND0, i1 NB0 (rumoured), NK electric X1 NB5/NB6, NK M cars (ZA0 M3, etc.) | NA5/NA0 and plants [BMW] S7, S9, S10. Codes and future list [Trade] S21 (bmwblog, 12 Dec 2025) |
 
 ### 1.2 What NK replaces, and when
 
 - BMW says NK technology goes into **"40 new models and model updates" by 2027** [BMW] S7 (17 Sep 2025). BMW's design chief says every model will get NK design/tech [Trade] S24.
-- **NK does not fully replace CLAR before roughly 2030.** The next large SUVs stay on an upgraded CLAR: X5/iX5 G65, X6/iX6 G66, X7/iX7 G67. CLAR is expected "well into the second half of the decade" [Trade] S21 (Dec 2025); Autocar on the next X7 [Trade] S24.
+- **NK does not fully replace CLAR before roughly 2030.** The next large SUVs stay on an upgraded CLAR: X5/iX5 G65, X6/iX6 G66, X7/iX7 G67. CLAR is expected "well into the second half of the decade" [Trade] S21 (Dec 2025). **Conflict:** BMW's report lists R&D for "NEUE KLASSE models such as the BMW iX3 and the successors to the BMW X5 and the BMW 7 Series" [BMW] AR25 p. 70, 81. The X5 and G70 successors may be NK-*branded* on a CLAR-derived base (unresolved); Autocar on the next X7 [Trade] S24.
 - **Mid-size BEVs move to NK first.** iX3 NA5 replaces the old CLAR iX3 G08. G08 production in China ended in March 2025 [Trade] S19. i3 NA0 replaces the CLAR electric 3 Series/i4 sedan role [Trade] S21.
 - **New 3 Series (8th generation, revealed Sep 2026).** The BEV i3 is built in Munich. ICE/PHEV variants are built in Dingolfing, starting with the 320 and M350 petrol models [BMW] S11 (30 Sep 2026). Whether the ICE 3 Series sits on NK hardware or on a CLAR evolution is **[Unverified]**. BMW says the 8th-gen 3 Series "introduces Neue Klasse design and technologies".
-- **China.** The China-built CLAR/FAAR BEVs (i3 LWB, i5, iX1) were reported to end production in **July 2026**. The NK iX3 LWB takes over, followed by an NK i3 LWB in early 2027 [Trade] S19 (CnEVPost, 17 Jun 2026, citing "BMW Club"). This is **[Unverified]** by BMW. The i7 was imported to China and discontinued there in June 2026 [Trade] S19.
+- **China.** The China-built CLAR/FAAR BEVs (i3 LWB, i5, iX1) were reported to end production in **July 2026**. The NK iX3 LWB takes over, followed by an NK i3 LWB in early 2027 [Trade] S19 (CnEVPost, 17 Jun 2026, citing "BMW Club"). This is **[Unverified – rumour]**: the sources are a WeChat/Weibo insider relayed by CnEVPost and electrive (18 Jun 2026). BMW has not confirmed it; it only says Shenyang is "laying a solid foundation for the local production of Neue Klasse models". No later report confirms the end of production (checked 2026-10-10). The i7 was imported to China and discontinued there in June 2026 [Trade] S19.
 - **FAAR replacement:** no official date. Trade press expects an NK-based electric X1 (NB5/NB6) after the current iX1 cycle, and an i1 (NB0) "toward end of decade" **[Unverified]** S21.
 
 ### 1.3 NK rollout timeline
 
 | Model (code) | Plant | Milestone | Source |
 |---|---|---|---|
-| iX3 (NA5) | Debrecen (HU) | Plant opened 26 Sep 2025. Series production from late Oct 2025. Second shift Feb 2026. 50,000th iX3 about 9 months after SOP (2026) | [BMW] S7, S8, S9 |
+| iX3 (NA5) | Debrecen (HU) | Plant opened 26 Sep 2025. Series production from late Oct 2025. Second shift Feb 2026. 50,000th iX3 about 9 months after SOP (2026) | [BMW] S7, S8, S9 (BMW says only "iX3"; the code NA5 is [Trade] S21) |
 | iX3 LWB (NA6) | Shenyang (BBA, CN) | Pre-series since Dec 2025. BMW says only "2026" for series production. Trade press reports SOP of 50L in Jun 2026 and launch in Q4 2026 (sources conflict). Investment ~CNY 10 bn (~EUR 1.2 bn) | [Trade] S25 (electrive, 5 Jan 2026), S19 |
-| i3 sedan (NA0) | Munich (DE) | Pre-series 4 Feb 2026. Orders opened mid-Jun 2026. **SOP 6 Aug 2026.** Munich builds **BEV only from 2027** | [BMW] S10 (4 Feb 2026), S9 (6 Aug 2026) |
+| i3 sedan (NA0) | Munich (DE) | Pre-series 4 Feb 2026. Orders opened mid-Jun 2026. **SOP Aug 2026** (release dated 6 Aug 2026 says "in August"). Munich builds **BEV only from 2027** | [BMW] S10 (4 Feb 2026), S9 (6 Aug 2026) |
 | 3 Series ICE/PHEV (8th gen) | Dingolfing (DE) | Revealed Sep 2026. SOP date not stated | [BMW] S11 |
 | i3 + 3 Series | San Luis Potosí (MX) | NK production from 2027 (i3 and iX3 per newmobility). EUR 800 m investment, of which >EUR 500 m goes to a battery assembly centre | [BMW] S11 (says "i3 and 3er" at SLP); [Trade] S26 (Jul 2026) |
 | China-specific 3 Series | Shenyang | Planned, no date | [BMW] S11 |
@@ -53,21 +53,21 @@ Gen6 supply chain: Debrecen is the first of five Gen6 battery plants [BMW] S7. I
 
 ## 2. Vehicle plants
 
-The 2025 output figures are from bmwblog (13 Mar 2026), which says they are "listed by BMW" and include prototypes (S14). The BMW Group Report 2025 is the primary source but was not accessed. BMW Group 2025 production totalled **2,456,561** vehicles (-2.3%): BMW 2,171,700, MINI 279,476, RR 5,385 [Trade] S14.
+The 2025 per-plant output figures are **confirmed by BMW**: BMW Group Report 2025 (AR25) p. 61, "BMW Group automobile production by plant", incl. pre-series models. They match bmwblog S14. The 2025 production programme per plant is on AR25 p. 60. BMW Group 2025 production totalled **2,456,561** vehicles (-2.3%): BMW 2,171,700, MINI 279,476, RR 5,385 [BMW] AR25 p. 12, 61.
 
 | Plant | Country | Ownership | Models built today (codes) | Powertrains | Platform | NK conversion | Volume / capacity | Sources |
 |---|---|---|---|---|---|---|---|---|
 | **Munich** | DE | BMW | i3 NA0 (since Aug 2026). Before that: 3 Series sedan/Touring G20/G21, M3, 4 Series Gran Coupé / i4 G26 | ICE/PHEV/BEV today, **BEV-only from 2027** | CLAR → NK | First existing plant converted to NK | Up to 1,000 vehicles/day during remodelling | [BMW] S9, S13 |
-| **Dingolfing** | DE | BMW | 5 Series G60/G61 + i5 + M5, 7 Series G70 + i7, 4 Series Coupé/Convertible G22/G23 + M4, iX I20. 8 Series ending in 2026 (BMW sources conflict: the Apr 2026 fact sheet omits it, the Jan 2026 release lists it). **Next-gen 3 Series ICE/PHEV** | ICE/PHEV/BEV on one line. BEV >25% of 2025 output, electrified >40% | CLAR (+ NK-generation 3 Series) | 7 Series LCI SOP Jul 2026 [Trade]. 3 Series ICE added 2026 | ~280,000 in 2025, ~1,350/day, ~18,000 staff | [BMW] S13 (Jan 2026), S15 (fact sheet, Apr 2026); [Trade] S29 |
+| **Dingolfing** | DE | BMW | 5 Series G60/G61 + i5 + M5, 7 Series G70 + i7, 4 Series Coupé/Convertible G22/G23 + M4, iX I20. 8 Series (in the 2025 production programme [BMW] AR25 p. 60; ending in 2026, and the Apr 2026 fact sheet omits it). **Next-gen 3 Series ICE/PHEV** | ICE/PHEV/BEV on one line. BEV >25% of 2025 output, electrified >40% | CLAR (+ NK-generation 3 Series) | 7 Series LCI SOP Jul 2026 [Trade]. 3 Series ICE added 2026 | **279,553 in 2025 (-6.1%)** [BMW] AR25 p. 61; ~1,350/day, ~18,000 staff | [BMW] S13 (Jan 2026), S15 (fact sheet, Apr 2026); [Trade] S29 |
 | **Regensburg** | DE | BMW | X1 U11 / iX1, X2 U10 / iX2 | ICE/PHEV/BEV | FAAR | Not announced | **356,901 in 2025 (+4.2%)**, record and highest of any European plant | [BMW] S13; [Trade] S14 |
-| **Leipzig** | DE | BMW | 1 Series F70 (**exclusive**, SOP 1 Jul 2024, up to 500/day), 2 Series Active Tourer U06, 2 Series Gran Coupé F74, MINI Countryman U25 (incl. BEV) | ICE/PHEV/BEV | FAAR | Not announced | 4 millionth car Dec 2025. 2025 total not found | [BMW] S13, S30 (1 Jul 2024) |
+| **Leipzig** | DE | BMW | 1 Series F70 (**exclusive**, production launch announced 1 Jul 2024, up to 500/day), 2 Series Active Tourer U06, 2 Series Gran Coupé F74, MINI Countryman U25 (incl. BEV) | ICE/PHEV/BEV | FAAR | Not announced | 4 millionth car Dec 2025. **259,430 in 2025 (+5.4%)** [BMW] AR25 p. 61 | [BMW] S13, S30 (1 Jul 2024) |
 | **Debrecen** | HU | BMW | iX3 NA5 | BEV only | NK | NK from the start (first NK plant) | ~150,000/yr at full ramp-up [Trade]. 4,221 built in 2025 | [BMW] S7, S8; [Trade] S14, S31 |
 | **Spartanburg** | US | BMW | X3 G45, X5 G05 → G65 (Aug 2026), X6 G06, X7 G07, XM G09, X5 M/X6 M. X4 G02 ended Nov 2025 | ICE/PHEV; BEV iX5 late 2026 or 2027 | CLAR | No NK announced. ≥6 BEVs by 2030 | **412,799 in 2025 (+4.2%), largest BMW plant** | [Trade] S14, S27, S28; [BMW] cited in S27 |
-| **San Luis Potosí** | MX | BMW | 3 Series sedan G20, 2 Series Coupé G42, M2 G87 (2023 reports; 2026 line-up not confirmed) | ICE (+ HV batteries from 2027) | CLAR → NK | NK i3 (+ iX3 per trade press) from 2027 | Not found | [BMW] S11; [Trade] S26, S32 |
+| **San Luis Potosí** | MX | BMW | 3 Series sedan G20, 2 Series Coupé G42, M2 G87 (2025 programme: "2 Series, 3 Series, M" [BMW] AR25 p. 60) | ICE (+ HV batteries from 2027) | CLAR → NK | NK i3 (+ iX3 per trade press) from 2027 | **95,525 in 2025 (+0.3%)** [BMW] AR25 p. 61 | [BMW] S11; [Trade] S26, S32 |
 | **Shenyang Dadong** (BBA JV, BMW 75%) | CN | JV | **5 Series LWB G68 + i5 LWB** (China-only, production since Jan 2024), X3 LWB, X5 LWB G18. Old iX3 G08 for export until Mar 2025 | ICE/PHEV/BEV | CLAR | NK iX3 LWB at "Shenyang". **Which BBA site is [Unverified]** | **205,783 in 2025 (-40.2%)** | [BMW] S33 (25 Jan 2024), S34 (8 Aug 2023); [Trade] S14, S35 |
 | **Shenyang Tiexi** (incl. **Lydia** section, opened 2022) | CN | JV | 1 Series (China sedan), 3 Series LWB G28, X1 LWB / iX1, X2. Lydia: i3 LWB BEV (G28 BEV, ended Jul 2026 [Trade]) | ICE/BEV | CLAR + FAAR | NK i3 LWB early 2027 [Trade] | **330,691 in 2025 (+16.4%)** | [Trade] S14, S19, S35 |
 | **Rosslyn** | ZA | BMW | X3 G45 incl. **only global source of X3 30e PHEV** | ICE/PHEV. ~50% PHEV, ~96% exported | CLAR | None announced | Planned max 76,000/yr, "maxed out" (Oct 2025) | [BMW] S36; [Trade] S37 |
-| **Oxford** | UK | BMW | MINI Cooper 3-door/5-door/Convertible (ICE) | ICE only. **BEV restart paused Feb 2025.** BMW turned down a GBP 60 m grant | MINI UKL | All-electric by 2030 was the 2023 plan; now uncertain | Not found | [BMW] S16 (Sep 2023); [Trade] S17 (Feb 2025) |
+| **Oxford** | UK | BMW | MINI Cooper 3-door/5-door/Convertible (ICE) | ICE only. **BEV restart paused Feb 2025.** BMW turned down a GBP 60 m grant | MINI UKL | All-electric by 2030 was the 2023 plan; now uncertain | **124,283 in 2025 (+12.0%)** [BMW] AR25 p. 61 | [BMW] S16 (Sep 2023); [Trade] S17 (Feb 2025) |
 | **Zhangjiagang** (Spotlight Automotive, 50:50 with Great Wall) | CN | JV | MINI Cooper E J01, Aceman J05 | BEV | Spotlight | n/a | Not found | [Trade] S12, S14 |
 | **Magna Steyr Graz** | AT | Contract | Z4 G29. **Production ended Mar–May 2026**, no successor | ICE | CLAR | n/a | n/a | [Trade] S38 |
 | **VDL Nedcar Born** | NL | Contract (ended) | **No BMW/MINI production since Feb 2024.** Contract ended 1 Mar 2024 | n/a | n/a | n/a | n/a | [Trade] S39 |
@@ -76,7 +76,7 @@ The 2025 output figures are from bmwblog (13 Mar 2026), which says they are "lis
 ### Specific confirmations
 
 - **5 Series = Dingolfing + China LWB G68 at Dadong: CONFIRMED.** BMW press (8 Aug 2023) announced the China-only extended-wheelbase 5 Series and i5 "exclusively from China for China" at Plant Dadong, Shenyang. A 25 Jan 2024 release confirms production had started and the market launch. The wheelbase is 3,105 mm and the length 5,175 mm [Trade] (bmwblog). The 5 Series is also CKD-assembled in Chennai and Rayong [Trade] S12. Sources: S33, S34, S15.
-- **1 Series F70: built only at Leipzig** (BMW: "manufactured exclusively at Plant Leipzig", up to 500/day; SOP 1 Jul 2024, market launch Oct 2024). China sells a separate locally built 1 Series sedan from Tiexi [Trade]. Sources: S30, S35.
+- **1 Series F70: built only at Leipzig** (BMW: "manufactured exclusively at Plant Leipzig", up to 500/day; production launch announced 1 Jul 2024, which gives no exact SOP date; market launch 5 Oct 2024). China sells a separate locally built 1 Series sedan from Tiexi [Trade]. Sources: S30, S35.
 - **7 Series G70 / i7: Dingolfing** (lead plant for the luxury class) [BMW] S15. Local assembly in Chennai and Rayong [Trade]. The G70 facelift was revealed Apr 2026 with SOP Jul 2026 at Dingolfing [Trade] S29.
 
 ---
@@ -87,15 +87,15 @@ The 2025 output figures are from bmwblog (13 Mar 2026), which says they are "lis
 
 | Metric | FY 2024 | FY 2025 | Δ 2025 | Source |
 |---|---|---|---|---|
-| BMW Group automobiles | 2,450,804 | 2,463,715 | +0.5% | [BMW] S1 (9 Jan 2026), S2 (13 Jan 2025) |
-| BMW brand | 2,200,177 (-2.3%) | 2,169,761 | -1.4% | [BMW] S1, S2 |
-| MINI | 244,915 (-17.1%) | 288,290 | +17.7% | [BMW] S1, S2 |
+| BMW Group automobiles | 2,450,854 | **2,463,681** (final; S1 provisional: 2,463,715) | +0.5% | [BMW] AR25 p. 12; S1, S2 |
+| BMW brand | 2,200,217 | **2,169,739** (final; S1: 2,169,761) | -1.4% | [BMW] AR25 p. 12; S1, S2 |
+| MINI | 244,925 | **288,278** (final; S1: 288,290) | +17.7% | [BMW] AR25 p. 12; S1, S2 |
 | Rolls-Royce | – | 5,664 | -0.8% | [BMW] S1 |
 | BMW M GmbH | – | 213,457 | +3.3% | [BMW] S1 |
 | BEV (Group) | 426,594 (17.4% share) | 442,072 (~18%) | +3.6% | [BMW] S1, S2 |
 | Electrified BEV+PHEV (Group) | 593,215 (24.2%) | 642,087 (26%) | +8.3% | [BMW] S1, S2 |
 
-All 2025 figures are provisional per S1. They are final only once the BMW Group Report 2025 is out (published Mar 2026, not accessed).
+The S1 figures were provisional. The final figures (bold) come from the BMW Group Report 2025 (AR25, Mar 2026). The 2024 figures shown are the AR25 restatements. AR25's regional table (p. 78) includes Rolls-Royce: Europe 1,017.6k, USA 419.2k, China 626.0k. See `bmw-annual-report-2025.md`.
 
 ### 3.2 By region: **BMW + MINI combined** (BMW's regional table; Rolls-Royce excluded)
 
@@ -135,11 +135,11 @@ From 2026, BMW reports a new **"Fourth Pillar"** region: Asia-Pacific (excl. Chi
 
 | H1 2026 | Units | Δ | Source |
 |---|---|---|---|
-| Group | 1,156,727 | -4.2% | [Trade] S6 |
+| Group | **1,156,742** | -4.2% (Q2: 590,962, -4.9%) | [BMW] S46. S6 and other secondary sources say 1,156,727 or "~1.15 M" |
 | Europe | 496,651 | +5.4% | [Trade] S6 |
 | Germany | 149,135 | +10.2% | [Trade] S6 |
 | USA | 200,661 | +3.9% | [Trade] S6 |
-| China | 261,773 | **-20.4%** (Q2: 117,815, **-30.2%**) | [Trade] S6 |
+| China | 261,773 | **-20.4%** (Q2: 117,815, **-30.2%**) | [BMW] S46 |
 | Fourth Pillar | 151,751 | -9.6% | [Trade] S6 |
 | MINI | 149,538 | +11.7% | [Trade] S6 |
 | BEV YTD (BMW+MINI) | 204,295 | -7.4%. Q2 +5.2%, Europe Q2 BEV +38% | [Trade] S6 |
@@ -151,17 +151,17 @@ From 2026, BMW reports a new **"Fourth Pillar"** region: Asia-Pacific (excl. Chi
 
 ## 4. Model-level sales
 
-BMW publishes only **model-series pairs**, never single models. The figures below are BMW-brand global deliveries as reported by bmwblog from BMW data.
+BMW publishes only **model-series pairs**, never single models. The figures below are BMW-brand global deliveries, **now confirmed by [BMW] AR25 p. 79** (originally from bmwblog S40). They are combined series pairs, so no single model can be split out.
 
 | Series pair | 2024 | 2025 | Δ | Notes | Source |
 |---|---|---|---|---|---|
 | 1/2 Series | ~198,300 (derived) | 214,175 | +8.0% | F70 1 Series cannot be split out | [Trade] S40 (12 Mar 2026) |
-| 3/4 Series | – | 477,180 | -8.1% | #1 series pair | S40 |
+| 3/4 Series | 519,228 | 477,180 | -8.1% | #1 series pair | AR25 p. 79 |
 | **5/6 Series** | ~250,700 (derived) | **299,582** | **+19.5%** | Almost all 5 Series (G60/G61/G68 + i5). 2024 was weak (H1 2024 -19% at changeover) | S40; S41 |
-| **7/8 Series** | not found | not found | – | Q1 2025: 13,489 (7+8) | S42 [Unverified] |
+| **7/8 Series** | 56,542 | **53,399** | **-5.6%** | Mostly 7 Series (G70 + i7); 8 Series ending 2026 | [BMW] AR25 p. 79 |
 | X1/X2 | 413,386 (+30%) | 436,769 | +5.7% | #2 pair | S40, S41 |
-| X3/X4 | – | 321,186 | -13.2% | X4 ended Nov 2025 | S40 |
-| X5/X6 | – | 256,941 | – | Roadgenius only | [Unverified] S43 |
+| X3/X4 | 370,198 | 321,186 | -13.2% | X4 ended Nov 2025 | AR25 p. 79 |
+| X5/X6 | 275,318 | 256,941 | -6.7% | | [BMW] AR25 p. 79 |
 | XM | – | 7,608 | -2.6% | | S40 |
 | Z4 | 10,482 | 9,744 | -7.0% | Production ended 2026 | S40, S41 |
 
@@ -181,6 +181,12 @@ BMW publishes only **model-series pairs**, never single models. The figures belo
 
 **No public regional split for 1, 5 or 7 Series in China or Europe was found.** China LWB 5 Series sales are not published by BMW. BMW says more than 2 million 5 Series have been sold in China since 2003 [Trade] S35.
 
+**Conflict with the BMW-provided `sales_volumes.xlsx` (Q-015):**
+- The file gives G60/G68 China 2025 = 75k, **up 10%** on 2024.
+- Public data points the other way: 5 Series China (China-built, CPCA via Gasgoo) Jan–Nov 2025 = 107,348 (`competitor-landscape.md` §0), and BMW+MINI China fell 12.5%.
+- The file's values are round thousands, so they look stylized.
+- Don't mix the two sources in one score. Show the conflict.
+
 ---
 
 ## 5. Conflicts and caveats
@@ -191,10 +197,12 @@ BMW publishes only **model-series pairs**, never single models. The figures belo
 4. **iX5 SOP:** BMW says late 2026. Some trade press says 2027.
 5. **iX3 LWB SOP in Shenyang:** sources give May, June and Q4 2026. BMW says only "2026".
 6. **F70 platform label:** UKL2 (Wikipedia) vs. FAAR (bmwblog). FAAR is the UKL2 evolution, so treat it as the same family.
-7. **8 Series at Dingolfing:** BMW sources conflict (fact sheet Apr 2026 vs. release Jan 2026). The model is ending in 2026.
+7. ~~8 Series at Dingolfing~~ **Resolved:** in Dingolfing's 2025 programme [BMW] AR25 p. 60; the model is ending in 2026.
 8. **San Luis Potosí NK models:** BMW (Sep 2026) says i3 and 3 Series. newmobility (Jul 2026) says i3 and iX3.
-9. **2025 plant volumes** are from bmwblog. The BMW Group Report 2025 table was not accessed directly.
-10. **Group total 2025:** 2,463,715 (BMW) vs. 2,463,681 in one secondary source (a typo). Brand total 2,169,761 (BMW, provisional) vs. 2,169,739 (bmwblog, likely final).
+9. ~~2025 plant volumes~~ **Resolved:** confirmed by AR25 p. 61. Note that AR25 p. 60 lists Debrecen as "iX1", while its own text (p. 46, 59) says iX3 — treat p. 60 as an error.
+10. **Group total 2025 — corrected:** the final figure is **2,463,681** (AR25 p. 9, 12), so the secondary source was right, not a typo. The press-release figure 2,463,715 was provisional. Brand: final 2,169,739.
+11. **H1 2026 Group total:** 1,156,742 (BMW S46) vs. 1,156,727 (secondary). Use BMW's figure.
+12. **BMW-provided sales file vs. public data:** China 5 Series direction and level conflict (see §4, Q-015).
 
 ---
 
@@ -219,6 +227,7 @@ BMW publishes only **model-series pairs**, never single models. The figures belo
 | S15 | BMW Plant Dingolfing fact sheet & site profile | 2026-04 | https://www.bmwgroup-werke.com/content/dam/grpw/websites/bmwgroup-werke_com/dingolfing/unser-werk/PR_2604_Standortportrait_BMW_DGF_EN.pdf |
 | S16 | BMW Group UK: MINI Plant Oxford goes electric (GBP 600 m) | 2023-09 | https://www.press.bmwgroup.com/united-kingdom/article/detail/T0436869EN_GB |
 | S17 | City AM / Auto Express / WardsAuto: BMW pauses Oxford EV MINI | 2025-02 | https://www.autoexpress.co.uk/mini/360932/bmw-pulls-ps600m-ev-investment-mini-oxford-plant-slow-electric-car-sales-blamed |
+| S18 | *(unused — numbering gap)* | – | – |
 | S19 | CnEVPost: BMW said to end China EV lineup in July as NK looms | 2026-06-17 | https://cnevpost.com/2026/06/17/bmw-said-to-end-china-ev-lineup-neue-klasse-looms/ |
 | S20 | Wikipedia (model code pages, e.g. BMW 1 Series F70) | accessed 2026-10-10 | https://en.wikipedia.org/wiki/BMW_1_Series_(F70) |
 | S21 | bmwblog: BMW CLAR vs Neue Klasse EV platforms, upcoming models | 2025-12-12 | https://www.bmwblog.com/2025/12/12/bmw-clar-vs-neue-klasse-ev-platforms-upcoming-models/ |
@@ -246,3 +255,5 @@ BMW publishes only **model-series pairs**, never single models. The figures belo
 | S43 | Roadgenius: BMW sales by model | accessed 2026-10-10 | https://roadgenius.com/en-gb/cars/statistics/sales-by-manufacturer/bmw/ |
 | S44 | bmwblog: BMW USA 2025 sales by model series | 2026-01-08 | https://www.bmwblog.com/2026/01/08/bmw-usa-2025-sales-by-model-series/ |
 | S45 | bmwblog: BMW USA 2025 sales record | 2026-01-05 | https://www.bmwblog.com/2026/01/05/bmw-usa-2025-sales-record/ |
+| S46 | BMW Group: H1 2026 deliveries release (attachment, table "BMW Group Automotive 1,156,742 -4.2%") | 2026-07-10 | https://www.press.bmwgroup.com/global/article/attachment/T0459223EN/652154 (article: https://www.press.bmwgroup.com/global/article/detail/T0459223EN/) |
+| AR25 | BMW Group Report 2025 (annual report; page numbers cited inline; extract in `bmw-annual-report-2025.md`) | 2026-03 | https://www.bmwgroup.com/content/dam/grpw/websites/bmwgroup_com/ir/downloads/en/2026/bericht/BMW-Group-Report-2025-en.pdf |

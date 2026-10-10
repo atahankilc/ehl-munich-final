@@ -2,6 +2,27 @@
 
 Append-only. Never delete an entry; supersede it with a new one (`Superseded by D-xxx`).
 
+## Index (read this first; open an entry only when relevant)
+
+| ID | Decision | Status |
+|---|---|---|
+| D-001 | `foundation/` is the single source of project truth | accepted |
+| D-002 | Raw BMW data is read-only and stays out of git | accepted |
+| D-003 | Only humans approve/reject/defer requirements | accepted |
+| D-004 | Non-LLM tech stack | proposed — **open in Q-014** |
+| D-005 | Portfolio-level (multi-model/market/platform/plant); 5 Series deepest | accepted |
+| D-006 | OpenAI for all LLM work (framework open, Q-014) | accepted |
+| D-007 | Web-enriched 3-layer knowledge base | accepted |
+| D-008 | Brand & segment fit gate | accepted |
+| D-009 | Platform/plant feasibility gate (blocking? reopened in Q-010) | accepted |
+| D-010 | Model tiering luna / sol / embed-3-small | accepted; estimate & thresholds → D-014 |
+| D-011 | Markets are distinct customer groups; per-market scores | accepted |
+| D-012 | Future-need projection (horizon, Kano) | accepted |
+| D-013 | Continuous re-prioritization with snapshots & change proposals | accepted |
+| D-014 | Budget plan ≈$60, thresholds $45/$70/$90, $20 demo reserve | accepted |
+
+Keep this index in sync when adding a decision.
+
 Template:
 
 ```
@@ -43,7 +64,7 @@ Template:
 ## D-004 — Tech stack (non-LLM parts)
 - Date: 2026-10-10
 - Decided by: agent (proposed); LLM part superseded by D-006
-- Status: **open — not decided.** Must be discussed with the team in the architecture session (Q-014). Nothing here is binding.
+- Status: proposed — **not decided.** Must be discussed with the team in the architecture session (Q-014). Nothing here is binding.
 - Proposal on the table: Python/FastAPI/SQLite backend, Next.js frontend — see `documents/tech-stack.md`.
 
 ## D-005 — Portfolio-level architecture (multi-model, multi-market, platform- and plant-aware)
@@ -82,11 +103,12 @@ Template:
 - Status: accepted
 - Decision: model configurations, shared platforms and plants (location, platforms and powertrains each can build, NK readiness) are reference data. Each requirement target is checked for whether a plant that builds the right platform/powertrain can serve that market in time. `fail` blocks approval unless overridden.
 - Note: BMW lists engineering requirements as out of scope. We use platform/plant data only as a **feasibility filter and context** on customer requirements — we never output component/engineering specs. (Confirm framing with BMW mentors, Q-010.)
+- Known tension (review 2026-10-10): BMW's out-of-scope list explicitly names "architecture", and most platform/plant reference data is [Trade]/[Unverified]. Whether `fail` should *block* approval is reopened in Q-010 — not changed here.
 
 ## D-010 — OpenAI model tiering & $100 budget plan
 - Date: 2026-10-10
 - Decided by: agent (delegated by Atahan: "picking models is your job"); budget fixed by Atahan at **$100 total**
-- Status: accepted
+- Status: accepted — model choice stands; **estimate and guardrail thresholds superseded by D-014**
 - Prices: official OpenAI pricing page (developers.openai.com/api/docs/pricing), fetched 2026-10-10, standard tier, per 1M tokens (input / cached input / output). Reasoning tokens are billed as output.
 - Model choice:
 
@@ -94,11 +116,11 @@ Template:
 |---|---|---|---|---|
 | Bulk | `OPENAI_MODEL_FAST` | `gpt-6-luna` | $0.10 / $0.01 / $0.50 | verbatim classification & extraction, web-result summarizing/extraction, cluster labels, finding summaries, first-pass fit checks |
 | Reasoning | `OPENAI_MODEL_SMART` | `gpt-6.1-sol` | $2.00 / $0.10 / $10.00 | requirement derivation, future-need projection, conflict/market trade-off analysis, prioritization rationale, PM "challenge" answers, final brand/feasibility verdicts on `warn`/`fail` |
-| Embeddings | `OPENAI_MODEL_EMBED` | `text-embedding-3-small` | $0.02 | clustering / dedupe / semantic search |
+| Embeddings | `OPENAI_MODEL_EMBED` | `text-embedding-3-small` | $0.02 | clustering / dedupe (semantic search only if retrieval is chosen, Q-014) |
 | Not used by default | — | `gpt-6-astra` ($10 / $50) | — | only with explicit team OK |
 | Fallback (if luna underperforms on structured output) | — | `gpt-5-mini` ($0.25 / $2.00) | — | — |
 
-- Cost levers: Batch API (~50% off) for all offline bulk jobs; stable system prompts first for cache hits; batch 20–30 verbatims per call; low reasoning effort on luna; cache every result in SQLite and never re-run unchanged inputs; web search capped by call count.
+- Cost levers: Batch API (~50% off) for all offline bulk jobs; stable system prompts first for cache hits; batch 20–30 verbatims per call; low reasoning effort on luna; cache every result persistently (store open, Q-014) and never re-run unchanged inputs; web search capped by call count.
 - Estimate (incl. ~3× re-runs during development):
 
 | Workstream | Model | Estimate |
@@ -114,7 +136,7 @@ Template:
 | **Total planned** | | **≈ $40** |
 
 - Note: the model tiering is independent of the open framework question (Q-014); whichever framework is chosen must route calls through the budget guard.
-- Guardrails: code-level budget guard — every call logged to `llm_usage` (model, tokens in/cached/out, search calls, $ from `config/llm_pricing.yaml`); warn at $50, block non-demo jobs at **$75**, hard stop at **$90**; **$25 reserved for demo day**. Atahan should also set a $100 hard limit on the OpenAI project dashboard. Running spend is tracked in `STATE.md` → "Budget".
+- Guardrails: code-level budget guard — every call logged to `llm_usage` (model, tokens in/cached/out, search calls, $ from a pricing config); warn at $50, block non-demo jobs at **$75**, hard stop at **$90**; **$25 reserved for demo day**. Atahan should also set a $100 hard limit on the OpenAI project dashboard. Running spend is tracked in `STATE.md` → "Budget".
 
 ## D-011 — Markets are distinct customer groups (BMW mentor input)
 - Date: 2026-10-10
@@ -137,3 +159,65 @@ Template:
 - Context: Requirements work is an ongoing ~2-year process where priorities are re-evaluated repeatedly — not a one-shot list.
 - Decision: requirements are living objects. New evidence arrives in **ingest batches**; each batch, weight change, or PM request triggers a **prioritization run** that snapshots every requirement-target's score, breakdown and rank. The AI may update scores (logged) but only **proposes** priority/status changes; the PM accepts or rejects them. The UI shows priority history over time with the "why" for every change (which evidence/weight/decision moved it). Evidence ages (freshness decay) so stale evidence loses weight unless re-confirmed.
 - Consequences: the *conceptual* model gains `ingest_batch`, `prioritization_run`, `score_snapshot`, `change_proposal`, requirement versions (see `documents/architecture.md`). Demo must show at least two time steps (Q-012).
+
+## D-014 — Budget plan re-baselined (supersedes D-010 estimate & thresholds)
+- Date: 2026-10-10
+- Decided by: agent (delegated by Atahan: model/budget planning; Atahan asked for the fix)
+- Status: accepted
+- Context: Review found D-010's ≈$40 too low. It ignored reasoning tokens (billed as output), per-target fan-out (requirements × targets × checks), and that reasoning models issue several billed search calls per request. Its thresholds were also inconsistent: a $90 hard stop left only $15 of the "$25 demo reserve".
+- Prices: re-checked 2026-10-10 on developers.openai.com/api/docs/pricing, per 1M tokens (input / cached / output):
+
+| Model | Standard | Flex = Batch (-50%) |
+|---|---|---|
+| `gpt-6-luna` | $0.10 / $0.01 / $0.50 | $0.05 / $0.005 / $0.25 |
+| `gpt-6.1-sol` | $2.00 / $0.10 / $10.00 | $1.00 / $0.05 / $5.00 |
+| `text-embedding-3-small` | $0.02 | $0.01 (Batch) |
+
+  - Web search: $10 / 1k billed calls + content tokens at model input rates.
+  - Cache writes cost 1.25× input (luna/sol). The minimum cacheable prefix is 1,024 tokens; the cache lives 30 min.
+
+- Decision: the model choice from D-010 stays. The plan changes as follows:
+  - **Flex** for same-day offline jobs; **Batch** only for overnight jobs (24 h window). Interactive and web-research calls run on Standard (Batch support for `web_search` is undocumented).
+  - **Scoring is deterministic** (no LLM). LLMs only write rationale.
+  - **Fit checks:** luna does the first pass on every target. sol runs only on `fail`, **once per requirement** (all its targets in one call), not per target.
+  - **Web search capped in billed calls (1,000 total)**, not requests. Cap tool calls per request, and count calls from the response.
+  - **Reasoning effort:** luna `none`/`low` for classification and extraction. sol `low` by default, `medium` only for derivation/projection; `high`+ needs a team OK.
+  - **`max_output_tokens` on every call.**
+  - **Pilot before full runs:** 50 verbatims + 5 requirements. Measure real tokens, then re-estimate this table in `STATE.md`.
+
+- Estimate, with explicit assumptions (3 dev runs unless stated):
+
+| Workstream | Assumptions | Tier | Est. |
+|---|---|---|---|
+| Classify/extract 10,128 verbatims | 25 per call (406 calls); 3.4k in (2k prompt + 25×55); 4k out (160/verbatim incl. reasoning); ×3 | luna Flex | $1.4 |
+| Embeddings | 1.5 M tokens ×3 | embed | $0.1 |
+| Cluster labels | 300 × (2.1k in / 0.5k out) luna + top-50 × (3k / 1.5k) sol; ×3 | Flex | $1.8 |
+| Web research | 1,000 billed calls ($10) + 20k content tokens/call (luna) + 1.5k out/call | luna Std | $13 |
+| Requirement derivation + future-need projection | 100 reqs × (15k in / 6k out incl. reasoning) × 3 | sol Flex | $13.5 |
+| Fit checks | 1,600 luna checks (4k / 1.5k) per run + sol on ~20 failing reqs (8k / 4k); ×3 | Flex | $4.4 |
+| Prioritization rationale | per run: luna 400 targets (3k / 0.8k) + sol top-20 changes (5k / 3k); 6 runs (3 dev + 3 demo waves) | Std | $6.5 |
+| PM challenge / edit (dev + demo) | 150 calls × (20k in, ~50% cached / 3k out) | sol Std | $7.7 |
+| **Subtotal** | | | **≈ $48** |
+| Contingency +25% | prompt iteration, retries, parse failures, cache writes | | ≈ $12 |
+| **Planned build spend** | | | **≈ $60** |
+
+- Guardrails (supersede D-010):
+
+| Threshold | Value | Effect |
+|---|---|---|
+| Warn | **$45** | Warning; re-estimate the plan |
+| Block non-demo jobs | **$70** | Only demo-tagged jobs may run |
+| Demo reserve | **$20** | From $70 to $90 |
+| App hard stop | **$90** | No further calls |
+| OpenAI project hard limit | **$95** | Covers enforcement lag and in-flight jobs; it resets monthly, so it backs up the app guard and doesn't replace it. Atahan sets it, plus a $45 alert |
+
+  - Each Flex/Batch job **reserves its worst-case cost before submission**: input tokens + `max_output_tokens` + capped tool calls, at list price. A job that would cross a threshold is refused. After completion the reservation is replaced with actual usage.
+  - Every call goes through the wrapper and is logged to `llm_usage`. Spend is tracked in `STATE.md` → Budget.
+
+- Alternatives considered:
+  - Keep ≈$40 with sol per target. Rejected: realistic cost is ~$55–150.
+  - Use Batch for everything. Rejected: the 24 h window blocks same-day iteration; Flex has the same price.
+  - Downgrade derivation to luna. Kept as a fallback lever only, because quality matters most there.
+- Consequences:
+  - **Levers if the warn threshold hits early:** cut dev runs from 3 to 2 (≈ −$7); luna for all rationale (≈ −$5); web-search cap 600 (≈ −$5).
+  - The fallback `gpt-5-mini` costs 2.5–4× luna. Use it only if luna's structured-output quality fails the pilot.

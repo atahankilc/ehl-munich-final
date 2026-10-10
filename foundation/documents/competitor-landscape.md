@@ -14,19 +14,19 @@
 
 | Metric | Value | Src |
 |---|---|---|
-| BMW Group deliveries 2025 | 2,463,715 (+0.5%); BMW brand 2,169,761 (−1.4%) | [S1] |
+| BMW Group deliveries 2025 | 2,463,681 (+0.5%); BMW brand 2,169,739 (−1.4%) — final, BMW Group Report 2025 p. 12 (S1 provisional: 2,463,715 / 2,169,761) | [S1], `bmw-annual-report-2025.md` |
 | Europe (BMW + MINI) | 1,016,360 (+7.3%); BEV about 25%, BEV+PHEV over 40% | [S1] |
 | China (BMW + MINI) | 625,527 (−12.5%; Q4 −15.9%), the second consecutive year of decline | [S1] |
 | USA (BMW + MINI) | 417,638 (+5.0%) | [S1] |
 | Group electrified share | 26% (BEV about 18%) | [S1] |
 | 1 Series, Europe | 91,931 (+9.5%), #39 in Europe | [S2] |
 | 5 Series, Europe, Jan–Apr 2025 | 20,402 (+56%), segment leader; i5 8,843 | [S3] |
-| 5 Series, China, Jan–Nov 2025 | 107,348, #3 among German C-segment sedans, behind A6L and E-Class | [S4] |
+| 5 Series, China, Jan–Nov 2025 | 107,348 (China-built, CPCA), #3 YTD among German C-segment sedans, behind A6L and E-Class (#2 in November alone). **Conflicts with BMW's `sales_volumes.xlsx`** (Q-015) | [S4] |
 | i5, China, 2025 | 6,379 units. China production of i5 and iX1 reportedly ends July 2026 to make way for Neue Klasse **(U)** | [S5] |
 | 7 Series, China, Dec 2025 | 1,429 units in the over-RMB-700k sedan segment (#3) | [S6] |
 | 7 Series, Korea, 2025 | 5,834 (+17%), #1 among imported large sedans | [S7] |
 | 7 Series, US, 2024 | 10,714 vs S-Class 8,809, Lexus LS 2,163, Audi A8 1,628 **(U, forum post)** | [S8] |
-| 7 Series facelift (April 2026) | Neue-Klasse-style interior with Panoramic Vision display and 17.9″ screen, i7 up to 728 km WLTP and 250 kW DC, Alexa+ from H2 2026, no L3 claim | [S9] |
+| 7 Series facelift (April 2026) | Neue-Klasse-style interior with Panoramic Vision display and 17.9″ screen, i7 ~700–728 km WLTP **(U, sources differ: 708 vs 728; BMW US gives only EPA ">350 mi")**, DC charging 195–250 kW, Alexa+-enhanced assistant from H2 2026, no L3 claim. April 2026 = reveal, SOP Jul 2026 | [S9] |
 
 ---
 
@@ -59,7 +59,7 @@
 | **Zeekr 001 / 007** | Zeekr brand 224,133 | Fast charging, performance, value **(U)** | [S25] |
 | **Avatr / BYD Han / Denza** | Avatr 128,772. Han and Denza volumes not found **(U)** | Huawei/CATL tech (Avatr); Denza Z9 0–100 km/h in 3.4 s | [S25][S30] |
 | **Genesis G80** | Genesis US total 82,331; electrified G80 withdrawn from the US | Value-luxury, warranty, design **(U)** | [S31] |
-| **Lexus ES** | US 39,926, the best-selling midsize luxury car in the US (vs 3 Series at 33,031) | Reliability, quiet comfort, hybrid efficiency | [S32] |
+| **Lexus ES** | US 39,926, the best-selling midsize luxury car in the US (vs 3 Series at 33,031; the 3 Series figure is single-source) | Reliability, quiet comfort, hybrid efficiency | [S32] |
 
 ### 1c. Luxury (7 Series / i7)
 
@@ -70,7 +70,7 @@
 | **Audi A8 / A8L** | CN Dec 2025: 511; US 2024: 1,628 **(U)** | Understated luxury, quattro **(U)** | [S6][S8] |
 | **Porsche Panamera / Taycan** | Panamera 27,701 (−6%), Taycan 16,339 (−22%); Porsche China 41,938 (−26%) | Sporty luxury. Taycan won J.D. Power US APEAL upper-midsize premium car; Porsche was the #1 premium APEAL brand | [S35][S36] |
 | **Lexus LS** | US 2024: 2,163 **(U)**. Production ends after the 2026 MY (Heritage Edition) | Reliability, craftsmanship | [S8][S37] |
-| **Maextro S800 (Huawei/JAC)** | CN Dec 2025: 4,376, #1 above RMB 700k, more than Panamera + 7 Series + Maybach S combined; cumulative 11,453 since Aug 2025; Jan–Apr 2026: 5,465 vs Maybach S 3,012 | RMB 708k–1.018M; 3,370 mm wheelbase; BEV and EREV; Huawei ADS with 896-line LiDAR; swipe-dimming rear windows; passenger screen | [S6][S38][S28] |
+| **Maextro S800 (Huawei/JAC)** | CN Dec 2025: 4,376 (single source), #1 above RMB 700k, more than Panamera + 7 Series + Maybach S combined; cumulative 11,453 since Aug 2025; Jan–Apr 2026: 5,465 vs Maybach S 3,012 | RMB 708k–1.018M; 3,370 mm wheelbase; BEV and EREV; Huawei ADS with 896-line LiDAR; swipe-dimming rear windows; passenger screen | [S6][S38][S28] |
 | **AITO M9 (SUV, but competes for the same buyers)** | See 1b | Rear "boss seat", 32″ projector, fridge, Huawei ADS | [S29] |
 | **Yangwang U7 (BYD)** | CN Dec 2025: 333 | RMB 628–708k; positioned against S-Class, 7 Series and A8L | [S6][S30] |
 | **NIO ET9** | CN Dec 2025: 185 | Flagship tech **(U)** | [S6] |
@@ -82,7 +82,7 @@
 
 | Market | Trend | Data | Src |
 |---|---|---|---|
-| **EU** | BEV rising, hybrids dominant | EU 2025: BEV 17.4% (from 13.6%), PHEV 9.4%, HEV 34.5%, petrol+diesel 35.5% (from 45.2%) | [S40] |
+| **EU** | BEV rising, hybrids dominant | EU-27 only (not EFTA/UK) 2025: BEV 17.4% (from 13.6%), PHEV 9.4%, HEV 34.5%, petrol+diesel 35.5% (from 45.2%) | [S40] |
 | EU | SUVs keep growing; sedans are a niche | SUV about 59.2% of 2025 sales; sedans 3.5% (about 426k); hatchbacks 23.9% (35% in 2020); wagons 7.1% | [S41] |
 | EU | Premium mid-size sedans shrinking | Premium mid-size sedan category −19% Jan–Oct 2025 (241,096) | [S42] |
 | EU | Chinese brands gaining | 6.1% share in 2025, 9.5% in Dec. 54% of Europeans see Chinese OEMs as EV leaders (2026, up from 44%) | [S18][S43] |
@@ -100,7 +100,7 @@
 2. **Smart cockpit and ecosystem.** Buyers expect phone-like UX, voice, and ecosystem integration (Huawei HarmonyOS, Xiaomi HyperOS). 45% of luxury owners say NEVs above RMB 300k need full smart connectivity [S54]. Even BMW's China Neue Klasse uses Momenta ADAS, Huawei HiCar and an Alibaba LLM [S5][S55].
 3. **Brand heritage matters less.** Heritage only slightly outranks safety and handling as a premium definer, and matters less among high-income tier-1 buyers [S54][S56].
 4. **Rear-seat luxury for the money.** The M9 and S800 offer zero-gravity seats, fridge, projector and 3.3 m+ wheelbases at prices below German flagships [S29][S6].
-5. **Electrification gap.** BEV is only about 5% of BMW China sales against a 46% EV market [S54]. EREV/PHEV options give range without anxiety [S48].
+5. **Electrification gap.** "Only about 5% of BMW's sales in China are fully electric … in a market where EVs account for 46%" (Reuters, 14 Jul 2026, Global Mobility data) [S54]. Caveat: the 5% is BEV-only, while the 46% most likely counts BEV+PHEV (NEV), so the gap is overstated. EREV/PHEV options give range without anxiety [S48].
 6. **Innovation over discounts.** McKinsey: steep discounts gave marginal growth, and innovation wins [S56].
 
 ---
@@ -111,8 +111,8 @@
 |---|---|---|---|
 | Software / OTA | Car improves over time; AI and LLM voice assistants become standard (MB.OS on CLA and S, Alexa+ on 7 Series) | OEM launches 2025–26 | [S13][S34][S9] |
 | Tech must *work* | Reliability and usability beat feature count. China TXI: 10.7 problems per 100 per advanced feature; over a third are cockpit usability. Recognition tech (gesture, face, fingerprint) disappoints. Smart climate and driver profiles score well | J.D. Power China TXI 2025, US TXI 2025 | [S57][S58] |
-| Physical controls | Euro NCAP from 2026 rewards physical controls for indicators, hazards, wipers, horn and SOS. Infotainment is the #1 complaint area in the first 90 days. The F70 is criticised for moving climate controls onto the touchscreen and dropping the iDrive knob | Euro NCAP, reviews | [S59][S60] |
-| ADAS | Strong switching driver: about 25% globally and 50% in China would switch brand for better self-driving; under-45s far more so (45+: 11%). US: partial automation has low perceived usefulness **(U)** | McKinsey Pulse 2026 | [S43][S58] |
+| Physical controls | Euro NCAP's 2026 protocols reward dedicated physical controls for indicators, hazards, wipers, horn and SOS/eCall (needed for top points/five stars; voluntary rating, not law). Euro NCAP's own protocol text not checked. Infotainment is the #1 complaint area in the first 90 days. The F70 is criticised for moving climate controls onto the touchscreen and dropping the iDrive knob | Euro NCAP, reviews | [S59][S60] |
+| ADAS | Strong switching driver: about 25% globally and half of Chinese shoppers are "very likely to switch brands for better ADAS"; under-45s far more so (45+: 11%). US: partial automation has low perceived usefulness **(U)** | McKinsey Pulse 2026 | [S43][S58] |
 | Charging / range | Fast charging valued even in lower-priced cars (CN). Benchmarks: CLA 320 kW, i7 728 km WLTP. EU and US buyers are turning to hybrids | McKinsey CN 2025, Deloitte 2026 | [S56][S61][S13][S9] |
 | Feature monetisation | Subscriptions for hardware already in the car are rejected. BMW dropped the heated-seat subscription (2023) because "people feel they paid double" | BMW exec | [S62] |
 | Brand loyalty eroding | 34% of premium drivers are open to switching vs 25% mass-market. The premium vs mass "emotional satisfaction gap" is narrowing (J.D. Power APEAL 2026) | McKinsey 2026 | [S43] |
@@ -136,6 +136,8 @@
 | **Chinese (Huawei/HIMA, Xiaomi, NIO, Li)** | Tech-first: ADAS, smart cockpit, ecosystem, rear-seat entertainment, value, speed of updates | [S54][S56][S29] |
 
 ### Brand-fit guardrails (for `fit_checks.brand`)
+
+**Status: proposed (agent-written).** These rules feed a blocking gate (D-008), so a PM must review and sign them off before use. Items marked (PM judgement) are opinions, not evidence.
 
 **All segments**
 - **Fits BMW (pass):** precise steering and handling, rear-wheel-drive-biased feel and xDrive, responsive powertrains; driver-centric HMI (head-up display, Panoramic Vision, physical shortcut controls, iDrive-style haptic control); efficiency and range as "dynamics"; sporty-elegant design; M and M Performance variants; high-quality OTA and natural voice that *works*; ADAS that reduces burden while keeping the driver in charge.
@@ -164,7 +166,7 @@
 | S8 | GermanCarForum G70 thread (user post) **(U)** | https://www.germancarforum.com/threads/official-new-bmw-7-series-i7-g70-g71.67007/page-231 | n/a |
 | S9 | Business Report / evkx, 7 Series facelift | https://businessreport.co.za/motoring/industry-news/2026-04-23-bmw-7-series-facelift-debuts-with-neue-klasse-tech-fresh-design-and-ev-range-boost/ ; https://evkx.net/articles/bmw-7-series-facelift-2026/ | 2026-04-23 |
 | S10 | Gasgoo, German A-segment sedan ranking Jun/Jul 2026 | https://autonews.gasgoo.com/autosales/july-2026-sales-ranking-of-a-sedanscars-from-germanys-brands-81185.html | 2026-08 **(date U)** |
-| S11 | best-selling-cars.com, Mercedes 2025 by model and country | https://www.best-selling-cars.com/brands/2025-full-year-global-mercedes-benz-worldwide-car-sales-by-country-and-model/ | 2026-04-12 |
+| S11 | best-selling-cars.com, Mercedes 2025 by model and country. **Secondary:** the per-model figures (A/E/S-Class) appear only here (U); the China total of 551,900 is also reported by dpa | https://www.best-selling-cars.com/brands/2025-full-year-global-mercedes-benz-worldwide-car-sales-by-country-and-model/ | 2026-04-12 |
 | S12 | Carscoops, Europe Jan–Feb 2026 | https://www.carscoops.com/?p=3334944 | 2026-03 **(date U)** |
 | S13 | Mercedes Malaysia CLA page / launch | https://www.mercedes-benz.com.my/passengercars/models/saloon/cla-electric/overview.html | 2026-08 **(date U)** |
 | S14 | Top Gear CLA review | https://www.topgear.com/car-reviews/mercedes-benz/cla-0 | 2025-07 |
@@ -185,7 +187,7 @@
 | S29 | AITO M9 Wikipedia; 42HOW analysis | https://en.wikipedia.org/wiki/AITO_M9 ; https://en.42how.com/2025/05/31/what-makes-aito-m9-stand-out-in-luxury-ev-market/ | live / 2025-05-31 |
 | S30 | CnEVPost, Yangwang U7 deliveries | https://cnevpost.com/2025/06/12/yangwang-begins-deliveries-u7/ | 2025-06-12 |
 | S31 | Electrek, Genesis US 2025; KBB electrified G80 pulled | https://electrek.co/2026/01/05/genesis-outsold-infiniti-us-2025-closes-in-on-lincoln/ ; https://www.kbb.com/car-news/genesis-quietly-pulled-the-electrified-g80-from-us | 2026-01-05 / 2025 |
-| S32 | AOL/Carscoops, Lexus ES outsold 3 Series in 2025 | https://www.aol.com/articles/sales-lexus-es-eclipsed-those-001911236.html | 2026-01 **(date U)** |
+| S32 | CarBuzz, Lexus ES outsold 3 Series in 2025 (the original AOL syndication is dead, 404 on 2026-10-10) | https://carbuzz.com/lexus-es-outsold-bmw-3-series-in-2025/ | 2026-01 **(date U)** |
 | S33 | Motor1, S-Class demand way down | https://www.motor1.com/news/786220/mercedes-s-class-sales-way-down/ | 2026 **(date U)** |
 | S34 | Wapcar / CarsOfMalaysia, S-Class W223 facelift | https://www.wapcar.my/news/new-2026-mercedes-benz-s-class-w223-facelift-unveiled-features-ai-powered-assistant-and-electrical-dampers-that-predicts-potholes-750173 | 2026-01-29 |
 | S35 | VW Group, Porsche delivers 279,449 in 2025 | https://www.volkswagen-group.com/en/articles/porsche-delivers-279449-sports-cars-to-customers-in-2025-20089 | 2026-01 |
@@ -207,12 +209,12 @@
 | S51 | News18a, domestic share above RMB 300k **(U, garbled page)** | https://english.news18a.com/news/english_235356.html | 2026-03-04 |
 | S52 | China Daily, homegrown brands gain in the high-end market | https://global.chinadaily.com.cn/a/202512/25/WS694c945da310d6866eb30612.html | 2025-12-25 |
 | S53 | Inovev (Mercedes CN 472,799) **(conflict with S11)** | https://inovev.com/index.php/zh/market-analyses/category-blog?start=15 | 2026 **(date U)** |
-| S54 | The Sun MY, BMW races to catch up in China's EV market; Mintel luxury owners 2024; McKinsey CN 2024 | https://thesun.my/business/bmw-races-to-catch-up-in-chinas-ev-market/ ; https://store.mintel.com/report/china-lifestyles-of-luxury-car-owners-market-report-2024 | 2025 / 2024 |
+| S54 | Reuters analysis "BMW races to catch up in China's EV market" (syndicated by The Sun MY); Mintel luxury owners 2024; McKinsey CN 2024 | https://thesun.my/business/bmw-races-to-catch-up-in-chinas-ev-market/ ; https://store.mintel.com/report/china-lifestyles-of-luxury-car-owners-market-report-2024 | **2026-07-14** / 2024 |
 | S55 | Caixin, BMW turns to Chinese smart-driving expertise; TechNode, BBA pick Momenta | https://www.caixinglobal.com/2025-07-17/bmw-turns-to-chinese-smart-driving-expertise-to-regain-market-ground-102341939.html ; https://technode.com/2025/07/16/bmw-mercedes-and-audi-have-all-picked-momenta-to-supply-assisted-driving-tech/ | 2025-07-17 / 2025-07-16 |
 | S56 | McKinsey, China Auto Consumer Insights 2025 | https://www.mckinsey.com/industries/automotive-and-assembly/our-insights/china-auto-consumer-insights-2025-gaining-momentum | 2025-09 |
 | S57 | J.D. Power 2025 China TXI | https://www.jdpower.com/business/press-releases/2025-china-tech-experience-index-txi-study | 2025-07 |
 | S58 | J.D. Power 2025 US TXI; J.D. Power blog "10 years of TXI" | https://www.jdpower.com/business/press-releases/2025-us-tech-experience-index-txi-study ; https://blog.jdpa.com/automotive/5-lessons-learned-10-years-of-txi-data | 2025-08-21 / 2025 **(date U)** |
-| S59 | Carwow, Euro NCAP 2026 physical buttons | https://www.carwow.co.uk/news/9964/euro-ncap-2026-safety-rules | 2024 **(date U)** |
+| S59 | ETSC, "Euro NCAP: New 2026 protocols target distraction, impairment, and speeding" (replaces Carwow, which doesn't list indicators/hazards/horn/SOS) | https://etsc.eu/euro-ncap-new-2026-protocols/ | 2026-01 |
 | S60 | Top Gear / Auto Express / Carlist, F70 interior reviews | https://www.topgear.com/car-reviews/bmw/1-series/interior ; https://autoexpress.co.uk/bmw/1-series/interior ; https://www.carlist.my/news/meet-the-new-2025-bmw-1-series-f70-still-fwd-but-sharper-design-and-fancier-tech-137135/137135/ | 2024–25 |
 | S61 | Deloitte 2026 Global Automotive Consumer Study | https://www.deloitte.com/content/dam/assets-shared/docs/industries/consumer/2026/global-automotive-consumer-study-2026.pdf | 2026-01 |
 | S62 | ArenaEV, BMW drops heated-seat subscription | https://www.arenaev.com/bmw_drops_heated_seats_subscription_amid_backlash-news-2386.php | 2023-09 |

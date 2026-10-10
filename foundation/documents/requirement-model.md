@@ -11,7 +11,7 @@
 | `horizon` | `today` (fix/keep) or `at_successor_launch` (projected 3–5 yr need) (D-012) |
 | `kano_class` / `kano_drift` | basic / performance / delighter, and expected drift by SOP (e.g. delighter → basic) |
 | `title` / `description` | Customer-facing, actionable, solution-neutral where possible |
-| `category` | Exterior · Interior · Comfort & Space · Infotainment & Digital · Driving Experience · Range & Charging · Variants & Packages · Design & Quality Perception |
+| `category` | Exterior · Interior · Comfort & Space · Infotainment & Digital · Driving Experience · Powertrain (as experienced) · Range & Charging · Driver Assistance (as experienced, scope Q-016) · Variants & Packages · Design & Quality Perception. Powertrain and Driver Assistance follow BMW's process image (image_2) |
 | `target_metric` / `acceptance_criteria` | Measurable where possible |
 | `linked_findings` → sources | Every requirement ≥ 1 finding; every finding ≥ 1 source |
 | `fit_checks` | brand / segment / market / feasibility per target — pass / warn / fail + rationale |
@@ -20,7 +20,7 @@
 | `evidence_level` | See below |
 | `assumptions` / `uncertainties` | Forward-looking (3–5 yr) beliefs and what could make them wrong |
 | `conflicting_evidence` | Contradicting sources — shown, not hidden |
-| `status` | `proposed` → `in_review` → `approved` / `rejected` / `deferred`; `challenged` loops back |
+| `status` | `proposed` → `in_review` → `approved` / `rejected` / `deferred`; `challenged` loops back to `proposed`. AI may only create in `proposed` and set nothing else; every other transition is human (PM) with rationale (AGENTS rule 5) |
 
 ## Evidence levels
 
@@ -37,7 +37,7 @@
 - **Feasibility = fail** (no platform/plant can deliver it for that market in time) → same.
 - `warn` results lower the score via the confidence factor and are shown prominently.
 
-## Prioritization (draft, explainable weighted score 0–100)
+## Prioritization (draft, explainable weighted score; base weights sum to 100 — final range and the known issues are open in Q-004)
 
 | Factor | Signal | Default weight |
 |---|---|---|
