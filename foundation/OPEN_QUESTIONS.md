@@ -4,6 +4,10 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
 
 ## Open
 
+### Q-026 — Gaps in the checkpoint research (D-040)
+- The agents' web-search quota ran out mid-run. Missing: China model-level sales (5 Series LWB / E-Class L / A6L; Gasgoo/CPCA rankings blocked), Japan & Korea market totals, UK/EU-wide model rankings (Dataforce/JATO), Genesis/Lincoln H1 2026, BMW 1/7 Series volumes in EU/CN, Chinese vs foreign brand share in China, China subsidy pauses, Germany EV-subsidy uptake, UK ZEV mandate, charging-cost vs fuel, in-car AI adoption data, OTA/subscriptions. Full list: `gaps` in `research/checkpoints/checkpoints.json`.
+- **China round 2 done (2026-10-11):** +207 items (china_models, china_market, china_context): FY2025/H1 2026 retail for A6L / E-Class / 5 Series, luxury registrations 7 Series / S-Class / S800 / Maybach S, domestic-brand share 64→69 %, luxury retail −30 % in H1, CPCA forecast cut, trade-in fund, L2/NOA standard, McKinsey 2026. Many China model figures are Yiche sums (T3, unverified). Still open: i7 China, BBA combined share, rear-screen/massage penetration, Roland Berger/Bain, Gasgoo (blocked).
+
 ### Q-025 — 3D models for the Cars screen (D-039)
 - Owner: Atahan · not blocking (placeholder car renders without them)
 - Context: the Cars screen renders public, fan-made CC BY Sketchfab models (attribution on screen): 1 Series "Bmw-1-series 2025" (teenlin3, AI-generated mesh, 500k tris), 5 Series "i5" (akyolefe319), 7 Series "2023 BMW I7 G70" (NazhDesign). Downloads need a Sketchfab login (the agent may not log in), so the files must be placed in `data/models/{f70,g60,g70}.glb` (or `<name>/scene.gltf`). Each model's axis orientation in `car_zones.MODELS_GLTF` is provisional until checked visually. For real use BMW would supply its own visualisation assets.

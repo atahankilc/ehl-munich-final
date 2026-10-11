@@ -8,6 +8,21 @@
         "value": "mona sans",
         "createdAt": "2026-10-11T00:12:52.586Z",
         "reason": "agent decision: Mona Sans chosen for its width axis (wide light numerals as instrument readouts in the Cockpit direction Atahan picked)"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "mona sans",
+        "createdAt": "2026-10-11T01:41:37.440Z",
+        "reason": "agent: Google Fonts name of DESIGN.md's Mona Sans Variable; needed because artifacts can only load fonts from Google Fonts"
+      },
+      {
+        "rule": "all-caps-body",
+        "value": "*",
+        "files": [
+          "research/checkpoints/atlas.template.html"
+        ],
+        "createdAt": "2026-10-11T01:43:14.560Z",
+        "reason": "agent: uppercase used only for 1-4 word labels (eyebrows, field labels, checkpoint switch), no body passages"
       }
     ]
   }

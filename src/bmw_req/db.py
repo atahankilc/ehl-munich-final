@@ -179,6 +179,44 @@ CREATE TABLE IF NOT EXISTS app_state (               -- e.g. current simulated w
     key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL DEFAULT {NOW}
 );
 
+-- Checkpoints (D-041): two real-date checkpoints; checkpoint 2 builds on checkpoint 1 ------------
+CREATE TABLE IF NOT EXISTS checkpoint (
+    id TEXT PRIMARY KEY,                -- cp1 | cp2
+    label TEXT NOT NULL,                -- "JAN 26"
+    cutoff TEXT NOT NULL,               -- ISO date: an item is visible if it was knowable on or before this day
+    parent_id TEXT REFERENCES checkpoint(id),
+    position INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS checkpoint_run (  -- one stage executed at one checkpoint, on top of its parent's run
+    id INTEGER PRIMARY KEY,
+    checkpoint_id TEXT NOT NULL REFERENCES checkpoint(id),
+    stage TEXT NOT NULL,                -- acquire | classify | cluster | contextualize | elicit | ...
+    parent_run_id INTEGER REFERENCES checkpoint_run(id),
+    status TEXT NOT NULL DEFAULT 'running',   -- running | completed | failed | superseded
+    actor TEXT NOT NULL,
+    started_at TEXT NOT NULL DEFAULT {NOW}, finished_at TEXT,
+    stats_json TEXT
+);
+
+CREATE TABLE IF NOT EXISTS track (           -- one entity's state after one run (track-while-scan)
+    id INTEGER PRIMARY KEY,
+    run_id INTEGER NOT NULL REFERENCES checkpoint_run(id),
+    entity_key TEXT NOT NULL,           -- stable across checkpoints (source ref, cluster key, requirement id)
+    state TEXT NOT NULL,                -- new | held | strengthened | weakened | lost
+    weight REAL,                        -- the number the state is computed from (count, share, score)
+    prev_weight REAL,
+    payload_json TEXT,
+    UNIQUE (run_id, entity_key)
+);
+CREATE INDEX IF NOT EXISTS track_entity ON track(entity_key);
+
+CREATE TABLE IF NOT EXISTS source_layout (   -- fixed 3D position of a comment in the evidence space (D-041)
+    source_item_id INTEGER PRIMARY KEY REFERENCES source_item(id),
+    x REAL NOT NULL, y REAL NOT NULL, z REAL NOT NULL,
+    method TEXT NOT NULL
+);
+
 -- LLM bookkeeping (D-014, D-010) ----------------------------------------------
 CREATE TABLE IF NOT EXISTS llm_usage (
     id                 INTEGER PRIMARY KEY,
@@ -262,6 +300,23 @@ MIGRATIONS = [
     # Curated reference layer: provenance + competitor details per model (competes_with, markets, strengths).
     ("vehicle_model", "source_ids_json", "TEXT"),
     ("vehicle_model", "profile_json", "TEXT"),
+    # D-041: first checkpoint at which the item is knowable (NULL = after the last checkpoint, never visible).
+    ("source_item", "checkpoint", "TEXT"),
+    # D-043 extract-v4: shared aspect space + richer signal fields; classify runs per checkpoint.
+    ("signal", "aspect", "TEXT"),
+    ("signal", "nature", "TEXT"),
+    ("signal", "want_kind", "TEXT"),
+    ("signal", "intensity", "INTEGER"),
+    ("signal", "impact", "TEXT"),
+    ("signal", "occupant", "TEXT"),
+    ("signal", "context_json", "TEXT"),
+    ("signal", "benchmark", "TEXT"),
+    ("signal", "benchmark_name", "TEXT"),
+    ("signal", "future_cue", "INTEGER"),
+    ("signal", "explicit", "INTEGER"),
+    ("signal", "classify_run_id", "INTEGER"),
+    ("signal", "source_kind", "TEXT"),           # feedback | study | research
+    ("verbatim_extraction", "classify_run_id", "INTEGER"),
 ]
 
 

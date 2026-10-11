@@ -1,0 +1,130 @@
+/* Page 2: funnel readout, track-state marks, signal cards, inspector bodies, 3D labels. Same world as the scan. */
+
+/* track-state marks: dot held, ring new, double ring strengthened, amber weakened, amber cross lost */
+.smark { display: inline-block; width: 9px; height: 9px; border-radius: 50%; flex: none; position: relative; }
+.smark.s-held { background: var(--ink); }
+.smark.s-new { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.smark.s-strengthened { box-shadow: inset 0 0 0 1.5px var(--ink), inset 0 0 0 3px var(--void), inset 0 0 0 4.5px var(--ink); }
+.smark.s-weakened { background: var(--lost); }
+.smark.s-lost { background: transparent; }
+.smark.s-lost::before, .smark.s-lost::after { content: ""; position: absolute; left: 4px; top: 0; width: 1.5px; height: 9px; background: var(--lost); transform: rotate(45deg); }
+.smark.s-lost::after { transform: rotate(-45deg); }
+
+/* funnel: the stages of the AI pipeline as peer numerals */
+.funnel { position: fixed; top: var(--edge); left: var(--edge); z-index: 10; margin: 0; display: flex; align-items: flex-start; gap: 18px; pointer-events: none; }
+.funnel-cell { display: grid; gap: 8px; position: relative; padding-right: 34px; }
+.funnel-cell:last-child { padding-right: 0; }
+.funnel-cell dd { margin: 0; display: inline-flex; align-items: baseline; gap: 10px; }
+.funnel-cell .num { font-size: 34px; color: var(--ink); }
+.funnel-delta { display: inline-flex; gap: 10px; font-size: var(--t-label); color: var(--ink-2); }
+.funnel-delta span { display: inline-flex; align-items: center; gap: 5px; }
+.funnel-arrow { position: absolute; right: 0; top: 30px; color: var(--ink-3); }
+.funnel-wait { padding: 6px 0; }
+
+/* 3D theme labels */
+.theme-label { font-size: var(--t-micro); color: var(--ink-2); white-space: nowrap; pointer-events: none; user-select: none; padding: 1px 6px; border-radius: 4px; background: rgba(0, 0, 0, 0.6); transition: color var(--fast); }
+.theme-label[data-active] { color: var(--ink); font-weight: 600; }
+/* structure labels fade with the morph and are gone on the Evidence page (set by FadeIn in StructureLayer) */
+.theme-label, .area-label { opacity: var(--structure-fade, 0); }
+[data-structure-off] .theme-label, [data-structure-off] .area-label { display: none; }
+/* hidden while it would overlap a label of higher priority (StructureLayer, useLabelCollisions) */
+.theme-label[data-collide], .area-label[data-collide] { visibility: hidden; }
+
+/* inspector bodies */
+.sheet-statement { font-size: var(--t-body); color: var(--ink-2); line-height: 1.5; max-width: 60ch; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: var(--t-label); color: var(--ink-2); padding: 3px 9px; border-radius: 99px; border: 1px solid var(--hair-2); }
+.chip-amber { color: var(--lost); border-color: color-mix(in srgb, var(--lost) 45%, transparent); }
+.lm { display: grid; gap: 5px; }
+.lm-row { display: grid; grid-template-columns: 1fr 90px 36px; gap: 10px; align-items: center; font-size: var(--t-label); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.lm-row span:last-child { text-align: right; }
+.lm-bar { height: 3px; background: var(--hair); border-radius: 2px; overflow: hidden; }
+.lm-bar i { display: block; height: 100%; background: var(--ink-2); transform-origin: 0 50%; }
+
+.sig-list { display: grid; gap: 8px; }
+.sig-none { padding-top: 2px; }
+.sig { display: grid; gap: 5px; padding: 10px 12px; border-radius: 8px; background: rgba(255, 255, 255, 0.035); border: 1px solid var(--hair); }
+.sig-head { display: flex; align-items: center; gap: 8px; font-size: var(--t-label); }
+.sig-aspect { color: var(--ink); font-weight: 600; text-transform: capitalize; }
+.sig-nature { color: var(--ink-3); }
+.sig[data-nature="defect"] .sig-nature { color: var(--lost); }
+.sig-int { margin-left: auto; display: inline-flex; gap: 2px; }
+.sig-int i { width: 5px; height: 5px; border-radius: 50%; background: var(--hair-2); }
+.sig-int i[data-on] { background: var(--ink-2); }
+.sig-need { font-size: 13px; color: var(--ink-2); line-height: 1.45; }
+.sig-quote { font-size: 13px; color: var(--ink); line-height: 1.45; quotes: "“" "”"; }
+.sig-tags { display: flex; flex-wrap: wrap; gap: 6px; font-size: var(--t-micro); color: var(--ink-3); }
+.sig-tags span:not(:last-child)::after { content: "·"; margin-left: 6px; }
+
+.mini-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.mini-list li { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--ink-2); }
+.mini-list b { font-weight: 500; color: var(--ink); }
+.mini-list span { color: var(--ink-3); white-space: nowrap; font-size: var(--t-label); }
+
+.ev-group { display: grid; gap: 8px; }
+.ev { display: grid; grid-template-columns: 10px 1fr; gap: 10px; }
+.ev p { font-size: 13px; color: var(--ink); line-height: 1.4; }
+.ev-why { font-size: var(--t-label); color: var(--ink-3); display: block; margin-top: 2px; }
+.ev-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; }
+.ev[data-type="research"] .ev-dot { background: #d95926; }
+.ev[data-type="study"] .ev-dot { background: #199e70; }
+.ev[data-type="option"] .ev-dot { background: #c98500; }
+
+.note { padding: 10px 12px; border-radius: 8px; border: 1px solid var(--hair-2); display: grid; gap: 4px; }
+.note p { font-size: 13px; color: var(--ink); }
+.facts1 { display: grid; gap: 3px; }
+.facts1 p { font-size: 13px; color: var(--ink-2); }
+.targets { display: grid; gap: 6px; }
+.target { display: grid; gap: 2px; font-size: 13px; }
+.target b { font-weight: 600; color: var(--ink); }
+.target span { color: var(--ink-2); }
+.target[data-assumption] b::after { content: "assumption"; margin-left: 8px; font-size: var(--t-micro); font-weight: 500; color: var(--lost); }
+.assumptions ul { margin: 4px 0 0; padding-left: 16px; font-size: 13px; color: var(--ink-2); display: grid; gap: 3px; }
+
+@media (max-width: 760px) {
+  .funnel { gap: 10px; left: 16px; top: 16px; flex-wrap: wrap; max-width: calc(100vw - 32px); }
+  .funnel-cell { padding-right: 22px; }
+  .funnel-cell .num { font-size: 22px; }
+  .funnel-arrow { top: 22px; width: 12px; }
+}
+
+/* agent at work: bottom-left on page 2, frameless like the checkpoint timeline opposite it (same 300px width) */
+.agent { position: fixed; left: var(--edge); bottom: calc(var(--edge) + env(safe-area-inset-bottom, 0px)); z-index: 10; width: 300px; display: grid; gap: 12px; }
+.agent-top { display: flex; justify-content: space-between; align-items: center; }
+.agent-title { font-size: var(--t-label); font-weight: 600; color: var(--ink); }
+.agent-state { display: inline-flex; align-items: center; gap: 6px; font-size: var(--t-micro); letter-spacing: 0.02em; color: var(--ink-3); }
+.agent-state i { width: 6px; height: 6px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--ink-3); }
+.agent-state[data-state="working"] { color: var(--ink); }
+.agent-state[data-state="working"] i { background: var(--ink); box-shadow: none; animation: agent-pulse 1.4s ease-out infinite; }
+.agent-state[data-state="done"] i { background: var(--ink-2); box-shadow: none; }
+.agent-state[data-state="stopped"] { color: var(--lost); }
+.agent-state[data-state="stopped"] i { background: var(--lost); box-shadow: none; }
+@keyframes agent-pulse { 0% { box-shadow: 0 0 0 0 rgba(242, 244, 247, 0.5); } 100% { box-shadow: 0 0 0 7px rgba(242, 244, 247, 0); } }
+
+.agent-now { display: flex; align-items: baseline; gap: 8px; min-height: 22px; margin: 0; }
+.agent-now .num { font-size: 20px; color: var(--ink); }
+.agent-of, .agent-doing { font-size: var(--t-label); color: var(--ink-2); }
+
+/* the four stages as one segmented bar, names beneath */
+.agent-stages { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.agent-stages li { display: grid; gap: 7px; }
+.agent-seg { position: relative; height: 2px; border-radius: 1px; background: var(--hair-2); overflow: hidden; }
+.agent-seg i { position: absolute; inset: 0; background: var(--ink-2); transform-origin: 0 50%; transition: transform 1.8s linear; }
+.agent-stages li[data-status="running"] .agent-seg i { background: var(--ink); }
+.agent-stages li[data-status="failed"] .agent-seg { background: var(--lost); }
+.agent-seg[data-indeterminate] i { transition: none; animation: agent-scan 1.6s ease-in-out infinite; }
+@keyframes agent-scan { from { translate: -100% 0; } to { translate: 340% 0; } }
+.agent-name { font-size: var(--t-micro); letter-spacing: 0.02em; color: var(--ink-3); }
+.agent-stages li[data-status="completed"] .agent-name { color: var(--ink-2); }
+.agent-stages li[data-status="running"] .agent-name { color: var(--ink); }
+
+/* latest steps, newest first, older ones fading */
+.agent-feed { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 5px; }
+.agent-feed li { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: baseline; font-size: var(--t-label); line-height: 1.4; color: var(--ink-2); }
+.agent-feed li:first-child { color: var(--ink); }
+.agent-feed li:nth-child(3) { opacity: 0.7; }
+.agent-feed li:nth-child(4) { opacity: 0.45; }
+.agent-ago { font-size: var(--t-micro); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+@media (max-width: 760px) { .agent { left: 16px; right: 16px; width: auto; bottom: 200px; } .agent-feed li:nth-child(n + 3) { display: none; } }
+.area-label { font-size: var(--t-label); font-weight: 600; color: var(--ink); white-space: nowrap; pointer-events: none; user-select: none; padding: 2px 7px; border-radius: 5px; background: rgba(0, 0, 0, 0.65); }
+.area-label:not([data-active]) { font-weight: 500; color: var(--ink-2); font-size: var(--t-micro); }

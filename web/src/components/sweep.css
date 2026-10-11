@@ -1,0 +1,45 @@
+/* Checkpoint control: frameless at the bottom-right edge, mirroring the key at the bottom-left. Fixed width and a
+   fixed number of lines, so switching checkpoints never changes its size. */
+.sweepctl {
+  --sweep-curve: cubic-bezier(0.33, 1, 0.68, 1);   /* ease-out cubic, the 3D sweep's curve */
+  position: fixed; right: var(--edge); bottom: calc(var(--edge) + env(safe-area-inset-bottom, 0px)); z-index: 20;
+  width: 300px; display: grid; gap: 12px;
+}
+.sweepctl-top { display: grid; gap: 3px; }
+.sweepctl-title { font-size: var(--t-label); font-weight: 600; color: var(--ink); }
+
+/* the timeline: labels above the rail, ticks below it */
+.sweepctl-line { position: relative; height: 40px; margin: 0 6px; }
+.sweepctl-rail, .sweepctl-fill { position: absolute; left: 0; right: 0; top: 24px; height: 1px; }
+.sweepctl-rail { background: var(--hair-2); }
+.sweepctl-fill { background: var(--ink-2); transform-origin: 0 50%; transition: transform var(--sweep-ms) var(--sweep-curve); }
+.sweepctl-tick { position: absolute; top: 28px; width: 1px; height: 4px; background: var(--hair-2); }
+.sweepctl-start { position: absolute; left: -6px; top: 0; line-height: 16px; }
+
+.sweepctl-node {
+  position: absolute; top: 0; transform: translateX(-50%);
+  display: grid; justify-items: center; gap: 2px; padding: 0 4px 4px; border-radius: 6px;
+}
+.sweepctl-node[data-end] { transform: translateX(calc(-100% + 10px)); justify-items: end; }
+.sweepctl-name { white-space: nowrap; font-size: var(--t-label); font-weight: 600; letter-spacing: 0.08em; line-height: 16px; color: var(--ink-3); transition: color var(--fast); }
+.sweepctl-dot {
+  width: 9px; height: 9px; border-radius: 50%; background: var(--void); box-shadow: inset 0 0 0 1px var(--ink-3);
+  transition: background var(--med) var(--ease), box-shadow var(--med) var(--ease);
+}
+.sweepctl-node[data-end] .sweepctl-dot { margin-right: 2px; }
+.sweepctl-node:hover .sweepctl-name { color: var(--ink-2); }
+.sweepctl-node:hover .sweepctl-dot { box-shadow: inset 0 0 0 1px var(--ink); }
+.sweepctl-node[data-state="built"] .sweepctl-dot { background: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.sweepctl-node[data-state="active"] .sweepctl-name { color: var(--ink); }
+.sweepctl-node[data-state="active"] .sweepctl-dot { background: var(--sweep-hi); box-shadow: 0 0 0 4px var(--sweep-wash); }
+
+.sweepctl-counts { display: flex; align-items: center; gap: 18px; }
+.sweepctl-counts > span { display: inline-flex; align-items: center; gap: 7px; }
+.sweepctl-counts .num { font-size: 20px; color: var(--ink); min-width: 4.4ch; }
+.sweepctl-keys { margin-left: auto; letter-spacing: 0.12em; }
+
+.mark { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.mark.held { background: var(--ink); }
+.mark.new { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ink); }
+
+@media (max-width: 560px) { .sweepctl { left: 16px; right: 16px; width: auto; } }

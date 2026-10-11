@@ -1,0 +1,509 @@
+<title>Checkpoint Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mona+Sans:wght@400..800&display=swap">
+<style>
+/* Layout: one instrument column of panels; a fixed two-step time switch bottom-right drives every panel. Dark-first, same world as the Successor app. */
+:root {
+  color-scheme: dark;
+  --bg: #08090b; --panel: #0e1014; --panel-2: #12151a; --hover: #171b22;
+  --line: #1d2027; --line-2: #2a2f39;
+  --text: #e8ebf0; --text-2: #b9c0cb; --muted: #959eae; --faint: #7a8394;
+  --blue: #1c69d4; --blue-hi: #4d94ff; --blue-wash: rgba(28,105,212,.18);
+  --up: #3ccf91; --down: #ff6b6f; --amber: #f5a524; --violet: #a78bfa; --grey: #7d8796;
+  --font: "Mona Sans Variable", "Mona Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --ease: cubic-bezier(.16,1,.3,1);
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  color-scheme: light;
+  --bg: #f3f5f8; --panel: #ffffff; --panel-2: #f6f8fb; --hover: #eef1f6;
+  --line: #e2e6ed; --line-2: #cfd5df;
+  --text: #0f1319; --text-2: #343c48; --muted: #535c6b; --faint: #687182;
+  --blue: #1c69d4; --blue-hi: #1c69d4; --blue-wash: rgba(28,105,212,.10);
+  --up: #12955f; --down: #d63c42; --amber: #b8730a; --violet: #7a5bd6; --grey: #8a93a1;
+} }
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f3f5f8; --panel: #ffffff; --panel-2: #f6f8fb; --hover: #eef1f6;
+  --line: #e2e6ed; --line-2: #cfd5df;
+  --text: #0f1319; --text-2: #343c48; --muted: #535c6b; --faint: #687182;
+  --blue: #1c69d4; --blue-hi: #1c69d4; --blue-wash: rgba(28,105,212,.10);
+  --up: #12955f; --down: #d63c42; --amber: #b8730a; --violet: #7a5bd6; --grey: #8a93a1;
+}
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.45; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 140px; display: grid; gap: 18px; }
+h1, h2 { text-wrap: balance; margin: 0 }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums }
+.eyebrow { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600 }
+
+/* header */
+.head { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: end; padding-bottom: 6px }
+.head h1 { font-size: clamp(26px, 4vw, 40px); font-weight: 750; letter-spacing: -.02em }
+.head .sub { color: var(--muted); margin-top: 4px }
+.asof { text-align: right }
+.asof .date { font-family: var(--mono); font-size: clamp(28px, 5vw, 52px); font-weight: 600; letter-spacing: -.03em; line-height: 1; color: var(--blue-hi) }
+.asof .cov { color: var(--muted); font-size: 12px; margin-top: 6px }
+.known { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 2px }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border: 1px solid var(--line-2); border-radius: 999px; font-size: 12px; color: var(--text-2); background: var(--panel) }
+.chip b { color: var(--text); font-family: var(--mono); font-weight: 600 }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none }
+
+/* panels */
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; min-width: 0 }
+.panel > header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 14px }
+.panel h2 { font-size: 16px; font-weight: 650; letter-spacing: -.01em }
+.panel .hint { font-size: 12px; color: var(--faint) }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr)); gap: 18px }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 18px }
+
+/* pulse tiles */
+.pulse { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 12px }
+.tile { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 10px; cursor: default; min-width: 0 }
+.tile .rg { display: flex; justify-content: space-between; align-items: center }
+.tile .rg span:first-child { font-weight: 650; font-size: 15px }
+.tile .row { display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: center }
+.ring { width: 64px; height: 64px }
+.ring circle { fill: none; stroke-width: 7 }
+.ring .bg { stroke: var(--line-2) } .ring .fg { stroke: var(--up); transition: stroke-dashoffset .9s var(--ease); stroke-linecap: round }
+.ring text { fill: var(--text); font-family: var(--mono); font-size: 15px; font-weight: 600 }
+.kv { display: grid; gap: 4px; min-width: 0 }
+.kv .k { font-size: 11px; color: var(--muted) }
+.big { font-family: var(--mono); font-size: 24px; font-weight: 600; line-height: 1.1 }
+.was { font-size: 11px; color: var(--faint); font-family: var(--mono) }
+.bmwrow { display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--line-2); padding-top: 9px; gap: 8px }
+.bmwrow .lbl { font-size: 12px; color: var(--text-2); display: flex; align-items: center; gap: 6px }
+.pill { font-family: var(--mono); font-size: 13px; font-weight: 600; padding: 2px 8px; border-radius: 6px }
+.up { color: var(--up) } .down { color: var(--down) } .flat { color: var(--muted) }
+.pill.up { background: color-mix(in srgb, var(--up) 14%, transparent) }
+.pill.down { background: color-mix(in srgb, var(--down) 14%, transparent) }
+.click { cursor: pointer } .click:hover { background: var(--hover) }
+.click:focus-visible, button:focus-visible { outline: 2px solid var(--blue-hi); outline-offset: 2px }
+
+/* tabs */
+.tabs { display: inline-flex; background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap }
+.tabs button { all: unset; cursor: pointer; padding: 5px 11px; border-radius: 7px; font-size: 12px; color: var(--muted); font-weight: 600 }
+.tabs button[aria-selected="true"] { background: var(--hover); color: var(--text) }
+
+/* diverging bars */
+.bars { display: grid; gap: 5px }
+.bar { display: grid; grid-template-columns: minmax(92px, 150px) 1fr 62px; align-items: center; gap: 10px; padding: 3px 6px; border-radius: 7px; min-width: 0 }
+.bar .name { font-size: 12.5px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.bar .name small { color: var(--faint); font-family: var(--mono); font-size: 11px; margin-left: 4px }
+.track { position: relative; height: 18px }
+.track .zero { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--line-2) }
+.track .fill { position: absolute; top: 3px; left: 0; width: 100%; height: 12px; border-radius: 3px; transform-origin: 0 50%; transition: transform .8s var(--ease), background .4s }
+.track .ghost { position: absolute; top: 0; left: 0; width: 100%; height: 18px; transition: transform .8s var(--ease) }
+.track .ghost::before { content: ""; position: absolute; left: -1px; top: 0; width: 2px; height: 18px; background: var(--faint); opacity: .7 }
+.track .na { position: absolute; inset: 4px 0; border-radius: 3px; background: repeating-linear-gradient(135deg, transparent 0 5px, var(--line) 5px 7px) }
+.bar .val { font-family: var(--mono); font-size: 12.5px; font-weight: 600; text-align: right }
+.bar.stale .fill { opacity: .45 }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); margin-top: 12px }
+.legend span { display: inline-flex; align-items: center; gap: 6px }
+.legend i { display: inline-block; width: 12px; height: 8px; border-radius: 2px }
+.legend .gh { width: 2px; height: 12px; background: var(--faint) }
+
+/* mix */
+.mixbar { display: flex; height: 34px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line) }
+.mixbar div { display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 11px; font-weight: 600; color: #0b0d10; overflow: hidden; white-space: nowrap; min-width: 0; cursor: pointer }
+.meters { display: grid; gap: 9px; margin-top: 18px }
+.meter { display: grid; grid-template-columns: 110px 1fr 54px; gap: 10px; align-items: center }
+.meter .t { height: 10px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 99px; position: relative; overflow: hidden }
+.meter .t div { position: absolute; inset: 0; background: linear-gradient(90deg, var(--blue), var(--up)); border-radius: 99px; transform-origin: 0 50%; transition: transform .9s var(--ease) }
+.meter .n { font-size: 12.5px; color: var(--text-2) } .meter .n small { color: var(--faint); font-family: var(--mono); font-size: 11px; display: block }
+
+/* dumbbells */
+.db { display: grid; gap: 10px }
+.dbr { display: grid; grid-template-columns: minmax(120px, 210px) 1fr; gap: 12px; align-items: center; padding: 4px 6px; border-radius: 7px }
+.dbr .name { font-size: 12.5px; color: var(--text-2); min-width: 0 }
+.dbr .name small { display: block; color: var(--faint); font-size: 11px }
+.dbt { position: relative; height: 26px }
+.dbt .ln { position: absolute; top: 12px; height: 2px; background: var(--line-2) }
+.dbt .p { position: absolute; top: 6px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; border: 2px solid var(--bg); transition: transform .5s var(--ease), opacity .5s }
+.dbt .lab { position: absolute; top: -2px; font-family: var(--mono); font-size: 11px; transform: translateX(-50%); white-space: nowrap; transition: opacity .5s }
+.dbt .lab.b { top: 18px }
+
+/* timeline */
+.tl { position: relative; overflow-x: auto }
+.tl svg { display: block; min-width: 760px; width: 100% }
+.tl .lane-l { fill: var(--muted); font-size: 11px; font-family: var(--font) }
+.tl .tick { fill: var(--faint); font-size: 11px; font-family: var(--mono) }
+.tl circle.ev { cursor: pointer; transition: opacity .6s, r .3s }
+.tl circle.ev:hover { r: 7 }
+
+/* generations */
+.gen svg { width: 100%; height: auto; display: block }
+.gen .axis { fill: var(--faint); font-size: 11px; font-family: var(--mono) }
+.lessons { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 8px; margin-top: 14px }
+.lesson { border: 1px solid var(--line); border-radius: 10px; padding: 10px; font-size: 12.5px; color: var(--text-2); background: var(--panel-2); display: grid; gap: 4px }
+.lesson .m { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); font-weight: 600 }
+
+/* time switch */
+.switch { position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 30; background: color-mix(in srgb, var(--panel) 88%, transparent); backdrop-filter: blur(12px); border: 1px solid var(--line-2); border-radius: 16px; padding: 10px; box-shadow: 0 2px 6px rgba(0,0,0,.4), 0 24px 60px rgba(0,0,0,.45); display: grid; gap: 8px; width: 248px }
+.switch .cap { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; font-weight: 600; padding: 0 4px }
+.seg { position: relative; display: grid; grid-template-columns: 1fr 1fr; background: var(--panel-2); border: 1px solid var(--line); border-radius: 11px; padding: 3px }
+.seg .thumb { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc(50% - 3px); border-radius: 8px; background: var(--blue); transition: transform .45s var(--ease) }
+.seg[data-cp="2026-07"] .thumb { transform: translateX(100%) }
+.seg button { all: unset; position: relative; z-index: 1; text-align: center; padding: 8px 4px; cursor: pointer; border-radius: 8px; display: grid; gap: 1px }
+.seg button b { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--muted); transition: color .3s }
+.seg button span { font-size: 11px; color: var(--faint); transition: color .3s }
+.seg button[aria-pressed="true"] b, .seg button[aria-pressed="true"] span { color: #fff }
+.rail { height: 3px; border-radius: 3px; background: var(--line); overflow: hidden }
+.rail div { height: 100%; background: var(--blue-hi); transform-origin: 0 50%; transition: transform .6s var(--ease) }
+
+/* drawer */
+.drawer { position: fixed; inset: 0 0 0 auto; width: min(440px, 100%); background: var(--panel); border-left: 1px solid var(--line-2); z-index: 40; transform: translateX(105%); transition: transform .35s var(--ease); padding: 22px 20px calc(22px + env(safe-area-inset-bottom,0px)); overflow-y: auto; display: grid; align-content: start; gap: 14px; box-shadow: -20px 0 60px rgba(0,0,0,.4) }
+.drawer.open { transform: none }
+.drawer h3 { margin: 0; font-size: 18px; line-height: 1.3; text-wrap: balance }
+.drawer .x { all: unset; cursor: pointer; justify-self: end; color: var(--muted); font-size: 13px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--line-2) }
+.drawer .num { font-family: var(--mono); font-size: 30px; font-weight: 600 }
+.drawer .lbl { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); font-weight: 600; margin-bottom: 3px }
+.drawer blockquote { margin: 0; padding: 10px 12px; border-left: 3px solid var(--blue); background: var(--panel-2); border-radius: 0 8px 8px 0; font-size: 12.5px; color: var(--text-2) }
+.drawer a { color: var(--blue-hi); word-break: break-all; font-size: 12.5px }
+.drawer .assume { font-size: 12.5px; color: var(--amber) }
+.tag { font-family: var(--mono); font-size: 11px; padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line-2); color: var(--text-2) }
+.scrim { position: fixed; inset: 0; background: rgba(4,5,7,.5); z-index: 35; opacity: 0; pointer-events: none; transition: opacity .3s }
+.scrim.on { opacity: 1; pointer-events: auto }
+.foot { color: var(--faint); font-size: 12px; display: flex; gap: 14px; flex-wrap: wrap }
+@media (max-width: 560px) {
+  .head { grid-template-columns: 1fr } .asof { text-align: left }
+  .bar { grid-template-columns: 92px 1fr 54px; gap: 6px }
+  .dbr { grid-template-columns: 1fr } .switch { width: auto; left: 16px; right: 16px }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important } }
+</style>
+
+<div class="wrap">
+  <div class="head">
+    <div>
+      <div class="eyebrow">BMW successor requirements · market context</div>
+      <h1>Checkpoint Atlas</h1>
+      <div class="sub">Only what a product manager could have known on that date. Click any mark for its source.</div>
+      <div class="known" id="known"></div>
+    </div>
+    <div class="asof"><div class="eyebrow">As of</div><div class="date" id="asofDate">31 JAN 2026</div><div class="cov" id="asofCov"></div></div>
+  </div>
+
+  <section class="panel" aria-labelledby="h-pulse">
+    <header><h2 id="h-pulse">Market pulse</h2><span class="hint">market change · electric share · BMW change, year on year</span></header>
+    <div class="pulse" id="pulse"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-race">
+    <header><h2 id="h-race">Brand race</h2><div class="tabs" role="tablist" id="raceTabs"></div></header>
+    <div class="bars" id="race"></div>
+    <div class="legend"><span><i style="background:var(--blue)"></i>BMW Group</span><span><i style="background:var(--grey)"></i>Legacy premium</span><span><i style="background:var(--violet)"></i>EV challengers</span><span><i class="gh"></i>other checkpoint</span><span><i style="background:repeating-linear-gradient(135deg,transparent 0 3px,var(--line-2) 3px 5px)"></i>no figure yet</span></div>
+  </section>
+
+  <div class="grid2">
+    <section class="panel" aria-labelledby="h-mix">
+      <header><h2 id="h-mix">Powertrain mix, EU</h2><span class="hint" id="mixPeriod"></span></header>
+      <div class="mixbar" id="mix"></div>
+      <div class="legend" id="mixLegend"></div>
+      <div class="meters" id="meters"></div>
+    </section>
+    <section class="panel" aria-labelledby="h-line">
+      <header><h2 id="h-line">BMW line-up, USA</h2><span class="hint">sales change by model line</span></header>
+      <div class="bars" id="lineup"></div>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="h-seg">
+    <header><h2 id="h-seg">Segment head-to-head</h2><div class="tabs" role="tablist" id="segTabs"></div></header>
+    <div class="bars" id="seg"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-tl">
+    <header><h2 id="h-tl">Signals over time</h2><span class="hint">launches, tech, policy · dimmed = not yet known</span></header>
+    <div class="tl" id="tl"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-voice">
+    <header><h2 id="h-voice">Customer voice in published studies</h2><span class="hint">filled dot = value at this checkpoint</span></header>
+    <div class="db" id="voice"></div>
+  </section>
+
+  <section class="panel gen" aria-labelledby="h-gen">
+    <header><h2 id="h-gen">Generations, USA sales</h2><span class="hint">predecessors → current models</span></header>
+    <div id="gen"></div>
+    <div class="lessons" id="lessons"></div>
+  </section>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<div class="switch" role="group" aria-label="Checkpoint">
+  <div class="cap"><span>Checkpoint</span><span id="swHint">← →</span></div>
+  <div class="seg" id="seg-switch" data-cp="2026-01">
+    <div class="thumb"></div>
+    <button id="cp1" aria-pressed="true" data-cp="2026-01"><b>JAN 26</b><span>FY 2025 known</span></button>
+    <button id="cp2" aria-pressed="false" data-cp="2026-07"><b>JUL 26</b><span>H1 2026 known</span></button>
+  </div>
+  <div class="rail" title="Share of all collected sources known at this checkpoint"><div id="rail"></div></div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true"></aside>
+
+<script>
+const D = __DATA__;
+const CP = ["2026-01", "2026-07"];
+const CUT = { "2026-01": "31 JAN 2026", "2026-07": "31 JUL 2026" };
+const COVER = { "2026-01": "FY 2025 results · 50% of customer feedback", "2026-07": "H1 2026 results · 100% of customer feedback" };
+let cp = "2026-01";
+try { const s = localStorage.getItem("atlas.cp"); if (CP.includes(s)) cp = s; } catch (e) {}
+
+const ITEMS = D.items;
+const BYID = Object.fromEntries(ITEMS.map(i => [i.id, i]));
+const PAIRS = {};
+for (const i of ITEMS) if (i.pair_key) ((PAIRS[i.pair_key] ??= {})[i.checkpoint] ??= []).push(i);
+
+/* latest item for a pair known at checkpoint c: own checkpoint first, else the earlier one (marked stale) */
+function pick(key, c, want) {
+  const p = PAIRS[key]; if (!p) return null;
+  const ok = i => want === "yoy" ? i.yoy_pct != null : want === "pct" ? (i.unit === "pct" && i.value != null && i.value <= 100) : i.value != null;
+  const own = (p[c] || []).filter(ok);
+  if (own.length) return { item: own.sort((a, b) => (b.source.trust_tier < a.source.trust_tier) - 0)[0], stale: false };
+  if (c === "2026-07") { const e = (p["2026-01"] || []).filter(ok); if (e.length) return { item: e[0], stale: true }; }
+  return null;
+}
+const other = c => c === "2026-01" ? "2026-07" : "2026-01";
+const fmtPct = (v, sign = true) => v == null ? "—" : (sign && v > 0 ? "+" : "") + (Math.abs(v) >= 100 ? Math.round(v) : (+v).toFixed(1)) + "%";
+const cls = v => v == null ? "flat" : v > 0.05 ? "up" : v < -0.05 ? "down" : "flat";
+const per = s => (s || "").replace(/-/g, " ").replace("FY2025", "FY25").replace("2026", "26").replace("2025", "25");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* ---------- pulse ---------- */
+const PULSE = [
+  { name: "Europe", sub: "EU+EFTA+UK", market: "europe-total-registrations", elec: "eu-bev-share", elecL: "BEV share, EU", bmw: "bmw-europe-deliveries" },
+  { name: "Germany", sub: "KBA", market: "de-total-registrations", elec: "de-bev-share", elecL: "BEV share", bmw: "bmw-germany-deliveries" },
+  { name: "USA", sub: "Cox / BMW NA", market: "us-total-sales", elec: "us-ev-share-quarter", elecL: "EV share, quarter", bmw: "bmw-usa-deliveries" },
+  { name: "China", sub: "CPCA", market: "cn-pv-retail-month", elec: "cn-nev-penetration", elecL: "NEV share, month", bmw: "bmw-china-deliveries" },
+];
+function ring(pct) {
+  const r = 26, C = 2 * Math.PI * r, off = C * (1 - Math.min(pct ?? 0, 100) / 100);
+  return `<svg class="ring" viewBox="0 0 64 64" aria-hidden="true"><circle class="bg" cx="32" cy="32" r="${r}"/><circle class="fg" cx="32" cy="32" r="${r}" stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 32 32)"/><text x="32" y="37" text-anchor="middle">${pct == null ? "—" : Math.round(pct)}</text></svg>`;
+}
+function renderPulse() {
+  document.getElementById("pulse").innerHTML = PULSE.map(t => {
+    const m = pick(t.market, cp, "yoy"), e = pick(t.elec, cp, "pct"), b = pick(t.bmw, cp, "yoy");
+    const mo = pick(t.market, other(cp), "yoy");
+    const mv = m?.item.yoy_pct, bv = b?.item.yoy_pct;
+    return `<div class="tile">
+      <div class="rg"><span>${t.name}</span><span class="eyebrow">${t.sub}</span></div>
+      <div class="row">
+        <div class="click" tabindex="0" data-id="${e?.item.id ?? ""}" title="${t.elecL}">${ring(e?.item.value)}</div>
+        <div class="kv click" tabindex="0" data-id="${m?.item.id ?? ""}">
+          <span class="k">Market · ${per(m?.item.period_covered)}</span>
+          <span class="big ${cls(mv)}">${fmtPct(mv)}</span>
+          <span class="was">${mo ? (other(cp) === "2026-01" ? "Jan" : "Jul") + ": " + fmtPct(mo.item.yoy_pct) : ""}</span>
+        </div>
+      </div>
+      <div class="bmwrow click" tabindex="0" data-id="${b?.item.id ?? ""}"><span class="lbl"><span class="dot" style="background:var(--blue)"></span>BMW Group · ${per(b?.item.period_covered)}</span><span class="pill ${cls(bv)}">${fmtPct(bv)}</span></div>
+      <div class="was">${t.elecL}</div>
+    </div>`;
+  }).join("");
+}
+
+/* ---------- diverging bars ---------- */
+function bars(el, rows, color) {
+  const vals = rows.flatMap(r => CP.map(c => pick(r.key, c, "yoy")?.item.yoy_pct)).filter(v => v != null);
+  const max = Math.max(20, ...vals.map(v => Math.min(Math.abs(v), 160)));
+  const X = v => 50 + (Math.max(-max, Math.min(max, v)) / max) * 50;
+  el.innerHTML = rows.map(r => {
+    const a = pick(r.key, cp, "yoy"), o = pick(r.key, other(cp), "yoy");
+    const v = a?.item.yoy_pct, ov = o?.item.yoy_pct;
+    const col = color(r);
+    let inner = `<span class="zero"></span>`;
+    if (v == null) inner += `<span class="na"></span>`;
+    else { const l = Math.min(50, X(v)), w = Math.abs(X(v) - 50); inner += `<span class="fill" style="transform:translateX(${l}%) scaleX(${Math.max(w, .6) / 100});background:${col}"></span>`; }
+    if (ov != null) inner += `<span class="ghost" style="transform:translateX(${X(ov)}%)"></span>`;
+    const clip = v != null && Math.abs(v) > max ? "›" : "";
+    return `<div class="bar click ${a?.stale ? "stale" : ""}" tabindex="0" data-id="${a?.item.id ?? ""}" title="${esc(a?.item.headline ?? "No figure published yet")}">
+      <span class="name">${esc(r.label)}<small>${a ? per(a.item.period_covered) + (a.stale ? " · old" : "") : ""}</small></span>
+      <span class="track">${inner}</span>
+      <span class="val ${cls(v)}">${fmtPct(v)}${clip}</span></div>`;
+  }).join("");
+}
+const GROUP = { bmw: "var(--blue)", legacy: "var(--grey)", ev: "var(--violet)" };
+const RACE = {
+  China: [["BMW Group", "bmw-china-deliveries", "bmw"], ["Mercedes-Benz", "mercedes-cn-deliveries", "legacy"], ["Audi", "audi-cn-deliveries", "legacy"], ["Porsche", "porsche-cn-deliveries", "legacy"], ["Volvo Cars", "volvo-cn-sales", "legacy"], ["JLR", "jlr-cn-retail", "legacy"], ["Tesla (wholesale)", "tesla-cn-wholesale-period", "ev"], ["HIMA (Huawei)", "hima-period", "ev"], ["NIO", "nio-period", "ev"], ["Li Auto", "liauto-period", "ev"], ["Xpeng", "xpeng-period", "ev"], ["Leapmotor", "leapmotor-period", "ev"], ["Zeekr", "zeekr-period", "ev"]],
+  Europe: [["BMW Group", "bmw-europe-deliveries", "bmw"], ["MINI", "mini-deliveries", "bmw"], ["Mercedes-Benz", "mercedes-eu-deliveries", "legacy"], ["Audi", "audi-eu-deliveries", "legacy"], ["Porsche", "porsche-eu-deliveries", "legacy"], ["Volvo Cars", "volvo-eu-sales", "legacy"], ["Tesla", "tesla-eu-registrations-period", "ev"], ["BYD", "byd-eu-registrations-period", "ev"]],
+  USA: [["BMW Group", "bmw-usa-deliveries", "bmw"], ["Mercedes-Benz", "mercedes-us-deliveries", "legacy"], ["Audi (N. America)", "audi-na-deliveries", "legacy"], ["Porsche (N. America)", "porsche-na-deliveries", "legacy"], ["Lexus", "lexus-us-sales", "legacy"], ["Volvo Cars", "volvo-us-sales", "legacy"], ["JLR (N. America)", "jlr-na-retail", "legacy"], ["Tesla", "tesla-us-sales", "ev"]],
+  World: [["BMW Group", "bmw-group-deliveries", "bmw"], ["Mercedes-Benz", "mercedes-global-deliveries", "legacy"], ["Audi", "audi-global-deliveries", "legacy"], ["Porsche", "porsche-global-deliveries", "legacy"], ["Lexus", "lexus-global-sales", "legacy"], ["Volvo Cars", "volvo-global-sales", "legacy"], ["BYD", "byd-sales-period", "ev"], ["Geely", "geely-period", "ev"], ["Tesla (quarter)", "tesla-global-deliveries-quarter", "ev"]],
+};
+let raceTab = "China";
+const SEG = {
+  "Compact · DE": [["BMW 1 Series", "bmw-1-series-de-sales", "bmw"], ["MINI", "mini-mini-de-sales", "bmw"], ["Mercedes A-Class", "mercedes-a-class-de-sales", "legacy"], ["Mercedes CLA", "mercedes-cla-de-sales", "legacy"], ["Audi A3", "audi-a3-de-sales", "legacy"], ["VW Golf", "vw-golf-de-sales", "legacy"], ["Volvo EX30", "volvo-ex30-de-sales", "legacy"], ["Cupra Born", "cupra-born-de-sales", "legacy"], ["Tesla Model 3", "tesla-model-3-de-sales", "ev"], ["BYD Seal", "byd-seal-de-sales", "ev"]],
+  "Executive · DE": [["BMW 5 Series", "bmw-5-series-de-sales", "bmw"], ["Mercedes E-Class", "mercedes-e-class-de-sales", "legacy"], ["Audi A6", "audi-a6-de-sales", "legacy"]],
+  "Executive · US": [["BMW 5 Series", "bmw-5-series-us-sales", "bmw"], ["Audi A6", "audi-a6-us-sales", "legacy"], ["Lexus ES", "lexus-es-us-sales", "legacy"]],
+  "Luxury · DE": [["BMW 7 Series", "bmw-7-series-de-sales", "bmw"], ["Mercedes S-Class", "mercedes-s-class-de-sales", "legacy"], ["Audi A8", "audi-a8-de-sales", "legacy"], ["Porsche Panamera", "porsche-panamera-de-sales", "legacy"], ["Porsche Taycan", "porsche-taycan-de-sales", "legacy"]],
+  "Luxury · US": [["BMW 7 Series", "bmw-7-series-us-sales", "bmw"], ["Audi A8", "audi-a8-us-sales", "legacy"], ["Lexus LS", "lexus-ls-us-sales", "legacy"]],
+};
+let segTab = "Executive · DE";
+const LINEUP = [["2 Series", "bmw-us-2series"], ["3 Series", "bmw-us-3series"], ["4 Series", "bmw-us-4series"], ["5 Series", "bmw-us-5series"], ["7 Series", "bmw-us-7series"], ["8 Series", "bmw-us-8series"], ["X1", "bmw-us-x1"], ["X3", "bmw-us-x3"], ["X5", "bmw-us-x5"], ["X7", "bmw-us-x7"], ["iX", "bmw-us-ix"], ["All BEV", "bmw-us-bev-sales"], ["All PHEV", "bmw-us-phev-sales"]];
+
+function tabs(el, keys, cur, on) {
+  el.innerHTML = keys.map(k => `<button role="tab" aria-selected="${k === cur}" data-k="${esc(k)}">${esc(k)}</button>`).join("");
+  el.onclick = e => { const b = e.target.closest("button"); if (b) on(b.dataset.k); };
+}
+const asRows = a => a.map(([label, key, g]) => ({ label, key, g }));
+function renderRace() { tabs(document.getElementById("raceTabs"), Object.keys(RACE), raceTab, k => { raceTab = k; renderRace(); }); bars(document.getElementById("race"), asRows(RACE[raceTab]), r => GROUP[r.g]); }
+function renderSeg() { tabs(document.getElementById("segTabs"), Object.keys(SEG), segTab, k => { segTab = k; renderSeg(); }); bars(document.getElementById("seg"), asRows(SEG[segTab]), r => GROUP[r.g]); }
+function renderLineup() { bars(document.getElementById("lineup"), LINEUP.map(([label, key]) => ({ label, key })), r => /5 Series|7 Series/.test(r.label) ? "var(--blue)" : "color-mix(in srgb, var(--blue) 45%, var(--grey))"); }
+
+/* ---------- mix ---------- */
+const MIX = [["BEV", "eu-bev-share", "#3ccf91"], ["PHEV", "eu-phev-share", "#4d94ff"], ["Hybrid", "eu-hev-share", "#a78bfa"], ["Petrol", "eu-petrol-share", "#f5a524"], ["Diesel", "eu-diesel-share", "#8b94a4"]];
+const METERS = [["EU", "BEV, FY / H1", "eu-bev-share"], ["Germany", "BEV, FY / H1", "de-bev-share"], ["UK", "BEV, FY / H1", "uk-bev-share"], ["USA", "EV, quarter", "us-ev-share-quarter"], ["China", "NEV, month", "cn-nev-penetration"], ["BMW Group", "BEV share", "bmw-group-bev-share"]];
+function renderMix() {
+  const parts = MIX.map(([n, k, c]) => ({ n, c, p: pick(k, cp, "pct") }));
+  const sum = parts.reduce((s, x) => s + (x.p?.item.value || 0), 0);
+  const rest = Math.max(0, 100 - sum);
+  document.getElementById("mixPeriod").textContent = per(parts[0].p?.item.period_covered);
+  document.getElementById("mix").innerHTML = parts.map(x => `<div class="click" data-id="${x.p?.item.id ?? ""}" style="flex:0 0 ${x.p?.item.value || 0}%;background:${x.c}" title="${x.n} ${x.p?.item.value}%">${(x.p?.item.value || 0) > 6 ? x.n + " " + Math.round(x.p.item.value) : ""}</div>`).join("") + `<div style="flex:0 0 ${rest}%;background:var(--line-2)" title="Other ${rest.toFixed(1)}%"></div>`;
+  document.getElementById("mixLegend").innerHTML = parts.map(x => `<span><i style="background:${x.c}"></i>${x.n} <b class="mono">${x.p ? x.p.item.value + "%" : "—"}</b></span>`).join("") + `<span><i style="background:var(--line-2)"></i>Other</span>`;
+  document.getElementById("meters").innerHTML = METERS.map(([n, s, k]) => { const p = pick(k, cp, "pct"); const v = p?.item.value; return `<div class="meter click" tabindex="0" data-id="${p?.item.id ?? ""}"><span class="n">${n}<small>${s}</small></span><span class="t"><div style="transform:scaleX(${(v ?? 0) / 100})"></div></span><span class="mono" style="text-align:right;font-weight:600">${v == null ? "—" : v + "%"}</span></div>`; }).join("");
+}
+
+/* ---------- studies: dumbbells ---------- */
+const VOICE = [
+  ["US initial quality", "problems per 100 cars · lower is better", "us-iqs-industry-pp100", "down"],
+  ["US infotainment problems", "per 100 cars · lower is better", "us-iqs-infotainment", "down"],
+  ["US appeal, industry", "APEAL index points", "us-apeal-industry", "up"],
+  ["US appeal, BMW", "APEAL index points", "us-apeal-bmw-score", "up"],
+  ["US premium BEV owners", "EV experience index", "us-evx-premium-bev", "up"],
+  ["US public charging", "satisfaction index", "us-evx-public-charging", "up"],
+  ["US EV consideration", "% would consider an EV", "us-ev-consideration", "up"],
+  ["US: charging stops EV purchase", "% of rejecters", "us-ev-rejection-charging", "down"],
+  ["China tech experience", "TXI industry points", "cn-txi-industry", "up"],
+  ["China: system instability", "% top tech complaint", "cn-txi-top-complaint", "down"],
+  ["China NEV initial quality", "problems per 100 cars", "cn-neviqs-industry", "down"],
+  ["UK: want physical buttons", "% of drivers", "buttons-survey", "flat"],
+];
+function renderVoice() {
+  document.getElementById("voice").innerHTML = VOICE.map(([n, s, k, good]) => {
+    const a = pick(k, "2026-01", "num"), b = pick(k, "2026-07", "num");
+    if (!a && !b) return "";
+    const va = a?.item.value, vb = b && !b.stale ? b.item.value : null;
+    const vs = [va, vb].filter(v => v != null), lo = Math.min(...vs), hi = Math.max(...vs), pad = Math.max((hi - lo) * .6, hi * .04, 1);
+    const X = v => 8 + ((v - (lo - pad)) / ((hi + pad) - (lo - pad))) * 84;
+    const dir = va != null && vb != null ? Math.sign(vb - va) : 0;
+    const better = good === "flat" ? "var(--blue-hi)" : (dir === 0 ? "var(--muted)" : ((dir > 0) === (good === "up") ? "var(--up)" : "var(--down)"));
+    const act = cp === "2026-01" ? a : (b && !b.stale ? b : null);
+    const pt = (v, which, it) => v == null ? "" : `<span class="p" style="left:${X(v)}%;background:${which === cp ? (which === "2026-07" ? better : "var(--blue-hi)") : "var(--line-2)"};${which === cp ? "transform:scale(1.15)" : ""}"></span><span class="lab ${which === "2026-07" ? "b" : ""}" style="left:${X(v)}%;color:${which === cp ? "var(--text)" : "var(--faint)"}">${which === "2026-01" ? "Jan " : "Jul "}${v}</span>`;
+    const ln = va != null && vb != null && cp === "2026-07" ? `<span class="ln" style="left:${Math.min(X(va), X(vb))}%;width:${Math.abs(X(vb) - X(va))}%;background:${better}"></span>` : "";
+    return `<div class="dbr click" tabindex="0" data-id="${(act || a || b).item.id}"><span class="name">${n}<small>${s}</small></span><span class="dbt">${ln}${pt(va, "2026-01")}${cp === "2026-07" ? pt(vb, "2026-07") : ""}</span></div>`;
+  }).join("");
+}
+
+/* ---------- timeline ---------- */
+const LANES = [
+  ["Launches & products", /launch|reveal|unveil|debut|order|facelift|new model|deliver(y|ies) start|sop|neue klasse|ix3|s800|cla|ex60|yu7|su7|model y/i, "#4d94ff"],
+  ["AI & cockpit", /\bai\b|assistant|alexa|grok|chatgpt|gpt|llm|gemini|deepseek|doubao|cockpit|display|screen|idrive|carplay|android/i, "#a78bfa"],
+  ["Buttons & controls", /button|touch|physical|control/i, "#f5a524"],
+  ["Driver assistance", /fsd|noa|\bl3\b|\bl2|autonom|pilot|adas|smart.?driving|hands.?free|self.?driving|eyes.?off/i, "#3ccf91"],
+  ["Charging & range", /charg|range|\bkw\b|battery|megawatt|800.?v/i, "#4fd1c5"],
+  ["Policy & trade", /tariff|tax|subsid|credit|regulat|rule|ban|co2|incentive|law|mandate|grant/i, "#ff6b6f"],
+];
+function lane(i) {
+  const t = `${i.headline} ${i.entity} ${i.metric ?? ""}`;
+  if (i.topic === "policy_macro") return 5;
+  for (const L of [1, 2, 3, 4, 5, 0]) if (LANES[L][1].test(t)) return L;
+  return -1;
+}
+const T0 = Date.parse("2025-07-01"), T1 = Date.parse("2026-07-31"), TCUT = Date.parse("2026-01-31");
+const TL = ITEMS.filter(i => ["event", "trend", "policy"].includes(i.kind) && !i.undated).map(i => ({ i, t: Date.parse(i.source.published_at.length === 7 ? i.source.published_at + "-28" : i.source.published_at), l: lane(i) })).filter(x => x.l >= 0 && x.t >= T0 && x.t <= T1);
+function renderTL() {
+  const W = 1000, LW = 140, H = 34 * LANES.length + 34, X = t => LW + ((t - T0) / (T1 - T0)) * (W - LW - 16);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Signals timeline">`;
+  const known = cp === "2026-01" ? TCUT : T1;
+  s += `<rect x="${X(T0)}" y="0" width="${X(known) - X(T0)}" height="${H - 24}" fill="var(--blue-wash)"/>`;
+  s += `<line x1="${X(TCUT)}" x2="${X(TCUT)}" y1="0" y2="${H - 24}" stroke="var(--blue-hi)" stroke-dasharray="3 3"/>`;
+  LANES.forEach(([n], k) => { const y = 20 + k * 34; s += `<text class="lane-l" x="0" y="${y + 4}">${n}</text><line x1="${LW}" x2="${W - 10}" y1="${y}" y2="${y}" stroke="var(--line)"/>`; });
+  for (let m = 0; m <= 12; m++) { const d = new Date(2025, 6 + m, 1), x = X(d.getTime()); s += `<text class="tick" x="${x}" y="${H - 6}" text-anchor="middle">${d.toLocaleString("en", { month: "short" })}${m === 0 || d.getMonth() === 0 ? " " + String(d.getFullYear()).slice(2) : ""}</text>`; }
+  const seen = {};
+  for (const e of TL.sort((a, b) => a.t - b.t)) {
+    const k = e.l + ":" + Math.round(X(e.t) / 9); const j = (seen[k] = (seen[k] || 0) + 1) - 1;
+    const y = 20 + e.l * 34 + (j % 3 === 1 ? -7 : j % 3 === 2 ? 7 : 0);
+    const on = e.t <= known;
+    s += `<circle class="ev click" data-id="${e.i.id}" cx="${X(e.t)}" cy="${y}" r="5" fill="${LANES[e.l][2]}" opacity="${on ? .95 : .12}"><title>${esc(e.i.source.published_at + " · " + e.i.headline)}</title></circle>`;
+  }
+  document.getElementById("tl").innerHTML = s + "</svg>";
+}
+
+/* ---------- generations ---------- */
+const GEN = [
+  { name: "5 Series", color: "var(--blue-hi)", pts: [[2017, 40658, "pred-g30-us-sales-peak"], [2018, 43937, "pred-g30-us-sales-peak"], [2019, 38709, "pred-g30-us-sales-peak"], [2020, 25515, "pred-g30-us-sales-peak"], [2021, 24523, "pred-g30-us-sales-peak"], [2022, 20857, "pred-g30-us-sales-peak"], [2023, 22400, "pred-g60-us-recovery"], [2024, 25315, "bmw-us-5series-fy2025"], [2025, 27107, "bmw-us-5series-fy2025"]], gens: [[2017, 2023.4, "G30"], [2023.4, 2026.5, "G60"]], h1: "bmw-us-5series-h1-2026" },
+  { name: "7 Series", color: "var(--amber)", pts: [[2016, 12918, "pred-g11-us-sales"], [2017, 9276, "pred-g11-us-sales"], [2018, 8271, "pred-g11-us-sales"], [2019, 8823, "pred-g11-us-sales"], [2020, 5985, "pred-g11-us-sales"], [2021, 7705, "pred-g11-us-sales"], [2022, 5974, "pred-g11-us-sales"], [2023, 10810, "pred-g70-us-recovery"], [2024, 10714, "bmw-us-7series-fy2025"], [2025, 11393, "bmw-us-7series-fy2025"]], gens: [[2016, 2022.9, "G11/G12"], [2022.9, 2026.5, "G70"]], h1: "bmw-us-7series-h1-2026" },
+];
+const LESSONS = ["pred-g30-gesture-dropped", "pred-g11-grille-reaction", "pred-g30-cd-review", "pred-g11-cd-review", "pred-f40-fwd", "pred-f40-rwd-fwd-verdict", "pred-f40-space", "pred-g30-cr"];
+function renderGen() {
+  const W = 1000, H = 250, L = 56, R = 120, T = 22, B = 30;
+  const X = y => L + ((y - 2016) / (2026.5 - 2016)) * (W - L - R), Y = v => T + (1 - v / 50000) * (H - T - B);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="US sales by year, 5 and 7 Series">`;
+  for (const v of [0, 10000, 20000, 30000, 40000, 50000]) s += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text class="axis" x="${L - 8}" y="${Y(v) + 3}" text-anchor="end">${v / 1000}k</text>`;
+  for (let y = 2016; y <= 2026; y++) s += `<text class="axis" x="${X(y)}" y="${H - 10}" text-anchor="middle">${String(y).slice(2)}</text>`;
+  GEN.forEach((g, gi) => {
+    g.gens.forEach(([a, b, n], k) => { s += `<rect x="${X(a)}" y="${T - 18 + gi * 9}" width="${X(b) - X(a) - 3}" height="6" rx="3" fill="${g.color}" opacity="${k ? .9 : .35}"/><text class="axis" x="${X(a) + 3}" y="${T - 20 + gi * 9}" style="font-size: 11px">${n}</text>`; });
+    s += `<polyline fill="none" stroke="${g.color}" stroke-width="2.4" points="${g.pts.map(([y, v]) => X(y) + "," + Y(v)).join(" ")}"/>`;
+    g.pts.forEach(([y, v, id]) => { s += `<circle class="click" data-id="${id}" cx="${X(y)}" cy="${Y(v)}" r="4.5" fill="${g.color}" stroke="var(--panel)" stroke-width="2"><title>${g.name} ${y}: ${v.toLocaleString("en")}</title></circle>`; });
+    const last = g.pts[g.pts.length - 1];
+    const h = BYID[g.h1];
+    if (cp === "2026-07" && h) s += `<g class="click" data-id="${h.id}"><circle cx="${X(2026.45)}" cy="${Y(last[1] * (1 + h.yoy_pct / 100))}" r="6" fill="none" stroke="${g.color}" stroke-width="2" stroke-dasharray="3 2"/><text x="${X(2026.45) + 10}" y="${Y(last[1] * (1 + h.yoy_pct / 100)) + 4}" class="axis" style="fill:${g.color};font-size:11px">H1 ${h.yoy_pct > 0 ? "+" : ""}${h.yoy_pct}%</text></g>`;
+    s += `<text x="${X(last[0]) + 12}" y="${Y(last[1]) + 4}" style="fill:${g.color};font:600 12px var(--font)">${g.name} ${(last[1] / 1000).toFixed(1)}k</text>`;
+  });
+  document.getElementById("gen").innerHTML = s + "</svg>";
+  document.getElementById("lessons").innerHTML = LESSONS.map(id => BYID[id]).filter(Boolean).map(i => `<div class="lesson click" tabindex="0" data-id="${i.id}"><span class="m">${esc(i.entity.replace("BMW ", ""))}</span>${esc(i.headline)}</div>`).join("");
+}
+
+/* ---------- header, footer ---------- */
+function renderHead() {
+  document.getElementById("asofDate").textContent = CUT[cp];
+  document.getElementById("asofCov").textContent = COVER[cp];
+  const known = ITEMS.filter(i => cp === "2026-07" || i.checkpoint === "2026-01");
+  const t = k => known.filter(i => i.source.trust_tier === k).length;
+  document.getElementById("known").innerHTML = `<span class="chip"><b>${known.length}</b> sources known</span><span class="chip"><span class="dot" style="background:var(--up)"></span>T1 official <b>${t("T1")}</b></span><span class="chip"><span class="dot" style="background:var(--blue-hi)"></span>T2 press &amp; studies <b>${t("T2")}</b></span><span class="chip"><span class="dot" style="background:var(--faint)"></span>T3 other <b>${t("T3")}</b></span>`;
+  document.getElementById("rail").style.transform = `scaleX(${known.length / ITEMS.length})`;
+  const v = ITEMS.filter(i => i.verified).length, gaps = Object.values(D.gaps).flat().length;
+  document.getElementById("foot").innerHTML = `<span>${ITEMS.length} sourced items · ${v} quotes checked on the page</span><span>${gaps} open research gaps</span><span>Absolute volumes are not comparable across checkpoints (full year vs half year) → charts compare year-on-year change and shares.</span>`;
+}
+
+/* ---------- drawer ---------- */
+const drawer = document.getElementById("drawer"), scrim = document.getElementById("scrim");
+function openItem(id) {
+  const i = BYID[id]; if (!i) return;
+  const val = i.value != null ? (i.unit === "pct" ? i.value + "%" : Number(i.value).toLocaleString("en") + (i.unit && i.unit !== "units" ? " " + i.unit : "")) : "";
+  drawer.innerHTML = `<button class="x" id="closeD">Close · Esc</button>
+    <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="tag">${i.checkpoint === "2026-01" ? "known Jan 26" : "known Jul 26"}</span><span class="tag">${esc(i.region)}</span><span class="tag">${esc(i.period_covered ?? "")}</span><span class="tag">${esc(i.source.trust_tier)}</span>${i.verified ? '<span class="tag" style="color:var(--up)">quote checked</span>' : '<span class="tag" style="color:var(--amber)">not checked</span>'}</div>
+    <h3>${esc(i.headline)}</h3>
+    ${val || i.yoy_pct != null ? `<div style="display:flex;gap:18px;align-items:baseline"><span class="num">${val}</span>${i.yoy_pct != null ? `<span class="pill ${cls(i.yoy_pct)}">${fmtPct(i.yoy_pct)} YoY</span>` : ""}</div>` : ""}
+    ${i.driver ? `<div><div class="lbl">Why, per source</div>${esc(i.driver)}</div>` : ""}
+    ${i.customer_relevance ? `<div><div class="lbl">For customers (assumption)</div><div class="assume">${esc(i.customer_relevance)}</div></div>` : ""}
+    ${i.quote ? `<div><div class="lbl">Quote</div><blockquote>${esc(i.quote)}</blockquote></div>` : ""}
+    <div><div class="lbl">Source</div>${esc(i.source.publisher ?? "")} · ${esc(i.source.published_at ?? "undated")}<br><a href="${esc(i.source.url)}" target="_blank" rel="noopener">${esc(i.source.url)}</a></div>
+    ${i.notes ? `<div><div class="lbl">Notes</div><span style="font-size:12.5px;color:var(--muted)">${esc(i.notes)}</span></div>` : ""}`;
+  drawer.classList.add("open"); drawer.setAttribute("aria-hidden", "false"); scrim.classList.add("on");
+  document.getElementById("closeD").onclick = closeItem; document.getElementById("closeD").focus();
+}
+function closeItem() { drawer.classList.remove("open"); drawer.setAttribute("aria-hidden", "true"); scrim.classList.remove("on"); }
+scrim.onclick = closeItem;
+document.addEventListener("click", e => { const t = e.target.closest("[data-id]"); if (t && t.dataset.id && !drawer.contains(t)) openItem(t.dataset.id); });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") return closeItem();
+  if (e.key === "Enter" && document.activeElement?.dataset?.id) return openItem(document.activeElement.dataset.id);
+  if (e.target.closest("input,textarea")) return;
+  if (e.key === "ArrowRight") setCp("2026-07"); if (e.key === "ArrowLeft") setCp("2026-01");
+});
+
+/* ---------- switch ---------- */
+function setCp(c) {
+  cp = c; try { localStorage.setItem("atlas.cp", c); } catch (e) {}
+  const seg = document.getElementById("seg-switch"); seg.dataset.cp = c;
+  seg.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.cp === c)));
+  render();
+}
+document.getElementById("seg-switch").addEventListener("click", e => { const b = e.target.closest("button"); if (b) setCp(b.dataset.cp); });
+function render() { renderHead(); renderPulse(); renderRace(); renderMix(); renderLineup(); renderSeg(); renderTL(); renderVoice(); renderGen(); }
+setCp(cp);
+</script>

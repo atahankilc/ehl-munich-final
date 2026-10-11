@@ -1,0 +1,131 @@
+.scan { position: fixed; inset: 0; background: var(--void); }
+.scan-canvas { position: absolute; inset: 0; }
+.scan-canvas canvas { display: block; }
+.scan-state { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 14px; color: var(--ink-3); font-size: var(--t-label); letter-spacing: 0.08em; }
+.scan-state.error { color: var(--lost); max-width: 48ch; text-align: center; margin: auto; letter-spacing: 0; }
+.scan-pulse { width: 64px; height: 64px; border-radius: 50%; border: 1px solid var(--hair-2); position: relative; }
+.scan-pulse::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border-top: 1px solid var(--sweep-hi); animation: spin 1.4s linear infinite; }
+@keyframes spin { to { transform: rotate(1turn); } }
+
+/* readout: one named, counted cell per colour in the scene, top-left. Comments and research on the first row, the three
+   car-ring types beneath, so it stays clear of the page switch at top centre; one row once the screen is wide enough. */
+.hud-tl { position: fixed; top: var(--edge); left: var(--edge); z-index: 15; display: grid; gap: 18px; justify-items: start; }
+.readout { display: grid; grid-template-columns: repeat(3, max-content); gap: 16px 32px; margin: 0; pointer-events: none; }
+.readout > div:nth-child(3) { grid-column: 1; }
+@media (min-width: 1900px) { .readout { grid-template-columns: repeat(5, max-content); } .readout > div:nth-child(3) { grid-column: auto; } }
+.readout div { display: grid; gap: 6px; align-content: start; }
+.readout dt { display: inline-flex; align-items: center; gap: 7px; }
+.readout dd { margin: 0; display: inline-flex; align-items: baseline; gap: 10px; }
+.readout .num { font-size: 28px; color: var(--ink); }
+.readout dd.readout-pub { gap: 6px; align-items: center; font-size: var(--t-label); color: var(--ink-2); }
+.readout-pub i { width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid; flex: none; }
+.readout-pub .plus { font-size: var(--t-micro); }
+.plus { font-size: var(--t-label); font-weight: 600; color: var(--ink-2); letter-spacing: 0.01em; }
+.glyph { color: var(--ink-2); flex: none; }
+.glyph-trio { display: inline-flex; gap: 1px; }
+.ring-name i { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+
+/* ring labels drawn in 3D space */
+.ring-label { display: grid; justify-items: center; gap: 2px; white-space: nowrap; pointer-events: none; user-select: none; }
+.ring-label b { font-size: var(--t-label); font-weight: 600; color: var(--ink-2); }
+.ring-label span { font-size: var(--t-micro); color: var(--ink-3); letter-spacing: 0.06em; }
+.ring-sub { font-size: var(--t-micro); color: var(--ink-3); letter-spacing: 0.06em; white-space: nowrap; pointer-events: none; user-select: none; }
+.time-label { font-size: var(--t-micro); font-weight: 600; letter-spacing: 0.1em; color: var(--ink-2); white-space: nowrap; pointer-events: none; user-select: none; }
+
+.ring-name { display: inline-flex; align-items: center; gap: 5px; font-size: var(--t-micro); color: var(--ink-2); letter-spacing: 0.06em; white-space: nowrap; pointer-events: none; user-select: none; padding: 1px 5px; background: rgba(0, 0, 0, 0.7); border-radius: 4px; }
+.ring-name, .ring-sub, .time-label { transition: opacity 0.6s cubic-bezier(0.33, 1, 0.68, 1); }
+.ring-name[data-dim], .ring-sub[data-dim], .time-label[data-dim] { opacity: 0.1; }
+
+/* filters: a chip row under the readout, always shown; the fold toggle at its head hides the unused chips. */
+.filters { display: flex; align-items: flex-start; gap: 6px; max-width: calc(100vw - 2 * var(--edge) - 440px); }
+.filters-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 28px; min-width: 0; }
+.filters-fold { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 9px; border-radius: 99px; border: 1px solid transparent; font-size: var(--t-label); color: var(--ink-3); transition: color var(--fast), border-color var(--fast), background var(--fast); }
+.filters-fold:hover { color: var(--ink); border-color: var(--hair); background: rgba(255, 255, 255, 0.04); }
+.filters[data-folded] .filters-fold { color: var(--ink-2); }
+.fchip { position: relative; display: inline-flex; align-items: center; height: 28px; border-radius: 99px; border: 1px solid var(--hair); background: rgba(0, 0, 0, 0.6); transition: border-color var(--fast), background var(--fast); animation: chip-in var(--med) var(--ease); }
+@keyframes chip-in { from { opacity: 0; transform: translateY(-3px); } }
+.fchip:hover, .fchip[data-open] { border-color: var(--hair-2); background: rgba(255, 255, 255, 0.04); }
+.fchip[data-on] { border-color: rgba(77, 148, 255, 0.55); }
+.fchip-btn { display: inline-flex; align-items: center; gap: 6px; height: 100%; padding: 0 11px; font-size: var(--t-label); color: var(--ink-2); border-radius: 99px; }
+.fchip-btn .glyph { width: 11px; height: 11px; }
+.fchip[data-on] .fchip-btn { padding-right: 4px; }
+.fchip[data-on] .fchip-dim { color: var(--ink-3); }
+.fchip-val { color: var(--ink); white-space: nowrap; }
+.fchip-x { display: grid; place-items: center; width: 24px; height: 100%; padding-right: 4px; color: var(--ink-3); border-radius: 0 99px 99px 0; transition: color var(--fast); }
+.fchip-x:hover { color: var(--ink); }
+.filters-clear { display: inline-flex; align-items: baseline; gap: 8px; height: 28px; line-height: 28px; padding: 0 6px; font-size: var(--t-label); color: var(--ink-2); animation: chip-in var(--med) var(--ease); }
+.filters-clear:hover { color: var(--ink); }
+
+/* a chip's values: a glass list hanging under it (the top padding bridges the gap so the pointer can travel into it) */
+.fpop { position: absolute; top: 100%; left: -1px; z-index: 30; padding-top: 6px; }
+.fpop-panel {
+  width: 280px; max-height: min(420px, calc(100vh - 260px)); overflow: auto; padding: 8px; display: grid; gap: 1px;
+  border-radius: var(--r); background: var(--glass); border: 1px solid var(--hair);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), 0 16px 40px rgba(0, 0, 0, 0.5); animation: sheet-in var(--med) var(--ease);
+}
+.fpop-scope { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px 6px; font-size: var(--t-micro); color: var(--ink-3); }
+.fpop-scope .glyph { width: 11px; height: 11px; }
+.fpop-panel button { display: grid; grid-template-columns: 1fr 56px 48px; align-items: center; gap: 10px; padding: 5px 8px; border-radius: 6px; text-align: left; transition: background var(--fast); }
+.fpop-panel button:hover { background: rgba(255, 255, 255, 0.06); }
+.fpop-name { font-size: var(--t-label); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fpop-panel button[aria-selected="true"] .fpop-name { color: var(--ink); }
+.fpop-bar { height: 2px; background: var(--hair); border-radius: 1px; overflow: hidden; }
+.fpop-bar span { display: block; height: 100%; background: var(--ink-2); transform-origin: 0 50%; }
+.fpop-panel button[aria-selected="true"] .fpop-bar span { background: var(--sweep-hi); }
+.fpop-n { font-size: var(--t-label); color: var(--ink-2); text-align: right; font-variant-numeric: tabular-nums; }
+
+/* hover card + comment sheet */
+.hovercard { position: fixed; z-index: 30; width: 320px; padding: 12px 14px; border-radius: var(--r); background: var(--glass); border: 1px solid var(--hair); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); pointer-events: none; display: grid; gap: 8px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), 0 16px 40px rgba(0, 0, 0, 0.5); }
+.hovercard p { font-size: 13px; line-height: 1.45; color: var(--ink); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.hovercard-meta { display: flex; align-items: center; gap: 10px; font-size: var(--t-micro); color: var(--ink-3); }
+.sheet { position: fixed; top: calc(var(--edge) + 46px); right: var(--edge); z-index: 25; width: min(400px, calc(100vw - 32px)); max-height: calc(100vh - 2 * var(--edge) - 196px); overflow: auto; padding: 28px 26px 24px; border-radius: var(--r); background: var(--glass); border: 1px solid var(--hair); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), 0 24px 60px rgba(0, 0, 0, 0.6); display: grid; gap: 22px; animation: sheet-in var(--med) var(--ease); }
+@keyframes sheet-in { from { opacity: 0; transform: translateY(-6px); } }
+.sheet-close { position: absolute; top: 12px; right: 12px; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; color: var(--ink-3); transition: background var(--fast), color var(--fast); }
+.sheet-close:hover { background: rgba(255, 255, 255, 0.07); color: var(--ink); }
+.sheet-head { display: grid; gap: 6px; padding-right: 28px; }
+.sheet-layer { display: inline-flex; align-items: center; gap: 8px; font-size: var(--t-label); font-weight: 600; color: var(--ink); }
+.sheet-what { font-size: var(--t-label); color: var(--ink-3); max-width: 46ch; }
+.sheet-title { font-size: var(--t-read); font-weight: 500; line-height: 1.35; color: var(--ink); text-wrap: balance; }
+.sheet-figure { display: flex; align-items: baseline; gap: 12px; }
+.sheet-figure .num { font-size: 34px; color: var(--ink); }
+.sheet-yoy { font-size: var(--t-body); color: var(--ink-2); }
+.sheet-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; justify-self: start; }
+.zbar { position: relative; height: 30px; }
+.zbar-mid { position: absolute; left: 50%; top: 0; height: 12px; width: 1px; background: var(--hair-2); }
+.zbar-fill { position: absolute; top: 4px; height: 4px; border-radius: 2px; background: var(--ink); }
+.zbar-l, .zbar-r { position: absolute; top: 16px; }
+.zbar-l { left: 0; } .zbar-r { right: 0; }
+.minibars { display: flex; gap: 22px; align-items: flex-end; }
+.minibar { display: grid; gap: 6px; justify-items: center; }
+.minibar-n { font-size: var(--t-label); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.minibar-col { width: 26px; height: 96px; display: flex; align-items: flex-end; }
+.minibar-col span { width: 100%; height: 100%; background: var(--ink-3); border-radius: 2px 2px 0 0; transform-origin: 50% 100%; }
+.minibar[data-on] .minibar-col span { background: var(--ink); }
+.minibar[data-on] .minibar-n { color: var(--ink); }
+.minibar[data-forecast] .minibar-col span { background: transparent; box-shadow: inset 0 0 0 1px var(--ink-2); }
+.sheet-quote { margin: 0; font-size: var(--t-read); line-height: 1.5; color: var(--ink); max-width: 60ch; padding-right: 16px; }
+.sheet-facts { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+.sheet-facts div { display: grid; gap: 3px; min-width: 0; }
+.sheet-facts dd { margin: 0; font-size: 13px; color: var(--ink-2); display: inline-flex; align-items: center; gap: 6px; }
+.sheet-ref { letter-spacing: 0.08em; }
+/* "Used as evidence": the themes a research / study / option item backs, with the AI's one-line reason */
+.use { display: grid; gap: 8px; }
+.use-none { font-size: var(--t-label); color: var(--ink-3); }
+.use-row { display: grid; gap: 3px; padding: 8px 0 0; border-top: 1px solid var(--hair); }
+.use-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.use-theme { font-size: 13px; color: var(--ink); }
+.use-rel { flex: none; font-size: var(--t-micro); letter-spacing: 0.04em; color: var(--ink-2); padding: 0 6px; border-radius: 4px; box-shadow: inset 0 0 0 1px var(--hair-2); line-height: 17px; }
+.use-row[data-rel="contradicts"] .use-rel { color: var(--ink); box-shadow: none; outline: 1px dashed var(--ink-3); outline-offset: -1px; }   /* dashed, like contradicting arcs */
+.use-why { font-size: var(--t-label); line-height: 1.45; color: var(--ink-3); }
+.sheet-skel { display: grid; gap: 10px; }
+.sheet-skel span { height: 12px; border-radius: 4px; background: rgba(255, 255, 255, 0.06); }
+.sheet-skel span:last-child { width: 60%; }
+
+@media (max-width: 760px) {
+  .hud-tl { left: 16px; top: 16px; max-width: calc(100vw - 32px); gap: 12px; }
+  .readout { display: flex; flex-wrap: wrap; gap: 10px 20px; }
+  .filters { max-width: none; }
+  .readout .num { font-size: 22px; }
+  .sheet { top: auto; bottom: 140px; }
+}

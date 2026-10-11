@@ -1,0 +1,41 @@
+/* Bottom-left dock: Guide (and Agent on Structure). Same frameless feathered black field as the audit trail, 300px
+   wide like the checkpoint timeline in the opposite corner. */
+.dock {
+  position: fixed; left: var(--edge); bottom: calc(var(--edge) + env(safe-area-inset-bottom, 0px)); z-index: 12;
+  width: 300px; display: grid; gap: 10px; padding: 12px 14px 14px; margin: -12px -14px -14px;
+  background: rgba(0, 0, 0, 0.78); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  --feather: linear-gradient(to right, transparent, #000 14px, #000 calc(100% - 14px), transparent), linear-gradient(to bottom, transparent, #000 12px, #000);
+  -webkit-mask-image: var(--feather); mask-image: var(--feather); -webkit-mask-composite: source-in; mask-composite: intersect;
+  box-sizing: content-box;
+}
+.dock[data-folded] { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.dock-head { display: flex; align-items: center; justify-content: space-between; }
+.dock-tabs { display: flex; gap: 16px; }
+.dock-tabs button { font-size: var(--t-label); font-weight: 600; color: var(--ink-3); padding: 4px 0; border-bottom: 1px solid transparent; transition: color var(--fast), border-color var(--fast); }
+.dock-tabs button:hover { color: var(--ink-2); }
+.dock-tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--sweep-hi); }
+.dock[data-folded] .dock-tabs button[aria-selected="true"] { border-bottom-color: transparent; color: var(--ink-2); }
+.dock-fold { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 7px; color: var(--ink-3); transition: color var(--fast), background var(--fast), transform var(--fast) var(--ease); }
+.dock-fold:hover { color: var(--ink); background: rgba(255, 255, 255, 0.06); }
+.dock[data-folded] .dock-fold { transform: rotate(180deg); }
+.dock-body { max-height: min(46vh, 420px); overflow-y: auto; margin-right: -6px; padding-right: 6px; animation: dock-in var(--med) var(--ease); }
+@keyframes dock-in { from { opacity: 0; transform: translateY(4px); } }
+
+/* the agent panel lives inside the dock on Structure */
+.dock .agent { position: static; width: auto; }
+.dock .agent-title { display: none; }
+
+/* guide */
+.guide { display: grid; gap: 10px; }
+.guide-title { font-size: var(--t-label); font-weight: 600; color: var(--ink); }
+.guide-lead { font-size: var(--t-label); line-height: 1.5; color: var(--ink-2); }
+.guide-uses { display: grid; gap: 4px; }
+.guide-uses p { font-size: var(--t-label); line-height: 1.5; color: var(--ink-2); }
+.guide-rows { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 8px; }
+.guide-rows li { display: grid; grid-template-columns: 18px 1fr; gap: 10px; align-items: start; font-size: var(--t-label); line-height: 1.45; color: var(--ink-3); }
+.guide-rows b { font-weight: 500; color: var(--ink-2); }
+.gmark { margin-top: 0; }
+.guide-notes { list-style: none; margin: 2px 0 0; padding: 8px 0 0; border-top: 1px solid var(--hair); display: grid; gap: 4px; }
+.guide-notes li { font-size: var(--t-micro); line-height: 1.45; color: var(--ink-3); }
+
+@media (max-width: 760px) { .dock { left: 16px; right: 16px; width: auto; bottom: 200px; } .dock-body { max-height: 32vh; } }

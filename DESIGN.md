@@ -1,331 +1,296 @@
 ---
 name: Successor
-description: A PM cockpit for deciding what successor cars offer each market, every number unfolding to the customer's words.
+description: Track-while-scan for product evidence. Every checkpoint is a sweep over one fixed evidence space, shown on true black.
 colors:
-  cabin-black: "#08090b"
-  panel-glass: "#0e1014"
-  panel-raised: "#12151a"
-  hover: "#171b22"
-  press: "#1c212a"
-  hairline: "#1d2027"
-  hairline-strong: "#2a2f39"
-  field-well: "#0a0c0f"
-  text: "#e8ebf0"
-  text-2: "#b9c0cb"
-  muted: "#8b94a4"
-  faint: "#636c7c"
-  decision-blue: "#1c69d4"
-  decision-blue-hi: "#4d94ff"
-  decision-blue-ink: "#a9cbff"
-  should-steel: "#3f6fb0"
-  telltale-amber: "#f5a524"
-  telltale-amber-ink: "#fbd38a"
-  telltale-red: "#ff5a5f"
-  telltale-red-ink: "#ffb3b5"
-  telltale-green: "#3ccf91"
-  telltale-green-ink: "#a6ecc9"
-  telltale-violet: "#a78bfa"
+  void: "#000000"
+  glass: "rgba(10, 12, 15, 0.72)"
+  hair: "rgba(255, 255, 255, 0.09)"
+  hair-strong: "rgba(255, 255, 255, 0.16)"
+  ink: "#f2f4f7"
+  ink-2: "#b4bac4"
+  ink-3: "#868d99"
+  sweep: "#1c69d4"
+  sweep-hi: "#4d94ff"
+  sweep-wash: "rgba(28, 105, 212, 0.18)"
+  lost-amber: "#f5a524"
+  type-comment: "#3987e5"
+  type-research: "#d95926"
+  type-study: "#199e70"
+  type-option: "#c98500"
+  type-sales: "#d55181"
 typography:
   instrument:
-    fontFamily: "Mona Sans Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "64px"
+    fontFamily: "Mona Sans Variable, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontSize: "34px"
     fontWeight: 300
     lineHeight: 1
     letterSpacing: "-0.02em"
     fontVariation: "'wdth' 118"
-    fontFeature: "'pnum' 1, 'zero' 0, 'ss01' 0"
-  display:
+    fontFeature: "'tnum' 1"
+  read:
     fontFamily: "Mona Sans Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "34px"
-    fontWeight: 600
-    lineHeight: 1.12
-    letterSpacing: "-0.02em"
-    fontVariation: "'wdth' 112"
-  headline:
-    fontFamily: "Mona Sans Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "28px"
-    fontWeight: 600
-    lineHeight: 1.15
-    letterSpacing: "-0.02em"
-    fontVariation: "'wdth' 106"
+    fontSize: "18px"
+    fontWeight: 400
+    lineHeight: 1.5
   title:
     fontFamily: "Mona Sans Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "20px"
-    fontWeight: 600
-    lineHeight: 1.25
-    letterSpacing: "-0.01em"
+    fontSize: "18px"
+    fontWeight: 500
+    lineHeight: 1.35
   body:
     fontFamily: "Mona Sans Variable, ui-sans-serif, system-ui, sans-serif"
     fontSize: "14px"
     fontWeight: 400
-    lineHeight: 1.5
-    fontFeature: "'pnum' 1"
-  lead:
+    lineHeight: 1.45
+    fontFeature: "'tnum' 1"
+  detail:
     fontFamily: "Mona Sans Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "16px"
+    fontSize: "13px"
     fontWeight: 400
-    lineHeight: 1.55
+    lineHeight: 1.45
   label:
     fontFamily: "Mona Sans Variable, ui-sans-serif, system-ui, sans-serif"
     fontSize: "12px"
-    fontWeight: 550
-    lineHeight: 1.4
+    fontWeight: 400
+    lineHeight: 1.45
+  label-strong:
+    fontFamily: "Mona Sans Variable, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "12px"
+    fontWeight: 600
+    letterSpacing: "0.08em"
   micro:
     fontFamily: "Mona Sans Variable, ui-sans-serif, system-ui, sans-serif"
     fontSize: "11px"
-    fontWeight: 500
-    letterSpacing: "0.01em"
+    fontWeight: 400
+    letterSpacing: "0.02em"
 rounded:
-  bar: "2px"
-  chip: "6px"
-  ctl: "7px"
-  row: "9px"
-  panel: "12px"
-  floating: "14px"
-  sheet: "16px"
-  pill: "999px"
+  tag: "4px"
+  row: "6px"
+  panel: "10px"
 spacing:
-  stack: "10px"
-  panel-y: "14px"
-  panel-x: "18px"
-  grid: "18px"
-  gutter: "28px"
-  gutter-phone: "16px"
-  band: "52px"
-  dock-clear: "104px"
+  edge: "24px"
+  edge-compact: "16px"
 components:
-  button:
-    backgroundColor: "{colors.panel-raised}"
-    textColor: "{colors.text}"
-    rounded: "{rounded.ctl}"
-    padding: "0 14px"
-    height: "34px"
-  button-hover:
-    backgroundColor: "{colors.hover}"
-  button-primary:
-    backgroundColor: "{colors.decision-blue}"
-    textColor: "#ffffff"
-    rounded: "{rounded.ctl}"
-    padding: "0 14px"
-    height: "34px"
-  button-ghost:
-    backgroundColor: "transparent"
-    textColor: "{colors.text-2}"
-    rounded: "{rounded.ctl}"
-    padding: "0 14px"
-    height: "34px"
-  input:
-    backgroundColor: "{colors.field-well}"
-    textColor: "{colors.text}"
-    rounded: "{rounded.ctl}"
-    padding: "0 12px"
-    height: "36px"
-  chip:
-    backgroundColor: "rgba(255, 255, 255, 0.06)"
-    textColor: "{colors.text-2}"
-    rounded: "{rounded.chip}"
-    padding: "0 8px"
-    height: "22px"
-  chip-blue:
-    backgroundColor: "rgba(28, 105, 212, 0.16)"
-    textColor: "{colors.decision-blue-ink}"
-  priority-must:
-    backgroundColor: "{colors.decision-blue}"
-    textColor: "#ffffff"
-    rounded: "{rounded.chip}"
-    padding: "0 9px"
-    height: "22px"
-  priority-should:
-    backgroundColor: "transparent"
-    textColor: "{colors.decision-blue-ink}"
-    rounded: "{rounded.chip}"
-    padding: "0 9px"
-    height: "22px"
-  panel:
-    backgroundColor: "{colors.panel-glass}"
+  glass-panel:
+    backgroundColor: "{colors.glass}"
+    textColor: "{colors.ink}"
     rounded: "{rounded.panel}"
-    padding: "14px 18px 18px"
-  dock-item:
-    textColor: "{colors.muted}"
-    rounded: "11px"
-    padding: "0 13px"
-    height: "38px"
+    padding: "16px 18px 14px"
+  inspector-sheet:
+    backgroundColor: "{colors.glass}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.panel}"
+    padding: "28px 26px 24px"
+    width: "400px"
+  hover-card:
+    backgroundColor: "{colors.glass}"
+    textColor: "{colors.ink}"
+    typography: "{typography.detail}"
+    rounded: "{rounded.panel}"
+    padding: "12px 14px"
+    width: "320px"
+  sweep-node:
+    backgroundColor: "{colors.void}"
+    textColor: "{colors.ink-3}"
+    typography: "{typography.label-strong}"
+    size: "9px"
+  sweep-node-active:
+    backgroundColor: "{colors.sweep-hi}"
+    textColor: "{colors.ink}"
+    typography: "{typography.label-strong}"
+    size: "9px"
+  sweep-timeline:
+    width: "300px"
+  filter-chip:
+    textColor: "{colors.ink-2}"
+    typography: "{typography.label}"
+    rounded: "99px"
+    height: "28px"
+    padding: "0 11px"
+  filter-chip-active:
+    textColor: "{colors.ink}"
+    typography: "{typography.label}"
+    rounded: "99px"
+    height: "28px"
+    padding: "0 4px 0 11px"
+  filter-row:
+    textColor: "{colors.ink-2}"
+    typography: "{typography.label}"
+    rounded: "{rounded.row}"
+    padding: "5px 8px"
+  readout-numeral:
+    textColor: "{colors.ink}"
+    typography: "{typography.instrument}"
 ---
 
 # Design System: Successor
 
 ## Overview
 
-**Creative North Star: "The Cabin at Night"**
+**Creative North Star: "Track-While-Scan"**
 
-Successor is a decision instrument dressed as the interior of the car it decides about: near-black cabin glass, hairline seams, one blue that lights only where a decision or focus lives, and small coloured telltales that report state the way a dashboard does. Numbers are readouts, not decoration; when a figure matters it is set wide and light like a gauge, and every figure can be opened down to the customer's words.
+The whole interface is a scan volume. A true-black field holds every piece of raw evidence as a contact in one fixed 3D space; each checkpoint is a sweep that passes through that space, and the screen shows what the sweep acquired and how existing tracks changed. The 3D canvas is the page. Everything else sits at the edges of the volume: the readout, the filter chips and the checkpoint timeline as frameless text and marks straight on the black, the inspector and the hover card as small sheets of tinted glass, so the evidence is never boxed into cards or framed by chrome.
 
-Density is high but calm (Fey-level restraint): one panel level, rules and whitespace instead of boxes in boxes, 12-14px working text, and a large wide headline only where a screen states its one question. Chrome floats over content rather than framing it: a translucent panoramic status band across the top, a floating dock at the bottom centre, ⌘K for everything, right-hand drawers for detail. The 3D car stage is the canvas for per-zone requirements and shares the same tokens.
+Density sits in the contacts, not in the text. Numerals carry the information, set wide, light and tabular like instrument readouts; words are short labels. The only running text is the customer's own words, shown in the inspector at reading size. Colour is categorical and earned: each raw data type has its own hue, one blue belongs to the sweep and the PM's current position, and amber is held back for loss. State is carried by mark shape, never by hue alone.
 
-Rejected by the build: the sidebar-of-pages admin dashboard, the card grid of identical KPI tiles, light mode, BMW logos.
+Motion is a single event, not ambience. The volume never turns by itself; it moves only when the PM drags it. The sweep plays once on arrival and once on each checkpoint change, and contacts it passes flare white as they are acquired.
 
 **Key Characteristics:**
-- Dark only; cabin black with a faint fixed blue glow in the top-left corner.
-- One accent (decision blue) for the primary action, focus, PM-confirmed Must, and the active wave.
-- Telltale colours (amber, red, green, violet) carry state, never decoration.
-- Mona Sans on its width axis: normal width for reading, wide/light for instrument numerals.
-- Proportional figures everywhere; tabular figures are deliberately off.
-- One panel level, hairline borders, soft offset shadows only on floating layers.
+- True black ground (#000) with the live 3D canvas full-bleed behind every overlay.
+- Overlays pinned to the 24px edge: readout with the filter chips under it top-left, checkpoint timeline bottom-right (both frameless), inspector top-right (glass).
+- Wide, light, tabular numerals as the primary text.
+- Five categorical data-type hues, one sweep blue, amber reserved for loss.
+- Mark shape encodes track state: dot = held, ring = acquired by this sweep.
+- One sweep per checkpoint change; no idle motion of the volume.
 
 ## Colors
 
-A cockpit palette: a ladder of blue-tinted near-blacks, four cool greys for text, one decision blue, and a set of dashboard telltales each with a solid, an ink (text on dark) and a 13% wash.
+A black instrument field with white ink, five categorical data hues validated on black, and two reserved signals: sweep blue and loss amber.
 
 ### Primary
-- **Decision Blue** (decision-blue): the primary button, the PM-confirmed Must mark, waiting-count badges, checkbox/range accents, the selected Must in the priority picker. If it is solid blue, a human decision or the one main action lives there.
-- **Instrument Blue** (decision-blue-hi): focus rings, caret, score fills at Must, the current wave tick, the focused series in charts, active story dot.
-- **Blue Ink** (decision-blue-ink): blue text on dark (links, Should labels, AI chips, decision-ask labels); with `blue-wash` rgba(28,105,212,0.16) for tinted chips and selected rows, and `blue-line` rgba(77,148,255,0.45) for outlined Should and selected queue items.
-- **Should Steel** (should-steel): the desaturated blue for the Should band in score bars, pulse bars and waterfall bars; it sits between Instrument Blue (Must) and grey (Could).
+- **Sweep Blue** (sweep, sweep-hi, sweep-wash): the sweep and the PM's position. The deep step colours the sweep blade's additive wash; the bright step draws the blade's leading edge, the active checkpoint node (with a 4px sweep-wash halo), the border of a filter chip in use, a chosen filter value's bar, the focus ring, links and text selection.
 
 ### Secondary
-- **Telltale Amber** (telltale-amber / -ink, wash rgba(245,165,36,0.13)): conflict, thin evidence, SIMULATION flag, deferred status, mid evidence bars.
-- **Telltale Red** (telltale-red / -ink, wash rgba(255,90,95,0.13)): failed gate, rejected status, load errors, weak evidence bars, negative deltas.
-- **Telltale Green** (telltale-green / -ink, wash rgba(60,207,145,0.13)): approved status, strong evidence bars, positive deltas, success toasts.
-- **Telltale Violet** (telltale-violet, wash rgba(167,139,250,0.14)): challenged status only.
+- **Loss Amber** (lost-amber): reserved for weakened and lost tracks, which appear from the clustering stage on. Raw sources are only ever acquired, so the scan surface uses amber only for the failed-scan message (a lost signal).
+
+### Tertiary (categorical, one hue per raw data type)
+- **Comment Blue** (type-comment): customer verbatims, the galaxy at the centre of the volume.
+- **Research Vermilion** (type-research): cited web research on the dated outer ring.
+- **Study Aqua** (type-study): customer-study ticks on the innermost range ring.
+- **Option Ochre** (type-option): price-list equipment on the options ring.
+- **Sales Magenta** (type-sales): BMW sales volumes on the sales ring; forecasts render as wireframe outlines in the same hue.
+
+The same hue colours the data type's inline legend glyph wherever the type is named (readout, ring name tags, inspector header).
 
 ### Neutral
-- **Cabin Black** (cabin-black): page background, under a fixed radial glow of `bg-glow` rgba(28,105,212,0.07).
-- **Panel Glass** (panel-glass): every panel. **Panel Raised** (panel-raised): default button fill, selected segment. **Hover / Press** (hover, press): row and control states.
-- **Field Well** (field-well): inputs, segmented-control tracks, kbd caps, priority picker; sits darker than the panel so fields read as recessed.
-- **Hairline** (hairline): panel borders, table rules, `.rule` dividers. **Hairline Strong** (hairline-strong): control borders, outlined chips, drawer and palette edges.
-- **Text** (text), **Text 2** (text-2): primary and secondary copy. **Muted** (muted): labels, table headers, inactive dock items. **Faint** (faint): metadata, placeholders, counts. Pure #fff is reserved for instrument numerals, titles in the selected item and text on solid blue.
-- **Scrim** rgba(4,5,7,0.72): behind drawers and the command palette.
+- **Void** (void): the page and the WebGL clear colour. Never a near-black; pure black is what makes the contacts read as emitters.
+- **Smoked Glass** (glass): every floating panel, always with a backdrop blur over the canvas.
+- **Hairline** (hair) and **Strong Hairline** (hair-strong): panel borders, chip outlines, filter bar tracks, the checkpoint rail, the z-bar midline, scrollbars, mobile pill outlines.
+- **Ink** (ink): numerals, titles, the customer quote, active labels, the held mark.
+- **Ink 2** (ink-2): secondary values, filter names and counts, ring labels, the checkpoint fill.
+- **Ink 3** (ink-3): micro labels, inactive tabs and nodes, meta lines. Holds at least 4.5:1 on black; it is the floor for any text.
+
+In 3D, range rings are white at 10% opacity and the time ring is a white dashed line at 22%.
 
 ### Named Rules
-**The One Blue Rule.** Blue means decision or focus. Solid Decision Blue appears on at most one action per view plus PM-confirmed Must marks; everything else blue is ink, wash or line.
+**The One Blue Rule.** Sweep blue means "the sweep, or where the PM is right now". It never fills a data series and never decorates.
 
-**The Telltale Rule.** Amber, red, green and violet only report state (conflict, fail, approved, challenged, evidence strength, delta direction). A telltale colour used for decoration is a false warning light.
+**The Amber Is Loss Rule.** Amber appears only for weakened or lost tracks and lost signal. Option Ochre sits near it in hue, so a lost track always also carries its cross mark; amber never encodes state on its own.
 
-**The Three-Step Tint Rule.** Every state colour comes as solid (dot, bar, icon), ink (text), and a 13-16% wash (chip or note background). Never put solid-colour text on a wash.
+**The White Is Attention Rule.** Contacts rest in their data-type hue. They turn white only while a sweep flares them, while hovered, or under the white lock reticle. Blue is not used for hover.
 
 ## Typography
 
-**Display Font:** Mona Sans Variable (with ui-sans-serif, system-ui fallback)
-**Body Font:** Mona Sans Variable, same family
-**Label/Mono Font:** none; IDs use Mona Sans narrowed to 92% width with 0.02em tracking.
+**Display Font:** Mona Sans Variable with its width axis (fallback ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif)
+**Body Font:** the same family; one family runs the whole system.
 
-**Character:** One family carried on its width axis. Text reads at normal width; headings widen slightly (106-112%); instrument numerals go wide (118%) and light (300), so scores and counts read like gauge faces rather than spreadsheet cells.
+**Character:** One grotesque in two voices. Numerals are stretched wide (118%), light (300) and tabular, so counts read like instrument dials; labels are the same face at normal width, small and quiet. Tabular figures are on globally.
 
 ### Hierarchy
-- **Instrument** (300, 64px token, wdth 118, line-height 1, -0.02em): genuine readouts only: score arc centres (scaled to 30% of arc size), budget, job counts. White.
-- **Display** (600, 34px, 1.12, wdth 112, max 22ch): the briefing headline; the decision workspace title runs the same voice at 30px / wdth 108 / max 30ch.
-- **Headline** (600, 28px, 1.15, wdth 106): page titles in the page head.
-- **Title** (600, 20px, 1.25): section and drawer titles. Panel heads drop to 14px / 600.
-- **Lead** (400, 16-17px, 1.55-1.7, max 64-70ch): briefing paragraph, page lede, customer-need text (19px in the decision ask).
-- **Body** (400, 14px, 1.5): default; tables and lists run 13-13.5px.
-- **Label** (550, 12px): field labels, section labels inside a panel, table headers (500, muted).
-- **Micro** (11-11.5px, 600 for chips): chips, priority marks, captions, quote attributions.
+- **Instrument** (300, 34px, line-height 1, -0.02em, width 118%): the readout totals (28px), the inspector's key figure (34px) and the checkpoint timeline's track counts (20px). Readout drops to 22px under 760px.
+- **Read** (400, 18px, line-height 1.5, max 60ch): the customer's words in the inspector; the only reading text in the system.
+- **Title** (500, 18px, line-height 1.35, balanced wrap): the inspected item's name or headline.
+- **Body** (400, 14px, line-height 1.45): the base size; sweep-control track counts, secondary figures.
+- **Detail** (400, 13px): hover-card text (clamped to three lines), inspector fact values, the source link.
+- **Label** (400 or 600, 12px): filter chips, filter values and counts, layer names, "+n" increments. At 600 with 0.08em tracking it names checkpoints (JAN 26 / JUL 26).
+- **Micro** (400, 11px, 0.02em, ink-3): field and readout labels, legend names, ring sublabels; at 600 with 0.1em tracking it labels the time ring.
 
 ### Named Rules
-**The Proportional Figures Rule.** All numerals use proportional figures (`font-variant-numeric: proportional-nums`, `zero` and `ss01` off). Mona Sans's tabular set brings a code-style slashed zero; it is never switched on, including in tables and right-aligned columns.
+**The Numeral Leads Rule.** Where a value exists, the numeral is the largest thing in its group and its label sits beside or above it at micro size. Labels never outrank figures.
 
-**The Gauge Rule.** Wide light numerals are earned: only a number the PM reads as a measurement (score, budget, count that matters) gets the instrument style. Labels and body numbers stay normal width.
-
-**The No-Kicker Rule.** Headings stand alone: no eyebrow or kicker line above them, no section numbers, no gradient text. Context sits beside or below a title (meta line, chips), not stacked above it.
+**The Labels, Not Paragraphs Rule.** Interface copy is a word or a short phrase. One-line explanations are allowed only in the inspector, where each layer says what its ring encodes. Paragraph-length text is reserved for evidence (customer words).
 
 ## Layout
 
-Pages are a single centred column (`max-width` 1480px; the decision screen widens to 1560px) with a 28px gutter (16px under 720px). Top padding clears the fixed 52px status band plus 28px; bottom padding of 104px clears the floating dock. Content is composed with CSS grid in twelfths: the briefing splits 7/5 (recap and portfolio pulse) then 8/4; the decision screen is a 312px sticky queue rail beside a workspace that splits 1.15fr / 1fr. Every multi-column grid collapses to one column between 1000px and 1280px, and grid children carry `min-width: 0` so nothing forces horizontal page scroll.
+There is no page grid. The canvas fills the viewport (`position: fixed; inset: 0`, body scroll off) and overlays are pinned to a 24px edge inset that respects the bottom safe area: readout top-left as five cells in two rows (comments and research, then the three car-ring types; one row from 1900px, so it clears the page switch at top centre) with the filter chips directly beneath it, the checkpoint timeline bottom-right at 300px wide, the inspector top-right at up to 400px wide with height capped so it never covers the sweep control. The hover card follows the pointer at a 16px offset and clamps to the viewport.
 
-Rhythm: 18px between major blocks and grid columns, 14px between stacked panels in a workspace, 10px inside stacks and rows. Panels pad 14px top, 18px sides and bottom; drawers 18-20px. Wide tables scroll inside their panel with soft edge shadows that appear only while there is more to scroll.
+Spacing inside panels is tight and stepped by hand (8, 12, 14, 18, 22px gaps); the larger inspector uses 22px between blocks and 28/26/24px padding. Under 760px the edge drops to 16px, the readout wraps, and the inspector lifts to sit above the checkpoint timeline. Under 560px the timeline spans the width.
 
-**The Floating Chrome Rule.** Navigation never takes a column. The band floats on top, the dock floats at the bottom centre, detail opens in a right drawer, search lives in ⌘K. The page itself is all content.
+The 3D volume itself is the layout: comments in a unit ball, then range rings outward (study, options, sales, a dated research ring), car lines as fixed angular sectors, labels billboarded at the outer radius.
 
 ## Elevation & Depth
 
-Depth is tonal first: cabin black, then panel glass, then raised controls, with hairline borders doing the separation. Shadows exist only for layers that float above the page (dock, ⌘K button, drawer, palette, toasts, Story card) and for the single decision panel in the workspace side column. Floating chrome adds translucency and backdrop blur (14-18px with 140-150% saturation) so the page reads through it like tinted glass.
+Depth comes from the scene, not from a shadow scale. Contacts fade with distance in the shader, and panels separate from the volume by smoked glass plus backdrop blur (12px for the hover card and page switch, 16px for the inspector) and a hairline border. Floating panels carry one soft, two-layer black shadow so they lift off bright contacts behind them; nothing on the black field sits on a surface lighter than glass.
 
 ### Shadow Vocabulary
-- **Lift 1** (`box-shadow: 0 1px 2px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.35)`): the decision panel, chart tooltips.
-- **Lift 2** (`box-shadow: 0 2px 6px rgba(0,0,0,0.55), 0 24px 60px rgba(0,0,0,0.55)`): dock, drawer, command palette, toasts, Story card.
-- **Inset hairline** (`box-shadow: inset 0 0 0 1px <hairline>`): outlined chips, selected segment, field wells, fit-gate list; draws a border without changing box size.
+- **Float** (`box-shadow: 0 2px 6px rgba(0,0,0,.5), 0 24px 60px rgba(0,0,0,.6)`): the inspector.
+- **Float Small** (`box-shadow: 0 2px 6px rgba(0,0,0,.5), 0 16px 40px rgba(0,0,0,.5)`): the hover card.
 
 ### Named Rules
-**The Offset-Not-Halo Rule.** Shadows are offset and soft-blurred black, never a coloured glow around an element. Telltale dots get a 3px tinted ring, which is the light's own lens, not a halo.
-
-**The One Level Rule.** A panel never sits inside a panel. Group inside a panel with whitespace, `.rule` hairlines and type.
+**The Glass Over Canvas Rule.** Every panel is translucent glass with blur over the live volume. No opaque panels, no solid sidebars. Instruments that are only labels, numerals and marks (readout, filter chips, checkpoint timeline) need no panel at all and sit straight on the black.
 
 ## Shapes
 
-Gently rounded, tighter as things get smaller: 2px on bars and tracks, 6px on chips and priority marks, 7px on buttons and inputs, 9px on list rows and queue items, 12px on panels, 14px on floating cards (palette, Story), 16px on the dock and drawer sheet, full pill on counts, avatars, the waiting badge. Bars are 3-6px thin; strokes are 1-1.5px; icons are lucide line icons at 15-18px. No coloured side borders on any container.
+Gently rounded glass (10px) for every floating panel, 6px for interactive rows and nodes inside them, 4px for small tags and the focus ring. Marks are circles: an 8px filled dot for held tracks, an 8px ring (1.5px inset stroke) for acquired ones, a 9px node on the checkpoint timeline. Lines are hairlines (1px) everywhere, including the timeline rail and the z-bar midline; the only thick strokes are 2px filter bars and 4px z-bar fills. The lock reticle is four short white arc segments that rotate slowly around the selected contact.
 
 ## Components
 
-### Buttons
-Quiet raised keys; only the primary one is lit.
-- **Shape:** gently rounded (7px), 34px tall (28px small, 42px large, square icon variant).
-- **Default:** Panel Raised fill, Hairline Strong border, 13px / 550 text.
-- **Primary:** solid Decision Blue, white text; one per view. Hover lightens to #2477ea.
-- **Ghost:** transparent, Text 2; hover fills with Hover. **Danger:** red ink text, red wash on hover.
-- **Hover / Active:** fill steps to Hover; active presses 1px down onto Press. Transitions 140ms. Disabled at 45% opacity.
-- **Focus:** 2px Instrument Blue outline, 2px offset, on every focusable element.
+### Checkpoint Timeline (signature)
+Bottom-right, frameless, 300px wide. It keeps one size at every checkpoint, so switching never shifts it.
+- **Head:** "Checkpoint" (12px/600 ink) over a micro line saying what the position means: "Evidence known up to 31 Jul 2026".
+- **Timeline:** one hairline rail from JUL 25 to JUL 26 (the scene's date ring, straightened) with a 4px hairline tick per month and "JUL 25" as a micro label at its start. Each checkpoint is a 9px node at its cut-off date with its name above it (12px/600, 0.08em): ink-3 hairline on black; a node the current checkpoint builds on fills ink; the active node fills sweep-hi with a 4px sweep-wash halo and its name turns ink. Name and node are one button; together they are the radio group.
+- **Fill:** ink-2 along the rail up to the active cut-off. On a checkpoint change it travels to the new cut-off over the 3D sweep's duration and curve (2400ms, ease-out cubic).
+- **Track counts:** one line of 20px instrument numerals, always both: a held dot with what the earlier checkpoint knew (0 at the first) and a ring with what this sweep added; a "← →" micro hint at the right.
 
-### Chips
-- **Style:** 22px, 6px radius, 11.5px / 600, white 6% wash with Text 2. Tones `up` (green), `down` (red), `warn` (amber), `blue`, `violet` use wash + ink; `outline` uses an inset Hairline Strong ring on transparent.
-- **Delta chips** carry a lucide arrow (up-right, down-right, minus) and sit inline in prose.
+### Readout
+Five cells top-left, one per colour in the scene: Customer comments, Web research, Customer study, Equipment options, Sales volumes. Each has its type glyph and a micro label above a 28px instrument numeral. The three car-ring cells add a second line for the cited public research on that ring in the same hue (public ratings, product news, public sales) with a hollow ring mark in the type colour. At a later checkpoint each count carries a "+n" increment. While filters are set, every count is what the filter leaves visible. Not interactive.
 
-### Telltales (signature)
-A 7px dot in the state colour with a 3px ring of the same colour at 22%, followed by a 12px Text 2 word. Status map: proposed = blue, challenged = violet, approved = green, deferred = amber, rejected = red. A pulsing variant marks a running job.
+### Filter Chips
+A row of chips directly under the readout, one per dimension, any number active at once (values within a dimension are alternatives, dimensions combine).
+- **Always shown:** every chip is on the row, the ones in use first in the order they were set (so choosing a value never moves a set chip), then the unused ones. A chip in use shows its dimension in ink-3, the chosen value in ink (first value, "+n" for more) and an ×; a sweep-hi hairline border marks it as set. A "Clear all · Esc" text button follows once anything is set.
+- **Fold toggle:** a 28px pill at the head of the row (sliders icon + chevrons, ink-3, hairline on hover). Folding hides the unused chips only (chips in use stay, so nothing is filtered unseen) and the toggle reads "Filter · n" with a chevrons-right; unfolding brings them back to the right. The choice is kept per browser.
+- **Values:** hovering a chip opens its values in a glass list hanging under it: a micro scope line (what this dimension filters), then rows of name, a 2px bar and a tabular count; chosen rows in ink with a sweep-hi bar. Choosing a value closes the list again, so only the choice stays on the chip. Counts already apply the other active filters.
+- **Chips:** 28px pills, hairline border on a 60% black fill, 12px ink-2 text. Car and Market filter every data type. The others belong to one type and carry its glyph: Channel, Label, Engine and Length (short under 80 characters, medium to 250, long) for comments; Trust, Topic and Fact type (figure, event, study or rating, policy, trend) for web research; Study result (above / around / below the car × market's average by half a standard deviation); Category and Availability (standard, optional, in a package) for equipment options; Sales year (2024, 2025, 2030 forecast). Items with no value for a global dimension (options have no market, global research has none) stay visible.
+- **In the volume:** items the filters leave out dim to about 6–7% and can't be hovered or opened. Page 2 is never filtered.
+- **Touch and keyboard:** chips open on tap or Enter; the fold toggle works on tap or Enter; Esc clears everything.
 
-### Priority Mark (signature)
-The single most important encoding in the app. **Filled = the PM confirmed it; dashed + "AI" = the AI suggests it.** Must is solid Decision Blue with white text; Should is a Blue Line outline with Blue Ink text; Could is a Hairline Strong outline in Muted. An AI suggestion replaces the outline with a 1px dashed outline in the same colour family (Must becomes blue wash with a dashed Instrument Blue edge) and appends a 9px / 700 "AI" tag. The per-market priority picker mirrors it: M / S / C segments in a field well, selected Must solid blue.
+### Inspector Sheet
+- **Corner Style:** 10px. **Background:** glass with 16px blur and a hairline border. **Shadow:** Float.
+- **Head:** the layer name with its glyph (12px/600) and one ink-3 line saying what the ring encodes.
+- **Body:** a title or the customer quote, an optional instrument figure, then a two-column fact grid (micro label over 13px ink-2 value).
+- **Close:** a 30px square icon button, 8px radius, ink-3 to ink on hover with a 7% white wash. Esc closes; clicking empty space closes.
+- **Entry:** fades in from 6px above over 240ms.
+- **Charts inside:** neutral only (ink, ink-3, hairline outlines for forecasts); the categorical hue stays in the glyph.
 
-### Evidence Meter (signature)
-Four 3px signal bars rising 4, 7, 10, 13px. E1 lights all four, E4 one. Three or more lit = green, two = amber, one = red; unlit bars are Hairline Strong. Optional 12px label ("Strong", "Good", "Limited", "Assumption only").
+### Audit Trail
+- **Button:** top-right at the edge, a 28px pill like the filter chips (history icon + "Audit", 12px ink-2 on 60% black with a hairline border; ink with a stronger hairline while open).
+- **Field:** no card. The trail sits on a frameless black field (86% with a 10px blur) that feathers out at all four edges through a mask, 440px wide, 46px below the edge like the inspector, so it reads as part of the black rather than a box on top of it.
+- **Head:** "Audit trail" (12px/600) and one ink-3 line saying what the view holds; scope tabs in the filter-tab style (the current page, or Everything); then "who acted" chips (24px pills with the actor's mark and a count) that show or hide AI, System and PM rows.
+- **Trail:** one hairline rail down the left, day lines pinned at the top while scrolling. Marks on the rail say who acted: AI a hollow ring, System a small ink-3 dot, PM a filled ink dot (the only filled one, because the human decides); a stage starting or finishing is a larger ink ring and its line is set in ink as a milestone. Each row: the line in 12px ink-2, a micro meta line beneath (who · model · steps · time or time range), the checkpoint in micro caps at the right.
+- **Folding:** identical steps of one stream (same action, stage and checkpoint, no gap over 10 minutes) fold into one row with their totals ("Classified 2,800 comments → 4,597 signals · 140 steps · 05:31–05:49"), even while another run's steps interleave; a stage milestone closes its streams. A chevron opens the fold into its single steps on a nested hairline. A fold that runs on into rows not loaded yet says "Latest:" and "140+ steps" rather than passing a partial total off as the total.
+- **Never blue:** who acted is never coloured; blue is the sweep and the PM's position.
+- **Esc** closes the trail first, without touching the scan's filters or selection.
 
-### Score Bar and Score Arc (signature)
-- **Score Bar:** a 4px track (#1e222a) with ticks at 45 (Should) and 60 (Must); fill is Instrument Blue at Must, Should Steel at Should, grey at Could; value to the right in 12.5px proportional figures.
-- **Score Arc:** a 240° gauge, 6px round-capped stroke, the same two band ticks, instrument numeral in the centre with a muted caption below.
+### Guide Dock
+- **Where:** bottom-left, 300px like the checkpoint timeline opposite it, on the same feathered black field as the audit trail; folds to its tab row (remembered per browser).
+- **Tabs:** Guide on both pages; Agent (the live agent panel) as a second tab on Structure, opened first while the agent is running.
+- **Guide:** with nothing open, a legend of the screen drawn with the scene's own marks (each data type, held dot / new ring, car slices; on Structure the cluster marks, themes, area diamonds and evidence arcs) and two or three usage hints. Opening an item switches it to that kind of item: what it is, how the screen encodes it, and "How the AI uses it" in plain words. Short label-size text, never paragraphs of copy beyond two or three sentences.
+- **Inspector companion:** research, study and option items show "Used as evidence": the themes the AI linked them to at this checkpoint, the relation as a tag (dashed for contradicts) and the AI's one-line reason.
 
-### Cards / Containers
-- **Corner Style:** 12px.
-- **Background:** Panel Glass with a 1px Hairline border.
-- **Shadow Strategy:** none at rest (see Elevation); the decision panel alone takes Lift 1 and a slightly bluer border.
-- **Internal Padding:** head 14px 18px 0 (min 44px, 14px / 600 title), body 14px 18px 18px.
-- **Notes:** conflicts are an amber-wash block with an inset amber ring; errors a red-wash note with a red telltale and retry; empty states centred text saying what to do next.
+### Hover Card
+320px glass card following the pointer: up to three lines of 13px text, then a micro meta row that leads with the track mark (dot or ring). Pointer events off.
 
-### Inputs / Fields
-- **Style:** Field Well background, Hairline Strong border, 7px radius, 36px tall, 13.5px text, placeholder in Faint. Selects use a custom chevron; textareas min 64px.
-- **Focus:** border turns Instrument Blue and the well lightens a step; caret is Instrument Blue.
-- **Segmented control:** a field-well track (9px radius, 3px padding) with 28px segments; the pressed segment lifts to Panel Raised with an inset hairline and a 1px shadow.
-- **Reason field:** every write requires a reason of at least 5 characters, recorded with the actor's name.
+### Range Ring Labels
+Billboarded in 3D: car name at 12px/600 ink-2 over its code at micro. Ring name tags are micro text with a 6px colour dot on a 70% black chip (4px radius).
 
-### Navigation
-- **Status band:** fixed 52px top band, translucent cabin black with 14px blur and a 5% white bottom hairline. Left: product mark and wide (118%) name, separator, SIMULATION flag, wave ticks (16 x 4px; done grey, current Instrument Blue), wave text. Right: blue "N waiting for you" pill, spend meter, Present, actor avatar, ⌘K button. Elements drop out by priority under 1080px and 760px.
-- **Floating dock:** bottom-centre, 16px-radius translucent bar with Lift 2; 38px items in Muted 12.5px / 550 with a 17px lucide icon; the active item turns white over an 8% white pad; Decide carries a blue count badge. Labels hide under 860px. A separate 48px round ⌘K button sits beside it.
-- **Command palette:** 640px box at 14vh, 14px radius, 52px input, 40px items, selected item on Hover.
-- **Drawer:** right sheet inset 10px from the viewport edges, max 560px, 16px radius, Lift 2, over the scrim.
-
-### Story Card (signature)
-Presenter mode: a 380px floating card bottom-left (bluer glass rgba(16,20,28,0.94), #2a3446 border, Lift 2, 16px blur) with a blue-ink step counter, a 16px / wdth 108 title, a 13px "say this" line, a row of 3px progress dots (past grey, current Instrument Blue) and back/next buttons. It lifts above the dock under 1280px.
-
-### Car Stage
-The three.js canvas sits on a radial cabin-black gradient and uses the same palette via a mirrored token object. Zone focus flies the camera to a zone and renders interior zones in x-ray; DOM pins over the canvas use the app's type and blue.
+### Loading and Error
+A 64px hairline circle with a sweep-hi arc spinning once per 1.4s above the word "Scanning". Errors replace it with a centred amber line, max 48ch.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** use solid Decision Blue for exactly one main action per view and for PM-confirmed Must marks.
-- **Do** show any AI-originated priority as a dashed mark with the "AI" tag until a human confirms it.
-- **Do** encode evidence with the four signal bars and scores with a bar or arc ticked at 45 and 60.
-- **Do** report state with telltale dots and wash-plus-ink chips (amber conflict, red fail, green approved, violet challenged).
-- **Do** set numerals in proportional figures; reserve wide (118%) light (300) numerals for genuine readouts.
-- **Do** keep one panel level and group inside it with whitespace, hairline rules and type.
-- **Do** float chrome (band, dock, ⌘K, right drawers) and keep the page all content; clear the band (52px) and dock (104px).
-- **Do** use skeletons for loading, an error note with retry, and empty states that say what to do next.
-- **Do** honour reduced motion; the duration tokens collapse to 0ms.
+- **Do** keep the ground pure black (#000) and render overlays as blurred glass over the live canvas.
+- **Do** give each raw data type its own categorical hue and repeat that hue in its legend glyph wherever the type is named.
+- **Do** encode track state by mark shape: dot = held, ring = acquired by this sweep. The direction reserves double ring = strengthened and amber cross = lost for the clustering stage on; those marks are not built yet, so record them here once they ship.
+- **Do** set every count as a wide (118%), light (300), tabular numeral and keep its label at micro size.
+- **Do** play the sweep once on arrival and once per checkpoint change, using cubic-bezier(0.16, 1, 0.3, 1) for UI motion (160ms for colour, 240ms for panels and nodes).
+- **Do** give every element in the volume an inspector that names its layer and says in one line what it encodes.
+- **Do** honour reduced motion: transitions and animations drop to 0ms. The one exception is the focus glide (opening an item lifts its layer and sinks the others): it still glides without overshoot, pulse or ripple, because the move is what shows which layer the item belongs to.
 
 ### Don't:
-- **Don't** add a sidebar of pages or a grid of identical icon-title-number KPI tiles.
-- **Don't** turn on tabular figures or the slashed zero.
-- **Don't** nest a panel inside a panel.
-- **Don't** put a coloured stripe on the side of a card, row or note.
-- **Don't** add eyebrow or kicker labels above headings, section numbers, gradient text or emoji.
-- **Don't** use a telltale colour for decoration, or a coloured glow halo for emphasis.
-- **Don't** introduce a light theme or any BMW logo or trademark.
-- **Don't** show option-list prices.
+- **Don't** auto-rotate the volume or add idle motion; it moves only when the PM drags it.
+- **Don't** use sweep blue for data, hover or decoration; it belongs to the sweep and the PM's position.
+- **Don't** use amber for anything but weakened or lost tracks and lost signal, and never without its cross mark.
+- **Don't** frame evidence in sidebar-plus-chart-card dashboards or opaque panels; overlays float at the edges of the volume.
+- **Don't** set text below ink-3 (#868d99) on black.
+- **Don't** write paragraph copy in the interface; paragraphs belong to the evidence itself.

@@ -22,6 +22,15 @@ BMW decides at **portfolio level** — across shared platforms (CLAR, FAAR, Neue
 | 8 | **PM review** — approve / reject / edit / challenge / defer; override failed checks only with rationale | **Human (mandatory)** | status change + rationale |
 | 9 | **Document & export** — requirement list, portfolio view, full audit trail | AI | JSON / XLSX export, audit timeline per requirement |
 
+### Checkpoints and track-while-scan (D-041, replaces the simulated waves of D-027)
+
+Two real-date checkpoints: **cp1 "JAN 26"** (knowable on 31 Jan 2026) and **cp2 "JUL 26"** (31 Jul 2026, parent cp1).
+- `source_item.checkpoint` = the first checkpoint at which an item is knowable. Comments: D-027's stratified 50/50 split (wave 1 → cp1, wave 2 → cp2). Study, sales (incl. 2030 forecast), option lists → cp1. Web and research → by publication date; undated web is never visible, undated reference/research background is cp1; anything after 31 Jul 2026 is never visible. Visible at cp = items of cp and all its ancestors (`checkpoints.visible_ids`).
+- Every pipeline stage runs **once per checkpoint** as a `checkpoint_run(checkpoint_id, stage, parent_run_id, status, actor, stats_json)`. A cp2 run **must** name the latest completed run of the same stage at cp1 (`start_run` refuses otherwise) and works on the parent's outputs plus the delta (sources new at cp2).
+- Each run writes one `track(run_id, entity_key, state, weight, prev_weight, payload_json)` per entity (source, cluster, requirement…). `write_tracks` computes the state against the parent run: **new** (not in parent), **held** / **strengthened** / **weakened** (±10 % weight change), **lost** (in parent only; written explicitly with its old weight). Re-running a stage supersedes the earlier run at that checkpoint.
+- Stage 0 `acquire` (built): every visible source as a track. cp2 holds cp1's sources and adds the second half of the comments plus Feb–Jul research. Later stages (classify → cluster → contextualize → elicit) plug into the same API; recalibrated requirements at cp2 are tracks of the cp1 requirements, and AI-proposed changes stay proposals for the PM (D-013).
+- The comment galaxy: raw comment embeddings (`source_embedding`) laid out once in 3D (`source_layout`, PCA 50 → t-SNE 3D, seed 2026) so a comment keeps its position across checkpoints.
+
 ### It's a loop, not a one-shot (D-013)
 
 The requirements process runs **~2 years**. Steps 1–9 repeat whenever something changes:
@@ -66,7 +75,7 @@ sales(vehicle_model_id, market_code, year, units, is_forecast, source_id)
 
 ### Evidence layer
 ```
-source_item(id, kind[feedback|study|sales|option_list|web|reference], trust_tier[T1..T3],
+source_item(id, kind[feedback|study|sales|option_list|web|research|reference], trust_tier[T1..T3], checkpoint[cp1|cp2|NULL],
             vehicle_model_id?, market_code?, platform_id?, ref, url?, published_at?, retrieved_at,
             text, quote, meta_json)
 finding(id, type, title, summary, scope_level[derivative|platform|market|portfolio],
@@ -124,7 +133,11 @@ Requirement IDs are global (`REQ-0001`); scope lives in `requirement_target`, so
 - **Change inbox** — open AI change proposals after a new ingest batch; PM accepts/rejects with rationale.
 - **Market conflict view** — requirements whose priority diverges strongly between markets, with realization options.
 
-## PM frontend (D-039, supersedes the Streamlit layout above)
+## PM frontend v2 (D-041, replaces the D-039 screens)
+
+Black, near-textless, 3D-first ("track-while-scan"). App-wide checkpoint state (`web/src/state/checkpoint.tsx`, URL `?cp=`, ← / →) and a bottom-right sweep control; switching checkpoints animates a sweep that acquires the new contacts. First screen **Scan** (`/`): the comment galaxy plus range rings for the other raw sources (study items as z-score ticks, option dots, sales bars with the 2030 forecast as outline, dated research on a time ring); hover shows the comment, click opens it. API: `api/routers/scan.py` (`/api/checkpoints`, `/api/scan/points|comment|sources`). Further screens are added per rebuilt pipeline stage.
+
+## PM frontend (D-039, superseded by D-041 — kept for history)
 
 `web/` (React + three.js) over `api/` (FastAPI, localhost). Workflow, one destination per PM job:
 - **Briefing** — what the last wave changed (compiled from the latest run, no AI), portfolio pulse car × market, movers, event feed.

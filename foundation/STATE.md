@@ -54,7 +54,7 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 
 ## In progress
 
-- Nothing.
+- Rebuild on two real-date checkpoints (D-040, D-041). Done: research layer (1,028 cited items incl. China round 2), checkpoint lineage in the DB (`checkpoint_run` / `track`, stage `acquire` at cp1 and cp2), comment galaxy, new frontend with the Scan screen (`uv run python -m api` + `cd web && npm run dev` → http://127.0.0.1:5173). **Waiting for Atahan** to lead classification → clustering → contextualization → requirement elicitation; each will be a stage on the checkpoint API.
 
 ## Demo (how to run)
 
@@ -78,7 +78,7 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 
 | Item | Value |
 |---|---|
-| Spent to date | **$7.37** (2026-10-10; +$0.06 validation, +$0.45 dedup demo rebuild D-035): derivation $2.38 (incl. prompt iterations v2–v6, 4 wave-1 runs, waves 2–3 ×2), web research $1.69, fit checks $0.55, extraction $0.52, linker $0.23, recheck $0.13, benchmarks $0.09, challenge $0.08, consolidation $0.08, other $0.12, **plus a $1.00 reconciliation row** (usage rows lost in a failed demo restore, upper-bound estimate; bug fixed). Source of truth: `llm_usage` / Budget page |
+| Spent to date | **$7.38** (+$0.009 comment embeddings, D-041) — was $7.37 (2026-10-10; +$0.06 validation, +$0.45 dedup demo rebuild D-035): derivation $2.38 (incl. prompt iterations v2–v6, 4 wave-1 runs, waves 2–3 ×2), web research $1.69, fit checks $0.55, extraction $0.52, linker $0.23, recheck $0.13, benchmarks $0.09, challenge $0.08, consolidation $0.08, other $0.12, **plus a $1.00 reconciliation row** (usage rows lost in a failed demo restore, upper-bound estimate; bug fixed). Source of truth: `llm_usage` / Budget page |
 | Planned build spend | ≈ $60 (≈ $48 + 25% contingency) |
 | Warn / block non-demo / app hard stop | $45 / $70 / $90 |
 | Demo-day reserve | $20 ($70 → $90) |
@@ -153,3 +153,9 @@ Update the budget table after every paid run. Once the app exists, the source of
 - 2026-10-11 — Requirements as product decisions (D-038, Atahan's review of REQ-0006: defect restated as requirement, merged unrelated needs, China Must 72 with zero comments): defect-dominated pains → Quality hand-over page (`ui/quality.py`, CSV); derive-v7 requires a `product_decision`; strict merging in consolidation/dedup/linker; score-v3 (borrowed comment rate ×0.5, cap at best comment-backed market unless own study gap + competitor pressure, E3 0.75 / E4 0.5, one priority for Kano-basic). Demo DB: 39 requirements, 3 runs, 1,618 audit events; spend unchanged at $7.37. 50 tests pass. D-037 + D-038 committed and pushed (9d75545).
 - 2026-10-11 — Q-021 and Q-023 closed (D-038, Atahan); the parts D-038 didn't cover (proposals for evidence on decided requirements, web contradictions in the score) moved to Q-024.
 - 2026-10-11 — New PM frontend (D-039, Atahan: "discard Streamlit, real 3D, thoughtful workflow", Fey as inspiration): `api/` FastAPI layer (all reads/writes, jobs, 74 tests pass), `web/` React + three.js app "Successor" — Briefing, Decide queue, Cars in 3D, Markets, Requirement page with trace, Evidence, Process, story mode. 3D models installed in data/models (Q-025), orientations calibrated. No LLM spend. Not committed.
+- 2026-10-11 — D-040: two real-date checkpoints (31 Jan / 31 Jul 2026) replace simulated waves. 8 research agents → `research/checkpoints/` (821 cited items, 299 Jan↔Jul pairs); Checkpoint Atlas as a local page (`research/checkpoints/atlas.html`; Atahan wants no published artifacts). Gaps → Q-026. Next: Atahan leads classification → clustering → contextualization → elicitation on the new periods.
+- 2026-10-11 — D-041: checkpoint lineage (cp2 builds on cp1, tracks new/held/strengthened/weakened/lost), research imported (1,028 items after China round 2), 10,128 comments embedded ($0.009) into a fixed 3D galaxy, old screens deleted, new black "track-while-scan" frontend with the Scan screen and bottom-right sweep control.
+- 2026-10-11 — D-042: one 5 Series sector (G68 = LWB China part), research ring moved inside, car-specific public research on study/options/sales rings so all rings change at JUL; per-type colours, inspectors on every ring element, no auto-rotation, arrival sweep. DESIGN.md rewritten for track-while-scan.
+- 2026-10-11 — Raw data page (parallel session): layer focus lift/fade, per-colour readout, cross-type filters (scan/filter.ts), checkpoint dial redesign.
+- 2026-10-11 — D-043: structure & context pipeline (extract-v4 A/B-tested, portfolio-wide incremental clustering, contextualize with evidence graph + RAG, requirement areas), page 2 "Structure" with comment→cluster morph and live agent panel; full run in progress.
+- 2026-10-11 — Scan filter bar always shown with a fold/unfold toggle (unused chips hide, chips in use stay); new filters: comment length, research topic + fact type, option availability.
