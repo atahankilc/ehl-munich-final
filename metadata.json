@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4MKB5TCFRYGJJ8829G1M9RD",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 35,
+  "checkpoints_count": 84,
   "files_touched": [
     ".impeccable/config.json",
     ".impeccable/design.json",
@@ -142,13 +142,27 @@
       "compact_transcript": "/2/transcript.jsonl",
       "content_hash": "/2/content_hash.txt",
       "prompt": "/2/prompt.txt"
+    },
+    {
+      "metadata": "/3/metadata.json",
+      "transcript": "/3/full.jsonl",
+      "compact_transcript": "/3/transcript.jsonl",
+      "content_hash": "/3/content_hash.txt",
+      "prompt": "/3/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 644,
-    "cache_creation_tokens": 783316,
-    "cache_read_tokens": 64523775,
-    "output_tokens": 272996,
-    "api_call_count": 316
+    "input_tokens": 1334,
+    "cache_creation_tokens": 1832595,
+    "cache_read_tokens": 202964682,
+    "output_tokens": 699890,
+    "api_call_count": 625,
+    "subagent_tokens": {
+      "input_tokens": 1432,
+      "cache_creation_tokens": 2391367,
+      "cache_read_tokens": 64969024,
+      "output_tokens": 49552,
+      "api_call_count": 716
+    }
   }
 }
