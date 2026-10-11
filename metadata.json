@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4MS0D5Q0X47A62MK6KRGNBH",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 21,
+  "checkpoints_count": 22,
   "files_touched": [
     "foundation/STATE.md",
     "web/src/screens/structure/AgentPanel.tsx",
@@ -58,6 +58,13 @@
       "compact_transcript": "/6/transcript.jsonl",
       "content_hash": "/6/content_hash.txt",
       "prompt": "/6/prompt.txt"
+    },
+    {
+      "metadata": "/7/metadata.json",
+      "transcript": "/7/full.jsonl",
+      "compact_transcript": "/7/transcript.jsonl",
+      "content_hash": "/7/content_hash.txt",
+      "prompt": "/7/prompt.txt"
     }
   ],
   "token_usage": {
