@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import type { Comment, PointsPayload, ResearchItem, Selection, SourcesPayload, StructurePayload } from "@/lib/types";
 import { AreaBody, ClusterBody, Funnel, SignalList, ThemeBody } from "../structure/panels";
 import { AgentPanel, useActivity } from "../structure/AgentPanel";
+import { atLeast, classifiedMask, doneStages as stagesDone, type Stage } from "../structure/stages";
 import { PageSwitch } from "@/components/PageSwitch";
 import { Dock } from "@/components/Guide";
 import { useCheckpoint } from "@/state/checkpoint";
@@ -61,6 +62,31 @@ export function Scan({ mode = "scan" }: { mode?: "scan" | "structure" }) {
   const filter = useMemo<Filter | null>(() => (mode === "scan" && isActive(chosen.f) ? chosen.f : null), [mode, chosen]);
   const mask = useMemo(() => (points.data ? commentMask(points.data, filter) : new Uint8Array(0)), [points.data, filter]);
 
+  // page 2 steps through the pipeline: the stage in view (default: the last one done at this checkpoint)
+  const [stageView, setStageView] = useState<Stage | null>(null);
+  const done = useMemo(() => stagesDone(structure.data), [structure.data]);
+  const stage: Stage = stageView && done.includes(stageView) ? stageView : done[done.length - 1] ?? "areas";
+  const step = (d: -1 | 1) => { const i = done.indexOf(stage) + d; if (i >= 0 && i < done.length) setStageView(done[i]); };
+  const sceneMask = useMemo(() => (mode === "structure" && stage === "classify" && points.data && structure.data?.ready
+    ? classifiedMask(points.data.cols.id, structure.data) : mask), [mode, stage, points.data, structure.data, mask]);
+  // an item the stage in view doesn't have yet can't stay selected
+  useEffect(() => {
+    const k = selected?.sel.kind;
+    const need: Stage | null = k === "area" ? "areas" : k === "theme" ? "contextualize" : k === "cluster" ? "cluster" : null;
+    if (need && !atLeast(stage, need)) setSelected(null);
+  }, [stage]); // eslint-disable-line react-hooks/exhaustive-deps
+  // [ and ] step back and forward on page 2 (the arrow keys belong to the checkpoints)
+  useEffect(() => {
+    if (mode !== "structure") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || (e.target instanceof HTMLElement && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) && (e.target as HTMLInputElement).type !== "range")) return;
+      if (e.key === "[") step(-1);
+      if (e.key === "]") step(1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
@@ -80,12 +106,12 @@ export function Scan({ mode = "scan" }: { mode?: "scan" | "structure" }) {
                   gl={{ antialias: true, alpha: false }} onCreated={({ gl }) => gl.setClearColor("#000000")}
                   onPointerMissed={() => setSelected(null)}>
             <Suspense fallback={null}>
-              <Scene points={points.data} sources={sources.data} mask={mask} position={position} fromPosition={fromPosition}
+              <Scene points={points.data} sources={sources.data} mask={sceneMask} position={position} fromPosition={fromPosition}
                      sweepId={sweepId} hoverComment={hover?.comment ?? null} locked={selected?.at ?? null} focus={selected ? layerOf(selected.sel) : null}
                      onHover={setHover} onSelect={(sel, at) => { setSelected({ sel, at }); setHover(null); }}
                      mode={mode} structure={structure.data} selected={selected?.sel ?? null} hoverKey={hoverKey}
                      onStructureHover={(h, k) => { setHover(h); setHoverKey(k ?? null); }} pulse={activity.data?.recent} filter={filter}
-                     spread={spread} nav={nav} />
+                     spread={spread} nav={nav} stage={stage} />
             </Suspense>
           </Canvas>
         )}
@@ -99,7 +125,7 @@ export function Scan({ mode = "scan" }: { mode?: "scan" | "structure" }) {
           {points.data && <FilterBar points={points.data} sources={sources.data} position={position} filter={chosen.f} order={chosen.order}
                                      onToggle={toggle} onClear={clear} />}
         </div>
-      ) : <Funnel data={structure.data} />}
+      ) : <Funnel data={structure.data} stage={stage} done={done} onStage={setStageView} onStep={step} />}
       <Dock mode={mode} sel={selected?.sel ?? null} agent={mode === "structure" ? <AgentPanel /> : undefined} running={!!activity.data?.running} />
       <PageSwitch />
       {points.data && <NavPad spread={spread} onSpread={setSpread} nav={nav} />}

@@ -12,6 +12,7 @@ import type { AreaNode, ClusterNode, Selection, StructurePayload, ThemeNode, Tra
 import type { Hover } from "../scan/Scene";
 import { TYPE_COLOR } from "../scan/colors";
 import { useSpread } from "../scan/navigate";
+import { atLeast, type Stage } from "./stages";
 
 export const AREA_Y = 1.15;
 const STATE_CODE: Record<TrackState, number> = { held: 0, new: 1, strengthened: 2, weakened: 3, lost: 4 };
@@ -119,9 +120,15 @@ interface Props {
   onHover: (h: Hover | null, key?: string | null) => void;
   onSelect: (s: Selection, at: [number, number, number]) => void;
   setCursor: (on: boolean) => void;
+  /** pipeline stage in view: cluster shows only the clusters, contextualize adds themes and arcs, areas adds areas */
+  stage: Stage;
 }
 
+// a cluster's name before context has run: its most frequent aspect
+const topAspect = (c: ClusterNode) => Object.entries(c.aspects ?? {}).sort((a, b) => b[1] - a[1])[0]?.[0]?.replace(/_/g, " ");
+
 export function StructureLayer(p: Props) {
+  const showThemes = atLeast(p.stage, "contextualize"), showAreas = p.stage === "areas";
   const clusters = useMemo(() => p.data.clusters.filter((c) => c.comments > 0 && !c.tail), [p.data]);
   const themeOf = useMemo(() => Object.fromEntries(p.data.themes.map((t) => [t.key, t])), [p.data]);
 
@@ -186,7 +193,7 @@ export function StructureLayer(p: Props) {
   }, [areas, focusArea]);
 
   /* evidence arcs for the theme in focus */
-  const focusTheme = p.selected?.kind === "theme" ? p.selected.key
+  const focusTheme = !showThemes ? null : p.selected?.kind === "theme" ? p.selected.key
     : p.selected?.kind === "cluster" ? clusters.find((c) => c.key === (p.selected as { key: string }).key)?.theme ?? null
     : p.hoverKey && themeOf[p.hoverKey] ? p.hoverKey : null;
   const arcs = useMemo(() => {
@@ -218,21 +225,21 @@ export function StructureLayer(p: Props) {
   return (
     <LabelCtx.Provider value={register}>
     <FadeIn morph={p.morph}>
-      <lineSegments geometry={memberLines}><lineBasicMaterial color="#ffffff" transparent opacity={0.07} /></lineSegments>
+      {showThemes && <lineSegments geometry={memberLines}><lineBasicMaterial color="#ffffff" transparent opacity={0.07} /></lineSegments>}
       <points geometry={nodes} material={nodeMat}
               onPointerMove={(e) => {
                 const i = pick(e); if (i == null) return;
                 const c = clusters[i]; e.stopPropagation(); p.setCursor(true);
-                p.onHover({ title: c.insight?.title ?? c.category ?? "Cluster", sub: `${c.comments} comments · ${c.state ?? ""}`, x: e.nativeEvent.clientX, y: e.nativeEvent.clientY }, c.key);
+                p.onHover({ title: (showThemes ? c.insight?.title : topAspect(c)) ?? c.category ?? "Cluster", sub: `${c.comments} comments · ${c.state ?? ""}`, x: e.nativeEvent.clientX, y: e.nativeEvent.clientY }, c.key);
               }}
               onPointerOut={() => { p.setCursor(false); p.onHover(null, null); }}
               onClick={(e) => { const i = pick(e); if (i == null) return; e.stopPropagation(); const c = clusters[i]; p.onSelect({ kind: "cluster", key: c.key }, [c.x, c.y, c.z]); }} />
-      {p.data.themes.map((t) => <ThemeHalo key={t.key} t={t} active={t.key === focusTheme} label={topThemes.includes(t.key) || t.key === focusTheme}
+      {showThemes && p.data.themes.map((t) => <ThemeHalo key={t.key} t={t} active={t.key === focusTheme} label={topThemes.includes(t.key) || t.key === focusTheme}
                                             hot={p.hoverKey === t.key}
                                             onHover={p.onHover} onSelect={p.onSelect} setCursor={p.setCursor} />)}
-      <lineSegments geometry={stems.all}><lineBasicMaterial color="#ffffff" transparent opacity={0.12} /></lineSegments>
-      <lineSegments geometry={stems.hot}><lineBasicMaterial color="#ffffff" transparent opacity={0.7} /></lineSegments>
-      {areas.map(({ a, at }) => <Diamond key={a.key} a={a} at={at} active={focusArea === a.key} hot={p.hoverKey === a.key}
+      {showAreas && <lineSegments geometry={stems.all}><lineBasicMaterial color="#ffffff" transparent opacity={0.12} /></lineSegments>}
+      {showAreas && <lineSegments geometry={stems.hot}><lineBasicMaterial color="#ffffff" transparent opacity={0.7} /></lineSegments>}
+      {showAreas && areas.map(({ a, at }) => <Diamond key={a.key} a={a} at={at} active={focusArea === a.key} hot={p.hoverKey === a.key}
                                          onHover={p.onHover} onSelect={p.onSelect} setCursor={p.setCursor} />)}
       {arcs.map((l, i) => <primitive key={`${focusTheme}-${i}`} object={l} />)}
     </FadeIn>

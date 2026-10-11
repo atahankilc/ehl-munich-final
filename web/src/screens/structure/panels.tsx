@@ -1,10 +1,11 @@
 // Page 2 overlays: the stage funnel (top-left), inspector bodies for clusters, themes and potential requirements,
 // and the list of signals the AI extracted from one source (also shown on page 1 when a comment is opened).
 import { useQuery } from "@tanstack/react-query";
-import { ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { api } from "@/lib/api";
 import type { SignalRow, StructurePayload, TrackState } from "@/lib/types";
 import { useCheckpoint } from "@/state/checkpoint";
+import { STAGE_LABEL, atLeast, type Stage } from "./stages";
 import "./structure.css";
 
 const fmt = (n: unknown) => (typeof n === "number" ? n.toLocaleString("en-US") : "–");
@@ -16,7 +17,17 @@ export function StateMark({ state }: { state: TrackState | null | undefined }) {
 }
 
 /* ------------------------------------------------------------------------------------------- funnel */
-export function Funnel({ data }: { data: StructurePayload | undefined }) {
+// what each step shows in the volume, one line (the full explanation sits on the Agent panel's stage bar)
+const STEP_NOTE: Record<Stage, string> = {
+  classify: "Comments stay in place; the ones turned into signals light up",
+  cluster: "Signals grouped into clusters, not yet named",
+  contextualize: "Clusters named and grouped into themes, linked to evidence",
+  areas: "Themes grouped into requirement areas",
+};
+
+export function Funnel({ data, stage, done, onStage, onStep }: {
+  data: StructurePayload | undefined; stage: Stage; done: Stage[]; onStage: (s: Stage) => void; onStep: (d: -1 | 1) => void;
+}) {
   const { position } = useCheckpoint();
   if (!data?.ready) {
     return (
@@ -30,17 +41,22 @@ export function Funnel({ data }: { data: StructurePayload | undefined }) {
   const clusters = data.clusters.filter((c) => !c.tail && c.comments > 0);
   const areas = data.areas.filter((a) => a.kind !== "quality");
   const signals = (data.funnel.cluster?.signals as number | undefined) ?? undefined;
-  const cells = [
-    { label: "Signals", n: signals, sub: null },
-    { label: "Clusters", n: clusters.length, sub: { nu: newOf(clusters), ch: changed(clusters) } },
-    { label: "Themes", n: data.themes.length, sub: { nu: newOf(data.themes), ch: changed(data.themes) } },
-    { label: "Requirement areas", n: areas.length, sub: { nu: newOf(areas), ch: changed(areas) } },
+  const cells: { stage: Stage; label: string; n: number | undefined; sub: { nu: number; ch: number } | null }[] = [
+    { stage: "classify", label: "Signals", n: signals, sub: null },
+    { stage: "cluster", label: "Clusters", n: clusters.length, sub: { nu: newOf(clusters), ch: changed(clusters) } },
+    { stage: "contextualize", label: "Themes", n: data.themes.length, sub: { nu: newOf(data.themes), ch: changed(data.themes) } },
+    { stage: "areas", label: "Requirement areas", n: areas.length, sub: { nu: newOf(areas), ch: changed(areas) } },
   ];
+  const at = done.indexOf(stage);
   return (
+    <div className="funnel-wrap">
     <dl className="funnel" aria-label="What the AI made of the evidence">
       {cells.map((c, i) => (
-        <div key={c.label} className="funnel-cell">
-          <dt className="label">{c.label}</dt>
+        <div key={c.label} className="funnel-cell" data-ahead={!atLeast(stage, c.stage) ? "" : undefined} data-current={c.stage === stage ? "" : undefined}>
+          <dt className="label">
+            <button type="button" className="funnel-pick" disabled={!done.includes(c.stage)} aria-pressed={c.stage === stage}
+                    onClick={() => onStage(c.stage)} title={`Show the structure after ${STAGE_LABEL[c.stage]}`}>{c.label}</button>
+          </dt>
           <dd>
             <span className="num">{fmt(c.n)}</span>
             {c.sub && (c.sub.nu > 0 || c.sub.ch > 0) && (
@@ -54,6 +70,14 @@ export function Funnel({ data }: { data: StructurePayload | undefined }) {
         </div>
       ))}
     </dl>
+    <div className="funnel-step" role="group" aria-label="Step through the stages">
+      <button type="button" onClick={() => onStep(-1)} disabled={at <= 0} aria-label="Previous stage" title="Previous stage ([)"><ChevronLeft size={14} /></button>
+      <span className="funnel-step-n num">{at + 1}/{done.length}</span>
+      <button type="button" onClick={() => onStep(1)} disabled={at >= done.length - 1} aria-label="Next stage" title="Next stage (])"><ChevronRight size={14} /></button>
+      <span className="funnel-step-name">{STAGE_LABEL[stage]}</span>
+      <span className="funnel-step-note" aria-live="polite">{STEP_NOTE[stage]}</span>
+    </div>
+    </div>
   );
 }
 

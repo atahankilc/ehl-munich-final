@@ -12,6 +12,7 @@ import type { PointsPayload, ResearchItem, Selection, SourcesPayload, StructureP
 import { StructureLayer } from "../structure/StructureLayer";
 import { ClassifyPulse } from "../structure/ClassifyPulse";
 import { passOption, passResearch, passSales, passStudy, type Filter } from "./filter";
+import type { Stage } from "../structure/stages";
 import { Navigator, SpreadCtx, spreadOf, useSpread, type NavInput } from "./navigate";
 import { CARS, CAR_NAME, LINES, LINE_CODES, MARKET_NAME, R, SWEEP_START, TAU, TIME_START, lineSector, optionLayout, polar, sector, studyLayout, timeAngle } from "./layout";
 
@@ -210,6 +211,8 @@ interface SceneProps {
   filter?: Filter | null;
   /** layout scale of the whole universe (navigate.tsx) */
   spread?: number;
+  /** page 2: the pipeline stage in view; classify keeps the comments where they are */
+  stage?: Stage;
   /** the pad's hold-to-fly buttons and reset */
   nav: MutableRefObject<NavInput>;
 }
@@ -266,7 +269,7 @@ export function Scene(p: SceneProps) {
   }, [comments, p.points, p.structure]);
   const morph = useRef(0);
   useFrame((_, dt) => {
-    const goal = p.mode === "structure" && p.structure?.ready ? 1 : 0;
+    const goal = p.mode === "structure" && p.structure?.ready && p.stage !== "classify" ? 1 : 0;
     if (morph.current === goal) return;
     const step = dt / 1.6;
     morph.current = goal > morph.current ? Math.min(goal, morph.current + step) : Math.max(goal, morph.current - step);
@@ -361,7 +364,7 @@ export function Scene(p: SceneProps) {
   /* picking */
   const first = (e: ThreeEvent<PointerEvent | MouseEvent>, ok: (i: number) => boolean) =>
     e.intersections.find((h) => h.object === e.object && h.index != null && ok(h.index))?.index ?? null;
-  const commentOk = (i: number) => p.mode !== "structure" && p.mask[i] === 1 && p.points.cols.cp[i] <= p.position;
+  const commentOk = (i: number) => (p.mode !== "structure" || p.stage === "classify") && p.mask[i] === 1 && p.points.cols.cp[i] <= p.position;
   const researchOk = (i: number) => researchSel[i] && (research.items[i]?.new ? 2 : 1) <= p.position;
   const at = (g: THREE.BufferGeometry, i: number): [number, number, number] => {
     const a = g.getAttribute("position");
@@ -491,7 +494,7 @@ export function Scene(p: SceneProps) {
       }} />
       <group ref={sweepRef} visible={false}><SweepBlade /></group>
       {p.structure?.ready && (
-        <StructureLayer data={p.structure} morph={morph} dpr={dpr * spread.grow} selected={p.selected ?? null} hoverKey={p.hoverKey ?? null}
+        <StructureLayer data={p.structure} morph={morph} stage={p.stage ?? "areas"} dpr={dpr * spread.grow} selected={p.selected ?? null} hoverKey={p.hoverKey ?? null}
                         ends={ends} onHover={p.onStructureHover ?? (() => {})} onSelect={p.onSelect} setCursor={setCursor} />
       )}
       {p.mode === "structure" && p.locked && p.focus == null && <Reticle at={p.locked} />}
