@@ -14,7 +14,7 @@
 | Storage | **SQLite**, one file `data/app.db` | D-016 |
 | Graph | **No graph DB**; relational link tables + graph view in the UI | D-017 |
 | Vector store / RAG | **sqlite-vec** in the same SQLite file; every vector row carries its source ID | D-018 |
-| UI | **Streamlit** (`app.py`) | D-019 |
+| UI | **React + TypeScript (Vite) + three.js/react-three-fiber** (`web/`) over a **FastAPI** JSON layer (`api/`, 127.0.0.1:8600); Streamlit `app.py` kept until retired | D-039 (supersedes D-019) |
 | OpenAI call path | OpenAI Python SDK, Responses API, inside `bmw_req.llm` (incl. `web_search`) | D-020 |
 | Structured output | Pydantic models → `responses.parse` | D-020 |
 | Tests | `pytest`, no paid calls | D-020 |
@@ -46,7 +46,7 @@
 - API/connection errors settle at $0; any other failure after the request (e.g. parse error) keeps the worst case.
 - A crashed process leaves a `reserved` row that keeps counting — settle or delete it by hand.
 - Identical requests (same model, prompt, schema, params) are served from `llm_cache` at $0; pass `use_cache=False` to force a new call.
-- Streamlit `app.py` shows spend, committed and the usage log.
+- The Process → System screen (and `GET /api/budget`) shows spend, committed and the usage log.
 
 ## Local machine notes
 

@@ -1,0 +1,630 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-11T00:33:36.576613+00:00",
+  "title": "Design System: Successor",
+  "extensions": {
+    "colorMeta": {
+      "cabin-black": {
+        "role": "neutral",
+        "displayName": "Cabin Black",
+        "canonical": "#08090b",
+        "tonalRamp": [
+          "#1a1d23",
+          "#2f3541",
+          "#475061",
+          "#616d85",
+          "#808ca3",
+          "#a3acbc",
+          "#c7ccd6",
+          "#eaecf0"
+        ]
+      },
+      "panel-glass": {
+        "role": "neutral",
+        "displayName": "Panel Glass",
+        "canonical": "#0e1014",
+        "tonalRamp": [
+          "#191d24",
+          "#2e3542",
+          "#454f63",
+          "#5e6c87",
+          "#7e8ba5",
+          "#a2abbe",
+          "#c6ccd7",
+          "#eaecf0"
+        ]
+      },
+      "panel-raised": {
+        "role": "neutral",
+        "displayName": "Panel Raised",
+        "canonical": "#12151a",
+        "tonalRamp": [
+          "#191d24",
+          "#2e3642",
+          "#455063",
+          "#5e6e88",
+          "#7d8ca5",
+          "#a2acbe",
+          "#c6ccd7",
+          "#eaecf0"
+        ]
+      },
+      "hover": {
+        "role": "neutral",
+        "displayName": "Hover",
+        "canonical": "#171b22",
+        "tonalRamp": [
+          "#191d25",
+          "#2d3543",
+          "#445064",
+          "#5d6d89",
+          "#7c8ca7",
+          "#a1acbf",
+          "#c5ccd8",
+          "#eaecf1"
+        ]
+      },
+      "press": {
+        "role": "neutral",
+        "displayName": "Press",
+        "canonical": "#1c212a",
+        "tonalRamp": [
+          "#181d25",
+          "#2d3543",
+          "#434f65",
+          "#5c6c8a",
+          "#7b8ba7",
+          "#a0abc0",
+          "#c5ccd8",
+          "#eaecf1"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#1d2027",
+        "tonalRamp": [
+          "#1a1d23",
+          "#303540",
+          "#484f61",
+          "#626c84",
+          "#818ba1",
+          "#a4abbc",
+          "#c7ccd6",
+          "#ebecf0"
+        ]
+      },
+      "hairline-strong": {
+        "role": "neutral",
+        "displayName": "Hairline Strong",
+        "canonical": "#2a2f39",
+        "tonalRamp": [
+          "#1a1d23",
+          "#303541",
+          "#475061",
+          "#616d84",
+          "#818ca2",
+          "#a4acbc",
+          "#c7ccd6",
+          "#eaecf0"
+        ]
+      },
+      "field-well": {
+        "role": "neutral",
+        "displayName": "Field Well",
+        "canonical": "#0a0c0f",
+        "tonalRamp": [
+          "#181d25",
+          "#2d3643",
+          "#435165",
+          "#5c6e8a",
+          "#7b8da7",
+          "#a0adc0",
+          "#c5cdd8",
+          "#eaecf1"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Text",
+        "canonical": "#e8ebf0",
+        "tonalRamp": [
+          "#181d25",
+          "#2c3544",
+          "#425066",
+          "#5b6d8b",
+          "#7a8ca8",
+          "#9facc1",
+          "#c4ccd9",
+          "#e9ecf1"
+        ]
+      },
+      "text-2": {
+        "role": "neutral",
+        "displayName": "Text 2",
+        "canonical": "#b9c0cb",
+        "tonalRamp": [
+          "#1a1e23",
+          "#303640",
+          "#485161",
+          "#626f84",
+          "#818ea2",
+          "#a4adbc",
+          "#c7cdd6",
+          "#ebedf0"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "canonical": "#8b94a4",
+        "tonalRamp": [
+          "#1b1e22",
+          "#31363f",
+          "#4a515e",
+          "#656f81",
+          "#848e9f",
+          "#a6adb9",
+          "#c9cdd4",
+          "#ebedef"
+        ]
+      },
+      "faint": {
+        "role": "neutral",
+        "displayName": "Faint",
+        "canonical": "#636c7c",
+        "tonalRamp": [
+          "#1b1e22",
+          "#32363e",
+          "#4b525e",
+          "#666f80",
+          "#858e9e",
+          "#a7adb9",
+          "#c9cdd4",
+          "#ebedef"
+        ]
+      },
+      "decision-blue": {
+        "role": "primary",
+        "displayName": "Decision Blue",
+        "canonical": "#1c69d4",
+        "tonalRamp": [
+          "#071b36",
+          "#0d3163",
+          "#144a95",
+          "#1b64cb",
+          "#3d84e5",
+          "#73a6ed",
+          "#a9c8f4",
+          "#dfebfb"
+        ]
+      },
+      "decision-blue-hi": {
+        "role": "primary",
+        "displayName": "Instrument Blue",
+        "canonical": "#4d94ff",
+        "tonalRamp": [
+          "#00183d",
+          "#002d70",
+          "#0043a8",
+          "#005ce6",
+          "#247bff",
+          "#61a0ff",
+          "#9ec5ff",
+          "#dbeaff"
+        ]
+      },
+      "decision-blue-ink": {
+        "role": "primary",
+        "displayName": "Blue Ink",
+        "canonical": "#a9cbff",
+        "tonalRamp": [
+          "#00183d",
+          "#002c70",
+          "#0043a8",
+          "#005be6",
+          "#247aff",
+          "#619fff",
+          "#9ec4ff",
+          "#dbe9ff"
+        ]
+      },
+      "should-steel": {
+        "role": "primary",
+        "displayName": "Should Steel",
+        "canonical": "#3f6fb0",
+        "tonalRamp": [
+          "#101c2d",
+          "#1e3453",
+          "#2c4e7c",
+          "#3c6ba9",
+          "#5e8ac5",
+          "#8baad5",
+          "#b8cbe5",
+          "#e5ecf6"
+        ]
+      },
+      "telltale-amber": {
+        "role": "secondary",
+        "displayName": "Telltale Amber",
+        "canonical": "#f5a524",
+        "tonalRamp": [
+          "#3b2503",
+          "#6b4405",
+          "#a16607",
+          "#db8b0a",
+          "#f5a92d",
+          "#f8c168",
+          "#fbd9a2",
+          "#fdf1dd"
+        ]
+      },
+      "telltale-amber-ink": {
+        "role": "secondary",
+        "displayName": "Amber Ink",
+        "canonical": "#fbd38a",
+        "tonalRamp": [
+          "#3b2702",
+          "#6c4704",
+          "#a36b06",
+          "#de9208",
+          "#f8af2b",
+          "#fac666",
+          "#fcdca1",
+          "#fef2dc"
+        ]
+      },
+      "telltale-red": {
+        "role": "secondary",
+        "displayName": "Telltale Red",
+        "canonical": "#ff5a5f",
+        "tonalRamp": [
+          "#3d0002",
+          "#700003",
+          "#a80005",
+          "#e60007",
+          "#ff242a",
+          "#ff6166",
+          "#ff9ea1",
+          "#ffdbdc"
+        ]
+      },
+      "telltale-red-ink": {
+        "role": "secondary",
+        "displayName": "Red Ink",
+        "canonical": "#ffb3b5",
+        "tonalRamp": [
+          "#3d0002",
+          "#700003",
+          "#a80004",
+          "#e60006",
+          "#ff2429",
+          "#ff6165",
+          "#ff9ea1",
+          "#ffdbdc"
+        ]
+      },
+      "telltale-green": {
+        "role": "secondary",
+        "displayName": "Telltale Green",
+        "canonical": "#3ccf91",
+        "tonalRamp": [
+          "#0c3121",
+          "#165a3d",
+          "#21875c",
+          "#2db87e",
+          "#4fd49c",
+          "#80e0b7",
+          "#b1ecd3",
+          "#e2f8ef"
+        ]
+      },
+      "telltale-green-ink": {
+        "role": "secondary",
+        "displayName": "Green Ink",
+        "canonical": "#a6ecc9",
+        "tonalRamp": [
+          "#0b321f",
+          "#145c38",
+          "#1e8b54",
+          "#28bd73",
+          "#4ad891",
+          "#7de3b0",
+          "#afeecf",
+          "#e2f9ed"
+        ]
+      },
+      "telltale-violet": {
+        "role": "secondary",
+        "displayName": "Telltale Violet",
+        "canonical": "#a78bfa",
+        "tonalRamp": [
+          "#11033b",
+          "#1f056c",
+          "#2e07a1",
+          "#3f09dc",
+          "#602df6",
+          "#8c67f8",
+          "#b9a2fb",
+          "#e5ddfe"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "instrument": {
+        "displayName": "Instrument",
+        "purpose": "Genuine readouts only: score arcs, budget, counts that matter. Wide 118%, light 300, white."
+      },
+      "display": {
+        "displayName": "Display",
+        "purpose": "Briefing headline; decision workspace title at 30px."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page titles."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section and drawer titles; panel heads at 14px."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default text; tables 13px."
+      },
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "Briefing paragraph, page lede, customer-need text."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Field and section labels, table headers."
+      },
+      "micro": {
+        "displayName": "Micro",
+        "purpose": "Chips, priority marks, captions."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow-1",
+        "value": "0 1px 2px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.35)",
+        "purpose": "Decision panel, chart tooltips."
+      },
+      {
+        "name": "shadow-2",
+        "value": "0 2px 6px rgba(0,0,0,0.55), 0 24px 60px rgba(0,0,0,0.55)",
+        "purpose": "Floating layers: dock, drawer, palette, toasts, Story card."
+      },
+      {
+        "name": "inset-hairline",
+        "value": "inset 0 0 0 1px #2a2f39",
+        "purpose": "Borders that do not change box size: outlined chips, selected segment, wells."
+      },
+      {
+        "name": "glass-blur",
+        "value": "backdrop-filter: saturate(140-150%) blur(14-18px)",
+        "purpose": "Status band, dock, Story card, toasts."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Arrivals, arc fills, camera and drawer settle."
+      },
+      {
+        "name": "ease-inout",
+        "value": "cubic-bezier(0.65, 0, 0.35, 1)",
+        "purpose": "Loops such as skeleton shimmer."
+      },
+      {
+        "name": "t-fast",
+        "value": "140ms",
+        "purpose": "Hover, press, colour changes."
+      },
+      {
+        "name": "t-med",
+        "value": "260ms",
+        "purpose": "Panels, pins, drawers."
+      },
+      {
+        "name": "t-slow",
+        "value": "520ms",
+        "purpose": "Gauge fills and larger transitions."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "all durations 0ms",
+        "purpose": "prefers-reduced-motion: reduce."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "phone",
+        "value": "420px"
+      },
+      {
+        "name": "compact",
+        "value": "720px / 760px"
+      },
+      {
+        "name": "dock-labels",
+        "value": "860px"
+      },
+      {
+        "name": "single-column",
+        "value": "1000px / 1100px"
+      },
+      {
+        "name": "band-trim",
+        "value": "1080px"
+      },
+      {
+        "name": "workspace-stack",
+        "value": "1280px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one main action per view; solid decision blue.",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Record decision</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border-radius:7px;font-size:13px;font-weight:550;font-family:var(--font,'Mona Sans Variable',system-ui,sans-serif);font-variant-numeric:proportional-nums;color:#e8ebf0;background:#12151a;border:1px solid #2a2f39;cursor:pointer;transition:background 140ms,border-color 140ms,transform 140ms}.ds-btn:hover{background:#171b22;border-color:#353b47}.ds-btn:active{transform:translateY(1px);background:#1c212a}.ds-btn:focus-visible{outline:2px solid #4d94ff;outline-offset:2px}.ds-btn-primary{background:#1c69d4;border-color:#1c69d4;color:#fff}.ds-btn-primary:hover{background:#2477ea;border-color:#2477ea}"
+    },
+    {
+      "name": "Default Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Quiet raised key for secondary actions.",
+      "html": "<button class=\"ds-btn\">Defer</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border-radius:7px;font-size:13px;font-weight:550;font-family:var(--font,'Mona Sans Variable',system-ui,sans-serif);font-variant-numeric:proportional-nums;color:#e8ebf0;background:#12151a;border:1px solid #2a2f39;cursor:pointer;transition:background 140ms,border-color 140ms,transform 140ms}.ds-btn:hover{background:#171b22;border-color:#353b47}.ds-btn:active{transform:translateY(1px);background:#1c212a}.ds-btn:focus-visible{outline:2px solid #4d94ff;outline-offset:2px}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Tertiary action without a frame.",
+      "html": "<button class=\"ds-btn ds-btn-ghost\">Ask the AI</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border-radius:7px;font-size:13px;font-weight:550;font-family:var(--font,'Mona Sans Variable',system-ui,sans-serif);font-variant-numeric:proportional-nums;color:#e8ebf0;background:#12151a;border:1px solid #2a2f39;cursor:pointer;transition:background 140ms,border-color 140ms,transform 140ms}.ds-btn:hover{background:#171b22;border-color:#353b47}.ds-btn:active{transform:translateY(1px);background:#1c212a}.ds-btn:focus-visible{outline:2px solid #4d94ff;outline-offset:2px}.ds-btn-ghost{background:transparent;border-color:transparent;color:#b9c0cb}.ds-btn-ghost:hover{background:#171b22;border-color:transparent;color:#e8ebf0}"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Recessed field well; blue border on focus.",
+      "html": "<input class=\"ds-input\" placeholder=\"Why: evidence, trade-off, market\" />",
+      "css": ".ds-input{width:280px;height:36px;padding:0 12px;background:#0a0c0f;border:1px solid #2a2f39;border-radius:7px;color:#e8ebf0;font-size:13.5px;font-family:var(--font,'Mona Sans Variable',system-ui,sans-serif);font-variant-numeric:proportional-nums;caret-color:#4d94ff;transition:border-color 140ms,background 140ms}.ds-input::placeholder{color:#636c7c}.ds-input:hover{border-color:#363c48}.ds-input:focus{outline:none;border-color:#4d94ff;background:#0b0e13}"
+    },
+    {
+      "name": "Chips",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Wash-plus-ink tags and delta chips.",
+      "html": "<span class=\"ds-chip\">Expected</span> <span class=\"ds-chip ds-up\">+4.2</span> <span class=\"ds-chip ds-warn\">small sample</span> <span class=\"ds-chip ds-blue\">AI</span>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:6px;font-size:11.5px;font-weight:600;font-family:var(--font,'Mona Sans Variable',system-ui,sans-serif);font-variant-numeric:proportional-nums;background:rgba(255,255,255,.06);color:#b9c0cb}.ds-up{background:rgba(60,207,145,.13);color:#a6ecc9}.ds-warn{background:rgba(245,165,36,.13);color:#fbd38a}.ds-blue{background:rgba(28,105,212,.16);color:#a9cbff}"
+    },
+    {
+      "name": "Priority Mark",
+      "kind": "custom",
+      "refersTo": "priority-must",
+      "description": "Filled = PM-confirmed; dashed + AI = AI suggestion.",
+      "html": "<span class=\"ds-pm ds-must\">Must</span> <span class=\"ds-pm ds-should\">Should</span> <span class=\"ds-pm ds-must ds-ai\">Must <i>AI</i></span> <span class=\"ds-pm ds-should ds-ai\">Should <i>AI</i></span>",
+      "css": ".ds-pm{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 9px;border-radius:6px;font-size:11.5px;font-weight:650;font-family:var(--font,'Mona Sans Variable',system-ui,sans-serif);font-variant-numeric:proportional-nums;font-stretch:104%}.ds-must{background:#1c69d4;color:#fff}.ds-should{color:#a9cbff;box-shadow:inset 0 0 0 1px rgba(77,148,255,.45)}.ds-ai{box-shadow:none;outline:1px dashed currentColor;outline-offset:-1px}.ds-must.ds-ai{background:rgba(28,105,212,.16);color:#a9cbff;outline-color:#4d94ff}.ds-should.ds-ai{outline-color:rgba(77,148,255,.45)}.ds-pm i{font-style:normal;font-size:9px;font-weight:700;letter-spacing:.06em;opacity:.8}"
+    },
+    {
+      "name": "Evidence Meter + Score Bar",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "Signal bars for evidence; 0-100 bar ticked at Should 45 and Must 60.",
+      "html": "<span class=\"ds-ev\"><i class=\"on\" style=\"height:4px\"></i><i class=\"on\" style=\"height:7px\"></i><i class=\"on\" style=\"height:10px\"></i><i style=\"height:13px\"></i></span> <span class=\"ds-sb\"><span class=\"ds-tr\"><span class=\"ds-fill\" style=\"width:72%\"></span><span class=\"ds-tk\" style=\"left:45%\"></span><span class=\"ds-tk\" style=\"left:60%\"></span></span><b>72</b></span>",
+      "css": ".ds-ev{display:inline-flex;align-items:flex-end;gap:2px;height:13px;vertical-align:middle}.ds-ev i{display:block;width:3px;border-radius:1px;background:#2a2f39}.ds-ev i.on{background:#3ccf91}.ds-sb{display:inline-flex;align-items:center;gap:8px;margin-left:16px;font-family:var(--font,'Mona Sans Variable',system-ui,sans-serif);font-variant-numeric:proportional-nums;}.ds-tr{position:relative;width:96px;height:4px;border-radius:2px;background:#1e222a}.ds-fill{position:absolute;left:0;top:0;bottom:0;border-radius:2px;background:#4d94ff}.ds-tk{position:absolute;top:-2px;width:1px;height:8px;background:#545c6b}.ds-sb b{font-weight:400;font-size:12.5px;color:#b9c0cb}"
+    },
+    {
+      "name": "Telltales",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "Status lights: dot plus word.",
+      "html": "<span class=\"ds-tt\" style=\"--tt:#4d94ff\">To review</span> <span class=\"ds-tt\" style=\"--tt:#3ccf91\">Approved</span> <span class=\"ds-tt\" style=\"--tt:#f5a524\">Deferred</span> <span class=\"ds-tt\" style=\"--tt:#ff5a5f\">Rejected</span> <span class=\"ds-tt\" style=\"--tt:#a78bfa\">Challenged</span>",
+      "css": ".ds-tt{display:inline-flex;align-items:center;gap:7px;margin-right:14px;font-size:12px;color:#b9c0cb;font-family:var(--font,'Mona Sans Variable',system-ui,sans-serif);font-variant-numeric:proportional-nums;}.ds-tt::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--tt);box-shadow:0 0 0 3px color-mix(in srgb,var(--tt) 22%,transparent)}"
+    },
+    {
+      "name": "Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "The single container level; hairline-bordered glass.",
+      "html": "<section class=\"ds-panel\"><div class=\"ds-ph\"><h2>Priority by car &amp; market</h2><span>Must &ge; 60 &middot; Should &ge; 45</span></div><div class=\"ds-pb\">5 Series LWB &middot; China</div></section>",
+      "css": ".ds-panel{width:360px;background:#0e1014;border:1px solid #1d2027;border-radius:12px;color:#e8ebf0;font-family:var(--font,'Mona Sans Variable',system-ui,sans-serif);font-variant-numeric:proportional-nums;}.ds-ph{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px 0;min-height:44px}.ds-ph h2{margin:0;font-size:14px;font-weight:600}.ds-ph span{font-size:12px;color:#8b94a4}.ds-pb{padding:14px 18px 18px;font-size:14px}"
+    },
+    {
+      "name": "Floating Dock",
+      "kind": "nav",
+      "refersTo": "dock-item",
+      "description": "Bottom-centre translucent navigation with an active pad and count badge.",
+      "html": "<nav class=\"ds-dock\"><a>Briefing</a><a class=\"on\">Decide <b>48</b></a><a>Cars</a><a>Markets</a><a>Evidence</a><a>Process</a></nav>",
+      "css": ".ds-dock{display:inline-flex;gap:2px;padding:5px;background:rgba(20,23,29,.82);border:1px solid rgba(255,255,255,.07);border-radius:16px;backdrop-filter:blur(18px) saturate(150%);box-shadow:0 2px 6px rgba(0,0,0,.55),0 24px 60px rgba(0,0,0,.55);font-family:var(--font,'Mona Sans Variable',system-ui,sans-serif);font-variant-numeric:proportional-nums;}.ds-dock a{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 13px;border-radius:11px;color:#8b94a4;font-size:12.5px;font-weight:550;cursor:pointer;transition:color 140ms}.ds-dock a:hover{color:#e8ebf0}.ds-dock a.on{color:#fff;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}.ds-dock b{min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#1c69d4;color:#fff;font-size:10.5px;display:inline-grid;place-items:center}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Cabin at Night",
+    "overview": "Successor is a decision instrument dressed as the interior of the car it decides about: near-black cabin glass, hairline seams, one blue that lights only where a decision or focus lives, and small coloured telltales that report state the way a dashboard does. Numbers are readouts, not decoration; when a figure matters it is set wide and light like a gauge, and every figure can be opened down to the customer's words.\n\nDensity is high but calm (Fey-level restraint): one panel level, rules and whitespace instead of boxes in boxes, 12-14px working text, and a large wide headline only where a screen states its one question. Chrome floats over content rather than framing it: a translucent panoramic status band across the top, a floating dock at the bottom centre, ⌘K for everything, right-hand drawers for detail. The 3D car stage is the canvas for per-zone requirements and shares the same tokens.\n\nRejected by the build: the sidebar-of-pages admin dashboard, the card grid of identical KPI tiles, light mode, BMW logos.",
+    "keyCharacteristics": [
+      "Dark only; cabin black with a faint fixed blue glow in the top-left corner.",
+      "One accent (decision blue) for the primary action, focus, PM-confirmed Must, and the active wave.",
+      "Telltale colours (amber, red, green, violet) carry state, never decoration.",
+      "Mona Sans on its width axis: normal width for reading, wide/light for instrument numerals.",
+      "Proportional figures everywhere; tabular figures are deliberately off.",
+      "One panel level, hairline borders, soft offset shadows only on floating layers."
+    ],
+    "rules": [
+      {
+        "name": "The One Blue Rule",
+        "body": "Blue means decision or focus. Solid Decision Blue appears on at most one action per view plus PM-confirmed Must marks; everything else blue is ink, wash or line.",
+        "section": "colors"
+      },
+      {
+        "name": "The Telltale Rule",
+        "body": "Amber, red, green and violet only report state (conflict, fail, approved, challenged, evidence strength, delta direction). A telltale colour used for decoration is a false warning light.",
+        "section": "colors"
+      },
+      {
+        "name": "The Three-Step Tint Rule",
+        "body": "Every state colour comes as solid (dot, bar, icon), ink (text), and a 13-16% wash (chip or note background). Never put solid-colour text on a wash.",
+        "section": "colors"
+      },
+      {
+        "name": "The Proportional Figures Rule",
+        "body": "All numerals use proportional figures (`font-variant-numeric: proportional-nums`, `zero` and `ss01` off). Mona Sans's tabular set brings a code-style slashed zero; it is never switched on, including in tables and right-aligned columns.",
+        "section": "typography"
+      },
+      {
+        "name": "The Gauge Rule",
+        "body": "Wide light numerals are earned: only a number the PM reads as a measurement (score, budget, count that matters) gets the instrument style. Labels and body numbers stay normal width.",
+        "section": "typography"
+      },
+      {
+        "name": "The No-Kicker Rule",
+        "body": "Headings stand alone: no eyebrow or kicker line above them, no section numbers, no gradient text. Context sits beside or below a title (meta line, chips), not stacked above it.",
+        "section": "typography"
+      },
+      {
+        "name": "The Floating Chrome Rule",
+        "body": "Navigation never takes a column. The band floats on top, the dock floats at the bottom centre, detail opens in a right drawer, search lives in ⌘K. The page itself is all content.",
+        "section": "layout"
+      },
+      {
+        "name": "The Offset-Not-Halo Rule",
+        "body": "Shadows are offset and soft-blurred black, never a coloured glow around an element. Telltale dots get a 3px tinted ring, which is the light's own lens, not a halo.",
+        "section": "elevation"
+      },
+      {
+        "name": "The One Level Rule",
+        "body": "A panel never sits inside a panel. Group inside a panel with whitespace, `.rule` hairlines and type.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use solid Decision Blue for exactly one main action per view and for PM-confirmed Must marks.",
+      "Do show any AI-originated priority as a dashed mark with the \"AI\" tag until a human confirms it.",
+      "Do encode evidence with the four signal bars and scores with a bar or arc ticked at 45 and 60.",
+      "Do report state with telltale dots and wash-plus-ink chips (amber conflict, red fail, green approved, violet challenged).",
+      "Do set numerals in proportional figures; reserve wide (118%) light (300) numerals for genuine readouts.",
+      "Do keep one panel level and group inside it with whitespace, hairline rules and type.",
+      "Do float chrome (band, dock, ⌘K, right drawers) and keep the page all content; clear the band (52px) and dock (104px).",
+      "Do use skeletons for loading, an error note with retry, and empty states that say what to do next.",
+      "Do honour reduced motion; the duration tokens collapse to 0ms."
+    ],
+    "donts": [
+      "Don't add a sidebar of pages or a grid of identical icon-title-number KPI tiles.",
+      "Don't turn on tabular figures or the slashed zero.",
+      "Don't nest a panel inside a panel.",
+      "Don't put a coloured stripe on the side of a card, row or note.",
+      "Don't add eyebrow or kicker labels above headings, section numbers, gradient text or emoji.",
+      "Don't use a telltale colour for decoration, or a coloured glow halo for emphasis.",
+      "Don't introduce a light theme or any BMW logo or trademark.",
+      "Don't show option-list prices."
+    ]
+  }
+}

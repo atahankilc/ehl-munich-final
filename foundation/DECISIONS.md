@@ -24,7 +24,7 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-016 | Storage: SQLite, relational tables | accepted |
 | D-017 | No graph DB; relational links + graph view in the UI | accepted |
 | D-018 | Vector search / RAG: sqlite-vec in the same SQLite file | accepted |
-| D-019 | UI: Streamlit | accepted |
+| D-019 | UI: Streamlit (superseded by D-039) | superseded |
 | D-020 | Scaffold conventions (Python 3.12/uv, OpenAI SDK direct, Pydantic, pytest) | accepted |
 | D-021 | Demo slice G60 × US + G68 × CN; demo table set (Q-017) | accepted |
 | D-022 | Extraction v2 (Q-018 fixes) + `signal` / `verbatim_extraction` tables | accepted |
@@ -43,6 +43,7 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-035 | Later waves dedup new drafts against the whole backlog → `extend` proposals (resolves Q-022) | accepted |
 | D-037 | "How it works" page: one requirement traced through all 8 steps, rule beside concrete effect, score waterfall | accepted |
 | D-038 | Requirements must be product decisions: defects → quality hand-over, strict merging, no-comment markets can't outrank evidenced ones, one priority for Expected needs (amends D-028, D-029) | accepted |
+| D-039 | New PM frontend "Successor": React + three.js (`web/`) over a FastAPI JSON layer (`api/`), redesigned workflow (Briefing → Decide → Cars in 3D → Markets → Evidence → Process), replaces Streamlit (supersedes D-019) | accepted |
 | D-034 | Validation fixes: rejected new requirement → status rejected; stale priority proposals superseded; honest new-requirement cause; Streamlit on localhost | accepted |
 
 Keep this index in sync when adding a decision.
@@ -283,6 +284,7 @@ Template:
 - Consequences: needs a Python build that allows SQLite extension loading (uv's Python 3.12 does).
 
 ## D-019 — UI: Streamlit
+- **Superseded by D-039 (2026-10-11): React + three.js frontend over a FastAPI layer.**
 - Date: 2026-10-10
 - Decided by: Atahan (approved the agent's Q-014 table, which offered "Streamlit or FastAPI + simple frontend"; agent picked Streamlit)
 - Status: accepted
@@ -432,3 +434,14 @@ Template:
   4. Demo rebuilt from the `evidence` snapshot with these rules.
 - Alternatives: hard-filter defect clusters out of derivation (rejected — mixed themes like voice recognition are real capability questions); cap without exception (rejected — China LWB rear-seat comfort is a genuine market difference backed by study + competitors).
 - Consequences: China priorities now rest on China's own study + competitor evidence or stay below evidenced markets; the PM sees "borrowed" and "capped" in the score breakdown and the How-it-works waterfall.
+
+## D-039 — New PM frontend: React + three.js over a FastAPI layer, redesigned around the PM's workflow
+- Date: 2026-10-11 · Decided by: Atahan ("discard this python library and use something more suitable for 3D rendering"; "the pages seem out of workflow … looks like AI slop"; delegated: "be bold"; chose stack, direction "Cockpit", demo-first) · implemented by agent · Status: accepted · Supersedes D-019.
+- Context: the Streamlit app had six overlapping "priority per car × market" views, two diverging decision screens, three pipeline explanations, a buried wave control and could not render real 3D. Atahan pinned Fey (web) as the visual inspiration.
+- Decision:
+  1. **Stack.** `api/` — FastAPI on 127.0.0.1:8600, one shared SQLite connection behind a lock, every write through `bmw_req.service` / `pipeline.scoring` with actor (X-Actor) + rationale, ActionError → 409, long AI work (wave, challenge) as background jobs. `web/` — Vite + React 19 + TypeScript, TanStack Query, react-router, react-three-fiber/drei (three.js) for the car stage, motion, cmdk. No CORS, localhost only (AGENTS rule 1). Built frontend is served by the API (`web/dist`).
+  2. **Workflow / IA** (floating dock, ⌘K everywhere): **Briefing** (what the last wave changed, compiled from the run — no AI call; portfolio pulse car × market; movers; feed) → **Decide** (ONE queue: AI priority changes, merges, requirements to review, AI edits; J/K stepping, A/D/R, reason required, gate override inline, "Ask the AI") → **Cars** (today's car in a 3D studio, requirements pinned on zones, x-ray for interior zones, today's equipment per zone, same-car market comparison, market profile, competitors, plants) → **Markets** (market profile, what it asks of each car, where it disagrees, cited market signals, competitors, study stand-outs) → **Requirement** page (score arc per market, waterfall, history, evidence chain requirement → finding → signal → comment, fit, audit, challenges; "Trace step by step" overlay replaces "How it works") → **Evidence** (findings library, gaps = uncovered themes, quality hand-over) → **Process** (wave timeline + open next wave, runs & weights, audit, deliverable export, system/budget/demo snapshots). **Story mode** ("Present") walks the pitch over the live app.
+  3. **Visual world "Cockpit"**: near-black cabin glass, one BMW-like blue for decisions, telltale colours for state, Mona Sans with wide light numerals as instrument readouts; PM-confirmed priority = filled, AI suggestion = dashed + "AI". No BMW logo; product name "Successor".
+  4. **3D models**: public CC BY Sketchfab models (1 Series "Bmw-1-series 2025" by teenlin3, 5 Series "i5" by akyolefe319, 7 Series "2023 BMW I7 G70" by NazhDesign; G68 shown on the G60 model), files in git-ignored `data/models/` (downloads need a Sketchfab login), attribution on screen. Zones in a normalised car frame (`car_zones.ZONES`), requirements → zones by keyword rules (no LLM); per-model orientation in `car_zones.MODELS_GLTF`. Placeholder car when files are missing.
+- Alternatives: keep Streamlit + embed Sketchfab viewer (rejected by Atahan: not real 3D, workflow problems remain); Next.js (no benefit for a local tool).
+- Consequences: Streamlit `app.py`/`ui/` stay until the new UI is accepted, then are removed. Run: `uv run python -m api` + `cd web && npm run dev` (dev) or `npm run build` then the API alone at http://127.0.0.1:8600. API tests in `tests/test_api.py`. Q-025 (model sourcing/orientation calibration).

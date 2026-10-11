@@ -1,0 +1,13 @@
+html, body, #lab { height: 100%; }
+body { margin: 0; background: #08090b; color: #e8ebf0; font-family: "Mona Sans Variable", system-ui, sans-serif; }
+.lab { position: fixed; inset: 0; display: grid; grid-template-rows: 1fr auto; }
+.lab-stage { position: relative; min-height: 0; }
+.lab-stage--compact { width: 420px; height: 260px; margin: 40px; border: 1px solid #1d2027; border-radius: 12px; overflow: hidden; }
+.lab-strip { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; padding: 10px 16px; border-top: 1px solid #1d2027; background: #0e1014; font-size: 12px; }
+.lab-zones { display: flex; flex-wrap: wrap; gap: 6px; }
+.lab-strip button, .lab-strip input, .lab-strip select { font: inherit; color: inherit; background: #08090b; border: 1px solid #1d2027; border-radius: 6px; padding: 5px 9px; }
+.lab-strip button { cursor: pointer; }
+.lab-strip button.on { border-color: #1c69d4; background: #1c69d4; color: #fff; }
+.lab-model { display: flex; gap: 8px; align-items: center; }
+.lab-model input:not([type]) { width: 260px; }
+.lab-model label { display: flex; gap: 4px; align-items: center; color: #8a93a3; }

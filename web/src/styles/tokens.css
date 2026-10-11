@@ -1,0 +1,76 @@
+/* Successor design tokens — "cockpit": near-black cabin glass, one BMW-like blue for decisions and focus,
+   telltale colours for state. Dark only (PRODUCT.md). */
+:root {
+  color-scheme: dark;
+
+  /* surfaces */
+  --bg: #08090b;
+  --bg-glow: rgba(28, 105, 212, 0.07);
+  --panel: #0e1014;
+  --panel-2: #12151a;
+  --hover: #171b22;
+  --press: #1c212a;
+  --line: #1d2027;
+  --line-2: #2a2f39;
+  --scrim: rgba(4, 5, 7, 0.72);
+
+  /* text */
+  --text: #e8ebf0;
+  --text-2: #b9c0cb;
+  --muted: #8b94a4;
+  --faint: #636c7c;
+
+  /* decision blue */
+  --blue: #1c69d4;
+  --blue-hi: #4d94ff;
+  --blue-ink: #a9cbff;
+  --blue-wash: rgba(28, 105, 212, 0.16);
+  --blue-line: rgba(77, 148, 255, 0.45);
+
+  /* telltales */
+  --amber: #f5a524;
+  --amber-ink: #fbd38a;
+  --amber-wash: rgba(245, 165, 36, 0.13);
+  --red: #ff5a5f;
+  --red-ink: #ffb3b5;
+  --red-wash: rgba(255, 90, 95, 0.13);
+  --green: #3ccf91;
+  --green-ink: #a6ecc9;
+  --green-wash: rgba(60, 207, 145, 0.13);
+  --violet: #a78bfa;
+  --violet-wash: rgba(167, 139, 250, 0.14);
+
+  /* type */
+  --font: "Mona Sans Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --fs-micro: 11px;
+  --fs-small: 12px;
+  --fs-body: 14px;
+  --fs-lead: 16px;
+  --fs-title: 20px;
+  --fs-head: 28px;
+  --fs-display: 44px;
+  --fs-instrument: 64px;
+
+  /* shape & space */
+  --r-ctl: 7px;
+  --r-panel: 12px;
+  --r-sheet: 16px;
+  --band-h: 52px;
+  --dock-clear: 104px;
+  --gutter: 28px;
+
+  /* depth (offset + soft blur, never a halo) */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.55), 0 24px 60px rgba(0, 0, 0, 0.55);
+
+  /* motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --t-fast: 140ms;
+  --t-med: 260ms;
+  --t-slow: 520ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --t-fast: 0ms; --t-med: 0ms; --t-slow: 0ms; }
+}

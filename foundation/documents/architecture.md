@@ -123,3 +123,15 @@ Requirement IDs are global (`REQ-0001`); scope lives in `requirement_target`, so
 - **Priority history** — timeline per requirement across prioritization runs, each move annotated with its cause (new evidence, weight change, PM decision).
 - **Change inbox** — open AI change proposals after a new ingest batch; PM accepts/rejects with rationale.
 - **Market conflict view** — requirements whose priority diverges strongly between markets, with realization options.
+
+## PM frontend (D-039, supersedes the Streamlit layout above)
+
+`web/` (React + three.js) over `api/` (FastAPI, localhost). Workflow, one destination per PM job:
+- **Briefing** — what the last wave changed (compiled from the latest run, no AI), portfolio pulse car × market, movers, event feed.
+- **Decide** — one queue for everything needing a human: AI priority changes, merges (`extend`), requirements to review, AI content/evidence edits. Reason required; brand-gate override inline; "Ask the AI" = challenge job.
+- **Cars** — today's car in 3D (glTF in `data/models/`), requirements pinned to zones (`car_zones`), market switch, same-car market comparison, market profile, competitors, plants, today's equipment per zone.
+- **Markets** — profile, what the market asks of each car, where it disagrees, cited signals, competitors, study stand-outs.
+- **Requirement** — score per market (arc), waterfall, history across runs, evidence chain requirement → finding → signal → comment, fit, audit, challenges, "Trace step by step".
+- **Evidence** — findings library, gaps (uncovered themes), quality hand-over. **Process** — wave timeline + open next wave (job), runs & weights, audit, deliverable export, budget, demo snapshots.
+Writes go only through `bmw_req.service` / `pipeline.scoring` (actor from `X-Actor`, rationale ≥5 chars, ActionError → 409); audit rules unchanged.
+

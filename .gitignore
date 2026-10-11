@@ -13,3 +13,10 @@ __pycache__/
 
 # Derived data & local DB (D-002)
 data/
+
+# web frontend
+web/node_modules/
+web/dist/
+
+# design review captures contain confidential customer quotes
+.impeccable/review/

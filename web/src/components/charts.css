@@ -1,0 +1,29 @@
+.hchart { position: relative; }
+.hchart svg { display: block; overflow: visible; }
+.hc-grid { stroke: #161a20; stroke-width: 1; }
+.hc-band { stroke: #343b47; stroke-width: 1; stroke-dasharray: 3 4; }
+.hc-axis { fill: var(--faint); font-size: 10.5px; font-family: var(--font); }
+.hc-line { fill: none; stroke: #3a414e; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.hc-dot { fill: #3a414e; cursor: pointer; }
+.hc-s.focus .hc-line { stroke: var(--blue-hi); stroke-width: 2.2; }
+.hc-s.focus .hc-dot { fill: var(--blue-hi); }
+.hc-end { fill: var(--blue-ink); font-size: 11px; font-family: var(--font); font-variant-numeric: proportional-nums; }
+.hc-tip {
+  position: absolute; left: 30px; top: 0; padding: 8px 10px; border-radius: 8px; max-width: 420px;
+  background: rgba(20, 23, 29, 0.96); border: 1px solid var(--line-2); font-size: 12px; box-shadow: var(--shadow-1); pointer-events: none;
+}
+
+.wf { display: flex; flex-direction: column; gap: 7px; }
+.wf-row { display: grid; grid-template-columns: 190px minmax(0, 1fr) 54px; gap: 12px; align-items: center; font-size: 12.5px; }
+.wf-label { color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wf-track { position: relative; height: 12px; }
+.wf-bar { position: absolute; top: 2px; bottom: 2px; border-radius: 2px; background: #3f6fb0; }
+.wf-c .wf-bar { background: var(--amber); opacity: 0.85; }
+.wf-m .wf-bar { background: #6a7282; }
+.wf-t { margin-top: 4px; padding-top: 9px; border-top: 1px solid var(--line); }
+.wf-t .wf-label { color: var(--text); font-weight: 600; }
+.wf-t .wf-bar { background: var(--blue-hi); top: 0; bottom: 0; }
+.wf-guide { position: absolute; top: -4px; bottom: -4px; width: 1px; background: #8892a2; }
+.wf-val { text-align: right; color: var(--text-2); }
+.wf-t .wf-val { color: #fff; font-weight: 600; }
+@media (max-width: 640px) { .wf-row { grid-template-columns: 120px minmax(0, 1fr) 46px; } }

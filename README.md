@@ -13,7 +13,10 @@ Portfolio-level from day one: 1 Series (F70), 5 Series (G60 + China LWB G68), 7 
 ```bash
 uv sync                                   # Python 3.12 venv
 cp .env.example .env                      # add OPENAI_API_KEY (LLM provider: OpenAI)
-uv run streamlit run app.py               # PM app on http://localhost:8501
+uv run python -m api                      # API on http://127.0.0.1:8600 (serves web/dist when built)
+cd web && npm install && npm run dev      # PM app (dev) on http://127.0.0.1:5173
+cd web && npm run build                   # then the API alone serves the app at http://127.0.0.1:8600
+uv run streamlit run app.py               # legacy Streamlit app (being retired, D-039)
 ```
 
 The raw BMW data (`challange information document/`) and the database (`data/app.db`) are git-ignored.

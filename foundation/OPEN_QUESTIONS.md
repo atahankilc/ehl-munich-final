@@ -4,6 +4,11 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
 
 ## Open
 
+### Q-025 — 3D models for the Cars screen (D-039)
+- Owner: Atahan · not blocking (placeholder car renders without them)
+- Context: the Cars screen renders public, fan-made CC BY Sketchfab models (attribution on screen): 1 Series "Bmw-1-series 2025" (teenlin3, AI-generated mesh, 500k tris), 5 Series "i5" (akyolefe319), 7 Series "2023 BMW I7 G70" (NazhDesign). Downloads need a Sketchfab login (the agent may not log in), so the files must be placed in `data/models/{f70,g60,g70}.glb` (or `<name>/scene.gltf`). Each model's axis orientation in `car_zones.MODELS_GLTF` is provisional until checked visually. For real use BMW would supply its own visualisation assets.
+- Update 2026-10-11: Atahan downloaded the three GLBs; copied (not moved — raw folder is read-only) to `data/models/{f70,g60,g70}.glb`; orientations set in `car_zones.MODELS_GLTF` (files carry a Z-up→Y-up root matrix → F70/G70 front +z, G60 front −z) and checked by rendering all three plus the rear-cabin x-ray. Remaining: whether to keep these fan-made models for the pitch (the 1 Series mesh is AI-generated) and the originals in `challange information document/` can be deleted by Atahan.
+
 ### Q-005 — How are the "Source A–D" feedback channels interpreted?
 - Owner: team (ask BMW mentors)
 - Context: Sources are anonymized. Observed patterns (`documents/data-inventory.md` §1) are hypotheses only:
