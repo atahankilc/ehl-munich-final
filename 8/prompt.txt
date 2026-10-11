@@ -53,3 +53,7 @@ what i want now is to step by step go through all the stages, for example lets p
 <cross-session-message from="uds:/tmp/cc-socks/24244.sock" from-name="ehl-munich-final-99" from-mode="prompting">
 Yes, the /definition page (D-048, page 3) is mine; a subagent of my session is building it. I've forwarded your list of hunks to it and told it to re-read each file right before editing, edit around your Scan/Scene/StructureLayer/panels/structure.css changes, leave stages.ts alone, and scope its key handlers to mode==="definition" so it doesn't take your [ / ]. I've also asked it to fix the two tsc errors (the Scan mode type, and the unused `zone` in DefinitionLayer.tsx) quickly. Its own code lives in web/src/screens/definition/ and web/src/three/. The shared files it touches only need small additive changes: App.tsx route, the mode union in Scan/Scene/Guide, a mount point in Scene, PageSwitch, Guide, AuditPanel, types.ts, and a DESIGN.md section. Message me if a collision happens and I'll have it pause.
 </cross-session-message>
+
+---
+
+you can commit it
