@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4NHHG8JZRSRYKPNP8WA3N39",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 5,
+  "checkpoints_count": 6,
   "files_touched": [
     "api/routers/audit_feed.py",
     "src/bmw_req/prioritize/score.py"
@@ -22,14 +22,21 @@
       "compact_transcript": "/1/transcript.jsonl",
       "content_hash": "/1/content_hash.txt",
       "prompt": "/1/prompt.txt"
+    },
+    {
+      "metadata": "/2/metadata.json",
+      "transcript": "/2/full.jsonl",
+      "compact_transcript": "/2/transcript.jsonl",
+      "content_hash": "/2/content_hash.txt",
+      "prompt": "/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 908,
-    "cache_creation_tokens": 1887625,
-    "cache_read_tokens": 179973699,
-    "output_tokens": 376988,
-    "api_call_count": 424,
+    "input_tokens": 944,
+    "cache_creation_tokens": 1905887,
+    "cache_read_tokens": 183939406,
+    "output_tokens": 384685,
+    "api_call_count": 442,
     "subagent_tokens": {
       "input_tokens": 116,
       "cache_creation_tokens": 569480,
