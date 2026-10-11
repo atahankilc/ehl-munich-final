@@ -133,6 +133,12 @@ def map_research(conn, llm: LLM) -> dict:
     return res_all
 
 
+def _classified(conn, source_item_id: int, run_id: int) -> None:
+    """A signal must point at its source's classification row (FK signal → verbatim_extraction)."""
+    conn.execute("""INSERT OR IGNORE INTO verbatim_extraction (source_item_id, extractor_version, in_scope, out_of_scope_reason,
+                    classify_run_id) VALUES (?, ?, 1, NULL, ?)""", (source_item_id, VERSION, run_id))
+
+
 def write_signals(conn, research: dict) -> dict:
     """Study + research signals, attached to the classify run of each item's checkpoint."""
     runs = {c.id: C.latest_run(conn, c.id, "classify") for c in C.CHECKPOINTS}
@@ -146,6 +152,7 @@ def write_signals(conn, research: dict) -> dict:
             continue
         nature = "like" if z > 0 else "performance_gap"
         a = aspect.get((m["source_item_id"], m["item"]), "other")
+        _classified(conn, m["source_item_id"], runs[m["checkpoint"]]["id"])
         conn.execute(
             """INSERT INTO signal (source_item_id, extractor_version, category, topic, feedback_type, severity,
                  need_statement, quote, quote_verified, aspect, nature, intensity, impact, explicit, classify_run_id, source_kind)
@@ -162,6 +169,7 @@ def write_signals(conn, research: dict) -> dict:
         if meta.get("kind") not in ("study", "event", "trend") or s.nature == "context" or not runs.get(row["checkpoint"]):
             continue
         assumption = str(meta.get("customer_relevance") or "").lower().startswith("assumption")
+        _classified(conn, int(k), runs[row["checkpoint"]]["id"])
         conn.execute(
             """INSERT INTO signal (source_item_id, extractor_version, category, topic, feedback_type, severity,
                  need_statement, quote, quote_verified, aspect, nature, intensity, impact, explicit, future_cue,

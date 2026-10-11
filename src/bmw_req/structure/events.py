@@ -7,4 +7,4 @@ import json
 def log(conn, stage: str, action: str, payload: dict, run_id: int | None = None, model: str | None = None) -> None:
     conn.execute("""INSERT INTO audit_event (actor_type, actor_id, action, entity_type, entity_id, new_value, model, run_id)
                     VALUES ('ai', ?, ?, 'checkpoint_run', ?, ?, ?, ?)""",
-                 (f"structure.{stage}", action, str(run_id) if run_id else None, json.dumps(payload, ensure_ascii=False), model, run_id))
+                 (f"structure.{stage}", action, str(run_id) if run_id else stage, json.dumps(payload, ensure_ascii=False), model, run_id))

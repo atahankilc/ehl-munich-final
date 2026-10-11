@@ -5,6 +5,9 @@ PM would recognise ("Rear-seat comfort on long trips"), each with the underlying
 emerging expectation), why it matters now (citing the evidence it was given) and ≤ 3 open questions requirement
 drafting must answer. Code adds the hard numbers: comments, car line × market coverage, evidence counts by relation.
 Themes that are only quality issues go to a separate quality list, not into areas.
+Market context (D-046, `market.py`): the model also sees how much of BMW's volume each line × market holds (BMW's
+internal, stylized file: a relative weight only), the latest cited public sales trend per line × market, and where the
+two disagree; every area gets `metrics.market` with the same, for the markets its comments come from.
 cp2 passes the cp1 areas: the model keeps them, attaches new themes, and records a change note where an area moved;
 keys stay stable so tracks show new / held / strengthened / weakened / lost.
 
@@ -23,6 +26,7 @@ from pydantic import BaseModel, Field
 from bmw_req import checkpoints as C
 from bmw_req.db import connect
 from bmw_req.llm import LLM
+from bmw_req.structure import market
 from bmw_req.structure.cluster import z_state
 from bmw_req.structure.events import log
 
@@ -67,6 +71,10 @@ Return 15–40 areas. Rules:
 - why_now: ≤ 35 words, grounded only in the counts and evidence given.
 - open_questions: ≤ 3 questions the next step (requirement drafting) must answer, e.g. which markets, how much better,
   trade-offs.
+- market_context: bmw_volume_share says how big a line × market is for BMW (internal, stylized: use it only to say a
+  market is large or small, never as a trend). public_trend gives cited sales changes; you may use them in why_now
+  ("5 Series sales in China fell 19 % in H1 2026, src 12269") but any cause you infer is an assumption and must be
+  worded as one ("possibly because…"). Where bmw_vs_public_conflicts lists a market, do not rely on BMW's figure there.
 - If previous areas are given: keep their keys and titles unless the evidence changed them; attach new themes to the
   best existing area or create a new area; set change_note only where an area changed."""
 
@@ -117,7 +125,8 @@ def run_checkpoint(cp: str, actor: str = "system") -> dict:
     quality = [d for d in digest if d["quality_only"]]
     themes_in = [{k: v for k, v in d.items() if k != "quality_only"} for d in digest if not d["quality_only"]]
     prev = [dict(r) for r in conn.execute("SELECT * FROM req_area WHERE run_id = ? AND kind != 'quality'", (parent,))] if parent else []
-    payload = {"themes": themes_in}
+    mctx = market.market_context(conn, cp)
+    payload = {"themes": themes_in, "market_context": market.for_prompt(mctx)}
     if prev:
         payload["previous_areas"] = [{"key": a["key"], "title": a["title"], "need": a["need"], "kind": a["kind"],
                                       "theme_keys": json.loads(a["theme_keys_json"])} for a in prev]
@@ -140,7 +149,8 @@ def run_checkpoint(cp: str, actor: str = "system") -> dict:
         for t in tk:
             lm.update(by_theme[t]["by_line_market"]); comments += by_theme[t]["comments"]; ev.update(by_theme[t]["evidence"])
         rows.append((key, run_id, a.title, a.need, a.kind, json.dumps(tk), a.why_now, json.dumps(a.open_questions[:3]),
-                     json.dumps({"comments": comments, "by_line_market": dict(lm), "evidence": dict(ev), "themes": len(tk)}),
+                     json.dumps({"comments": comments, "by_line_market": dict(lm), "evidence": dict(ev), "themes": len(tk),
+                                 "market": market.area_market(dict(lm), mctx)}),
                      a.change_note if key in prev_keys else None, llm.model_for("smart")))
     if quality:   # one quality list, kept apart from the areas
         lm, comments = Counter(), 0
@@ -148,7 +158,8 @@ def run_checkpoint(cp: str, actor: str = "system") -> dict:
             lm.update(d["by_line_market"]); comments += d["comments"]
         rows.append(("ar:quality", run_id, "Quality hand-over", "Faults customers report — fix in quality, not a product decision.",
                      "quality", json.dumps([d["theme_key"] for d in quality]), None, "[]",
-                     json.dumps({"comments": comments, "by_line_market": dict(lm), "evidence": {}, "themes": len(quality)}), None, None))
+                     json.dumps({"comments": comments, "by_line_market": dict(lm), "evidence": {}, "themes": len(quality),
+                                 "market": market.area_market(dict(lm), mctx)}), None, None))
 
     conn.execute("BEGIN IMMEDIATE")
     try:
