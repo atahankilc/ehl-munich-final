@@ -1,0 +1,33 @@
+give me naming ideas for this project and application, since we are in an hackathon, i want it to be somehow funny and sarcastic
+
+---
+
+belki bmw arabalarının asi ruhunu yantısan bi şey
+
+---
+
+or somehting like new cocempt m3 deki shark nose mu ne deniyo, ona atıf yapabiliriz. Belki logo falan da ekleriz
+
+---
+
+şey demek istiyorum mesela, bmw yeni m5 concept arabası ile desing olarak geçmişe atıf yapmıştı, belki eski şanına geri kavuşturacak olan da ruhlarına geri dönmektir, bu program sayesinde müşterilerin gerçekten ne istediğini anlayabilirler
+
+---
+
+ya shark nose logusu kullancam bir de bmwnin böbrek ile sıçıp batırmasını ama yeni conceptlerini beğnememi tasvir eden ve bu uygulama ile de aslında requirement projection yapmlaarını sağlicağım için ona uygun bir isim istiyorum
+
+---
+
+SharkSight olsun, logoyu çizip uygulamaya ekle, minimal bir logo olsun
+
+---
+
+the desing looks like shit trying to get out of my ass
+
+---
+
+make it more abstract
+
+---
+
+commit the rename and logo but before that we can make menu items and thus the logo bigger, but just slightly
