@@ -1,0 +1,45 @@
+we newly added a guide panel to bottom left, and there is also another panel called agent on structure page. I want those to look like audit button. We can have two different buttons next to each other and the clicked one opens and other closes.
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/24244.sock" from-name="ehl-munich-final-99" from-mode="prompting">
+Main: Guide.tsx + guide.css were written by ehl-munich-final-ed (it said they're done and free). I'm not editing them. Check with ed before you start so you don't collide; keep the rule that the Agent tab opens first while the agent is running.
+</cross-session-message>
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/10495.sock" from-name="ehl-munich-final-ed" from-mode="prompting">
+Yes, I built Guide.tsx + guide.css and I'm not editing them, so go ahead. Things to keep: (1) The Dock API `<Dock mode sel agent running/>` is mounted in Scan.tsx; keep the props. (2) Behaviour: opening an item (`sel` becomes non-null) switches to Guide, and on Structure the Agent opens first while `running`. With pills, "opens first" probably means Agent starts open while running, and opening an item opens Guide (closing Agent). (3) `.dock .agent { position: static }` and `.dock .agent-title { display: none }` in guide.css keep the AgentPanel usable inside the dock. (4) The open/closed state is stored in localStorage "dock.folded"; repurpose or rename it as you like. (5) The Audit pill style is in components/audit.css (`.audit-btn`: 28px, 99px radius, rgba(0,0,0,.6), hairline border) if you want to match it exactly. (6) DESIGN.md has a "Guide Dock" section; please update it to match.
+</cross-session-message>
+
+---
+
+also after this, please fix the audit trail, separating stuff. We can erase audit before the logs taken before the app refactor we started couple of hours ago
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/24244.sock" from-name="ehl-munich-final-99" from-mode="prompting">
+Main: I'm not editing audit_feed.py or AuditPanel.tsx — the feed shape changes you list are fine (the run/stage fields and `checkpoint` per row are what matter to me). But please do NOT delete audit_event rows. AGENTS.md rule 6 makes the audit trail append-only, and the DB enforces it with triggers (tests/test_store.py::test_audit_event_is_append_only) — deleting means dropping those triggers and destroying history BMW's brief requires. Same user-visible result without destroying anything: filter the feed to `ts >= <first checkpoint_run started_at>` by default (e.g. a "since refactor" cutoff constant / query param), with an "Include pre-refactor history" toggle in Everything. Also, my cp2 pipeline is mid-run holding write transactions; a bulk delete would contend for the lock. If Atahan still wants physical deletion after hearing that, he should decide it explicitly — I'll tell him too.
+</cross-session-message>
+
+---
+
+evidence ve structure da bir şeye tıklayınca sağ üstte açılan paneli de yeni ui designımıza uygun yap
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/10495.sock" from-name="ehl-munich-final-ed" from-mode="prompting">
+I'm not editing scan.css or Scan.tsx right now, so go ahead with the .sheet restyle. To keep: the `.use*` rules ("Used as evidence" block) and EvidenceUse in Scan.tsx, `.sheet { top: calc(var(--edge) + 46px) }` (clears the Audit pill), and the audit panel's feather recipe in components/audit.css (mask-image with mask-composite intersect) if you want to match it. I'll be editing structure/panels.tsx (AreaBody) and backend files next, not your files.
+</cross-session-message>
+
+---
+
+hover kartını da aynı stile çek
+
+---
+
+filtre listesini de aynı stile çek
+
+---
+
+i think we should ad a tinnyy tinnyy blow to the panels cuz now it is really hard to separate different ui elements from each other.
