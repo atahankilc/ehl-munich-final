@@ -1,0 +1,122 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4MPPA4T5AC59KESGR877CKX",
+  "session_id": "161f9b72-b181-4f68-992b-97b1d4be03ff",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-11T05:24:12.157079Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "save_step_count": 2,
+  "files_touched": [
+    "foundation/STATE.md",
+    "web/src/screens/scan/Scene.tsx",
+    "web/src/screens/scan/layout.ts"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "turn_id": "fd35a035a7af",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 114,
+    "cache_creation_tokens": 129675,
+    "cache_read_tokens": 4681315,
+    "output_tokens": 23852,
+    "api_call_count": 57
+  },
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-11T05:24:12.065066Z",
+    "agent_lines": 3,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 7,
+    "human_removed": 45,
+    "total_committed": 5,
+    "total_lines_changed": 55,
+    "agent_percentage": 5.454545454545454,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 789,
+      "user_lines_removed": 115,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/scheduled_tasks.lock": 1,
+        ".impeccable/hook.cache.json": 1,
+        "DESIGN.md": 15,
+        "api/routers/audit_feed.py": 29,
+        "api/routers/structure.py": 9,
+        "foundation/DECISIONS.md": 28,
+        "foundation/OPEN_QUESTIONS.md": 9,
+        "foundation/STATE.md": 5,
+        "foundation/documents/architecture.md": 1,
+        "research/sales-verification.md": 128,
+        "src/bmw_req/structure/areas.py": 14,
+        "src/bmw_req/structure/classify_context.py": 8,
+        "src/bmw_req/structure/contextualize.py": 125,
+        "src/bmw_req/structure/events.py": 1,
+        "src/bmw_req/structure/market.py": 207,
+        "tests/test_market.py": 49,
+        "web/.impeccable/hook.cache.json": 1,
+        "web/src/components/AuditPanel.tsx": 16,
+        "web/src/components/Guide.tsx": 31,
+        "web/src/components/audit.css": 1,
+        "web/src/components/guide.css": 19,
+        "web/src/lib/types.ts": 9,
+        "web/src/screens/scan/scan.css": 30,
+        "web/src/screens/structure/panels.tsx": 33,
+        "web/src/screens/structure/structure.css": 16,
+        "web/src/styles/tokens.css": 3
+      },
+      "user_removed_per_file": {
+        "DESIGN.md": 14,
+        "api/routers/audit_feed.py": 9,
+        "api/routers/structure.py": 2,
+        "foundation/STATE.md": 1,
+        "src/bmw_req/structure/areas.py": 3,
+        "src/bmw_req/structure/contextualize.py": 25,
+        "src/bmw_req/structure/events.py": 1,
+        "web/src/components/AuditPanel.tsx": 8,
+        "web/src/components/Guide.tsx": 21,
+        "web/src/components/audit.css": 1,
+        "web/src/components/guide.css": 17,
+        "web/src/lib/types.ts": 1,
+        "web/src/screens/scan/scan.css": 9,
+        "web/src/screens/structure/panels.tsx": 3
+      }
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 4,
+      "user_lines_removed": 2,
+      "agent_lines_added": 840,
+      "agent_lines_removed": 125,
+      "user_added_per_file": {
+        ".claude/scheduled_tasks.lock": 1,
+        ".impeccable/hook.cache.json": 1,
+        "web/.impeccable/hook.cache.json": 1,
+        "web/src/screens/scan/layout.ts": 1
+      },
+      "user_removed_per_file": {
+        "web/src/screens/scan/layout.ts": 2
+      }
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 3,
+      "user_lines_removed": 0,
+      "agent_lines_added": 839,
+      "agent_lines_removed": 125,
+      "user_added_per_file": {
+        ".claude/scheduled_tasks.lock": 1,
+        ".impeccable/hook.cache.json": 1,
+        "web/.impeccable/hook.cache.json": 1
+      }
+    }
+  ]
+}
