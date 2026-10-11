@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4MKBZBDPMB8B14T3HHH5J5F",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 35,
+  "checkpoints_count": 84,
   "files_touched": [
     "web/public/favicon.svg",
     "web/src/components/Logo.tsx",
@@ -30,6 +30,13 @@
       "compact_transcript": "/2/transcript.jsonl",
       "content_hash": "/2/content_hash.txt",
       "prompt": "/2/prompt.txt"
+    },
+    {
+      "metadata": "/3/metadata.json",
+      "transcript": "/3/full.jsonl",
+      "compact_transcript": "/3/transcript.jsonl",
+      "content_hash": "/3/content_hash.txt",
+      "prompt": "/3/prompt.txt"
     }
   ],
   "token_usage": {
