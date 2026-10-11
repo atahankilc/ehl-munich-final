@@ -3,17 +3,23 @@
   "checkpoint_id": "01M4N5ZAAN47Q1TTTB6R9CSCZK",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 25,
+  "checkpoints_count": 80,
   "files_touched": [
     "api/routers/__init__.py",
     "api/routers/audit_feed.py",
+    "api/routers/document.py",
+    "api/routers/prioritize.py",
+    "api/routers/process.py",
     "api/routers/structure.py",
     "api/routers/usage.py",
     "foundation/documents/prioritization.md",
     "src/bmw_req/pipeline/fit.py",
     "src/bmw_req/pipeline/scoring.py",
     "src/bmw_req/prioritize/__init__.py",
-    "src/bmw_req/prioritize/score.py"
+    "src/bmw_req/prioritize/gate.py",
+    "src/bmw_req/prioritize/run.py",
+    "src/bmw_req/prioritize/score.py",
+    "tests/test_prioritize.py"
   ],
   "sessions": [
     {
@@ -36,13 +42,20 @@
       "compact_transcript": "/2/transcript.jsonl",
       "content_hash": "/2/content_hash.txt",
       "prompt": "/2/prompt.txt"
+    },
+    {
+      "metadata": "/3/metadata.json",
+      "transcript": "/3/full.jsonl",
+      "compact_transcript": "/3/transcript.jsonl",
+      "content_hash": "/3/content_hash.txt",
+      "prompt": "/3/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 898,
-    "cache_creation_tokens": 807056,
-    "cache_read_tokens": 174459614,
-    "output_tokens": 375164,
-    "api_call_count": 420
+    "input_tokens": 1316,
+    "cache_creation_tokens": 1148537,
+    "cache_read_tokens": 215133347,
+    "output_tokens": 524070,
+    "api_call_count": 591
   }
 }
