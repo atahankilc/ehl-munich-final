@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4MS0D5Q0X47A62MK6KRGNBH",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 10,
+  "checkpoints_count": 11,
   "files_touched": [
     "foundation/STATE.md",
     "web/src/screens/structure/AgentPanel.tsx",
@@ -30,13 +30,27 @@
       "compact_transcript": "/2/transcript.jsonl",
       "content_hash": "/2/content_hash.txt",
       "prompt": "/2/prompt.txt"
+    },
+    {
+      "metadata": "/3/metadata.json",
+      "transcript": "/3/full.jsonl",
+      "compact_transcript": "/3/transcript.jsonl",
+      "content_hash": "/3/content_hash.txt",
+      "prompt": "/3/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 372,
-    "cache_creation_tokens": 496202,
-    "cache_read_tokens": 19973517,
-    "output_tokens": 95976,
-    "api_call_count": 185
+    "input_tokens": 1024,
+    "cache_creation_tokens": 1097837,
+    "cache_read_tokens": 124855503,
+    "output_tokens": 378458,
+    "api_call_count": 493,
+    "subagent_tokens": {
+      "input_tokens": 0,
+      "cache_creation_tokens": 0,
+      "cache_read_tokens": 0,
+      "output_tokens": 0,
+      "api_call_count": 0
+    }
   }
 }
