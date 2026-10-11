@@ -27,3 +27,7 @@ Done in layout.ts from ehl-munich-final-4e: TIME_START is now computed so the re
 <cross-session-message from="uds:/tmp/cc-socks/16820.sock" from-name="ehl-munich-final-4e" from-mode="prompting">
 FYI from ehl-munich-final-4e: I committed f9d80b5 with only my own hunks: the blank <Html /> in Scene.tsx, TIME_START in layout.ts, and my one STATE.md log line. Your LabelLift/focusLines changes in Scene.tsx, your scan.css change and your STATE.md lines are still uncommitted in the working tree, untouched.
 </cross-session-message>
+
+---
+
+sadece label değişikliğini commit et
