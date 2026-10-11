@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4MKB5TCFRYGJJ8829G1M9RD",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 2,
+  "checkpoints_count": 27,
   "files_touched": [
     ".impeccable/config.json",
     ".impeccable/design.json",
@@ -13,19 +13,26 @@
     "foundation/OPEN_QUESTIONS.md",
     "foundation/STATE.md",
     "foundation/documents/architecture.md",
+    "scripts/benchmark_classify.py",
     "src/bmw_req/db.py",
+    "src/bmw_req/structure/__init__.py",
+    "src/bmw_req/structure/classify.py",
+    "src/bmw_req/structure/run_all.py",
+    "src/bmw_req/structure/taxonomy.py",
     "web/KIT.md",
     "web/index.html",
     "web/src/components/CommandPalette.tsx",
     "web/src/components/Drawer.tsx",
     "web/src/components/Shell.tsx",
     "web/src/components/Story.tsx",
+    "web/src/components/SweepControl.tsx",
     "web/src/components/actions.tsx",
     "web/src/components/charts.css",
     "web/src/components/charts.tsx",
     "web/src/components/req.css",
     "web/src/components/req.tsx",
     "web/src/components/shell.css",
+    "web/src/components/sweep.css",
     "web/src/components/toast.tsx",
     "web/src/components/ui.css",
     "web/src/components/ui.tsx",
@@ -61,6 +68,8 @@
     "web/src/screens/requirement/EvidenceChain.tsx",
     "web/src/screens/requirement/Trace.tsx",
     "web/src/screens/requirement/trace.css",
+    "web/src/screens/structure/StructureLayer.tsx",
+    "web/src/screens/structure/panels.tsx",
     "web/tsconfig.tsbuildinfo"
   ],
   "sessions": [
@@ -70,13 +79,20 @@
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": "/0/prompt.txt"
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": "/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 66,
-    "cache_creation_tokens": 149339,
-    "cache_read_tokens": 2772242,
-    "output_tokens": 17395,
-    "api_call_count": 33
+    "input_tokens": 512,
+    "cache_creation_tokens": 637692,
+    "cache_read_tokens": 58481749,
+    "output_tokens": 225876,
+    "api_call_count": 250
   }
 }
