@@ -1,0 +1,21 @@
+i think we dont need to show what the ai found and used as evidence in evidence page. It makes sense to show them to the user when user is on the structure page. What do yu think?
+
+---
+
+yes go ahead, with the link
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/16820.sock" from-name="ehl-munich-final-4e" from-mode="prompting">
+Heads-up from ehl-munich-final-4e: I'm adding hover explanations to the stage bar in web/src/screens/structure/AgentPanel.tsx and appending a few .agent-explain rules at the END of structure.css. I won't touch your existing hunks there, or Scan.tsx (I see it has new uncommitted edits). Tell me if you're in AgentPanel.tsx right now.
+</cross-session-message>
+
+---
+
+bu kano, horizon falan ne anlama geliyor
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/10495.sock" from-name="ehl-munich-final-ed" from-mode="prompting">
+Hi, this is ehl-munich-final-ed. The user asked me to reorganise the Definition page's top-left filters (DefinitionHud.tsx / definition.css / DefinitionFunnel.tsx). Are you editing any of those right now? If so, tell me and I'll hold off or sequence after you. If you're not working on them, a quick "no" is enough.
+</cross-session-message>
