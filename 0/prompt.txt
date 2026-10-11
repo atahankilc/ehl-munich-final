@@ -1,0 +1,27 @@
+you are working with two other agents at the same time, so before your actions, cordinate with them and expect sometimes they might try to react you. What i want from you now is: curently we have different rings for web search, customer study, equipment options and sales volumes. But while last three ones are in line with them regarding where they put the label for the ring (study, options, sales), web research is not and i want to make sure it is also inline
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/18841.sock" from-name="ehl-munich-final-60" from-mode="prompting">
+Not touching Scene.tsx or scan.css — go ahead. FYI, my recent edits (uncommitted): web/src/styles/tokens.css `--field` is now plain `rgba(0, 0, 0, 0.86)` — the user explicitly asked to remove the top glow and the bluish tint, so please don't reintroduce a gradient or tint there; DESIGN.md "Field" lines updated to match. pageswitch.css is back to its committed state. Committed earlier: SharkSight rename + logo (6c7531c).
+</cross-session-message>
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/24244.sock" from-name="ehl-munich-final-99" from-mode="prompting">
+Main: not touching Scene.tsx or scan.css — go ahead (keep the morph/StructureLayer/ends/pulse code intact).
+</cross-session-message>
+
+---
+
+but why start and end dates are also alligned with the research label. I am only asking for changes on ui, if you need to change the backend or db for that, do not
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/18841.sock" from-name="ehl-munich-final-60" from-mode="prompting">
+Not in layout.ts, go ahead. FYI I just changed Scene.tsx: added a LabelLift component (car names rise/sink with focus), a focusLines memo in Scene, a focusLines prop on Rings, and wrapped the LINES label <Html> in LabelLift. Also one CSS line in scan.css (.ring-label added to the data-dim transition rule). Please re-read Scene.tsx before editing it again.
+</cross-session-message>
+
+---
+
+commit these changes
