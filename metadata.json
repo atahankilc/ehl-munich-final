@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4N604WS9FN25Y29BK8R5WSD",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 74,
+  "checkpoints_count": 92,
   "files_touched": [
     "pitch/assets/atahan.png",
     "pitch/index.html",
@@ -23,6 +23,13 @@
       "compact_transcript": "/1/transcript.jsonl",
       "content_hash": "/1/content_hash.txt",
       "prompt": "/1/prompt.txt"
+    },
+    {
+      "metadata": "/2/metadata.json",
+      "transcript": "/2/full.jsonl",
+      "compact_transcript": "/2/transcript.jsonl",
+      "content_hash": "/2/content_hash.txt",
+      "prompt": "/2/prompt.txt"
     }
   ],
   "token_usage": {
