@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4M6RJHDZBD5GAM9W2AQRCAH",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 9,
+  "checkpoints_count": 23,
   "files_touched": [
     ".gitignore",
     ".impeccable/config.json",
@@ -113,20 +113,27 @@
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": "/0/prompt.txt"
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": "/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 534,
-    "cache_creation_tokens": 710949,
-    "cache_read_tokens": 104269029,
-    "output_tokens": 308601,
-    "api_call_count": 262,
+    "input_tokens": 850,
+    "cache_creation_tokens": 1072039,
+    "cache_read_tokens": 142397888,
+    "output_tokens": 459563,
+    "api_call_count": 411,
     "subagent_tokens": {
-      "input_tokens": 522,
-      "cache_creation_tokens": 1258453,
-      "cache_read_tokens": 36118926,
-      "output_tokens": 202335,
-      "api_call_count": 260
+      "input_tokens": 1220,
+      "cache_creation_tokens": 2474562,
+      "cache_read_tokens": 73784303,
+      "output_tokens": 288661,
+      "api_call_count": 600
     }
   }
 }

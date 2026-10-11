@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01JLpUSretZzfMZUDb7732un",
+  "agent_id": "aba2a5663acda2a07",
+  "subagent_type": "general-purpose",
+  "task_description": "A4 market offering research",
+  "token_usage": {
+    "input_tokens": 114,
+    "cache_creation_tokens": 187966,
+    "cache_read_tokens": 5573685,
+    "output_tokens": 1056,
+    "api_call_count": 48
+  },
+  "started_at": "2026-10-11T01:15:11.007476+02:00",
+  "completed_at": "2026-10-11T02:44:50.243788+02:00"
+}

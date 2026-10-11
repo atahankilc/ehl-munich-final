@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01ATRRr7thHZgf8Po7Ti46UQ",
+  "agent_id": "a098598c268fde5ad",
+  "subagent_type": "general-purpose",
+  "task_description": "5 Series China rival equipment",
+  "token_usage": {
+    "input_tokens": 66,
+    "cache_creation_tokens": 89999,
+    "cache_read_tokens": 2075241,
+    "output_tokens": 520,
+    "api_call_count": 33
+  },
+  "started_at": "2026-10-11T01:17:22.927525+02:00",
+  "completed_at": "2026-10-11T02:44:50.321948+02:00"
+}

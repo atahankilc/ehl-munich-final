@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01N6HunGBKtC1P9N251HQ4SP",
+  "agent_id": "a7296d65e3b9e17d0",
+  "subagent_type": "general-purpose",
+  "task_description": "A5 annual report structured facts",
+  "token_usage": {
+    "input_tokens": 84,
+    "cache_creation_tokens": 163648,
+    "cache_read_tokens": 3971535,
+    "output_tokens": 1464,
+    "api_call_count": 42
+  },
+  "started_at": "2026-10-11T01:15:11.010738+02:00",
+  "completed_at": "2026-10-11T02:44:50.254577+02:00"
+}

@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01KbSpFnaNFff9ixysxjA1pi",
+  "agent_id": "a11b68acea699eb1a",
+  "subagent_type": "general-purpose",
+  "task_description": "1 Series EU rival equipment",
+  "token_usage": {
+    "input_tokens": 76,
+    "cache_creation_tokens": 91913,
+    "cache_read_tokens": 2477356,
+    "output_tokens": 606,
+    "api_call_count": 38
+  },
+  "started_at": "2026-10-11T01:17:22.906104+02:00",
+  "completed_at": "2026-10-11T02:44:50.286867+02:00"
+}

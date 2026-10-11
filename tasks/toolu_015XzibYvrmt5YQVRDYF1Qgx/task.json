@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_015XzibYvrmt5YQVRDYF1Qgx",
+  "agent_id": "a665dcd9025b2cc09",
+  "subagent_type": "general-purpose",
+  "task_description": "5 Series US rival equipment",
+  "token_usage": {
+    "input_tokens": 102,
+    "cache_creation_tokens": 90088,
+    "cache_read_tokens": 3058603,
+    "output_tokens": 900,
+    "api_call_count": 51
+  },
+  "started_at": "2026-10-11T01:17:22.918198+02:00",
+  "completed_at": "2026-10-11T02:44:50.295392+02:00"
+}
