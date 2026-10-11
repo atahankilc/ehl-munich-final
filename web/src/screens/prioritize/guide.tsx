@@ -4,8 +4,9 @@ import type { Target } from "@/lib/prioritize";
 import { DOMAIN_COLOR, domainColor } from "../definition/data";
 import type { PrioView } from "./store";
 
-type MarkKind = "must" | "should" | "could" | "planes" | "ghost" | "pulse" | "bundle" | "joint" | "pm" | "pmcap" | "challenged" | "blocked" | "slot" | "waterfall" | "matrix" | "domains";
+type MarkKind = "must" | "should" | "could" | "planes" | "ghost" | "pulse" | "bundle" | "joint" | "pm" | "pmcap" | "challenged" | "fall" | "rise" | "moved" | "blocked" | "slot" | "waterfall" | "matrix" | "domains";
 const INK = "#f2f4f7", BLUE = "#4d94ff", C = DOMAIN_COLOR.digital;
+const RISE = "#2fbf71", FALL = "#ff3b30";   // tokens --rise / --fall: only for priority-level changes after a checkpoint
 
 function Mark({ kind }: { kind: MarkKind }) {
   const s = { width: 18, height: 18, viewBox: "0 0 18 18", "aria-hidden": true, className: "gmark" } as const;
@@ -21,6 +22,9 @@ function Mark({ kind }: { kind: MarkKind }) {
     case "pm": return <svg {...s}><rect x="8" y="3" width="2.4" height="10" fill={C} /><ellipse cx="9.2" cy="14.5" rx="6" ry="2.2" fill="rgba(28,105,212,0.35)" /><ellipse cx="9.2" cy="14.5" rx="2.6" ry="1" fill={BLUE} /></svg>;
     case "pmcap": return <svg {...s}><rect x="7" y="7" width="4" height="10" fill={C} stroke={BLUE} strokeWidth="1" /><rect x="2.5" y="1" width="13" height="5" rx="1" fill={BLUE} /><text x="9" y="5" fontSize="4" textAnchor="middle" fill="#fff" fontWeight="700">M ✓</text></svg>;
     case "challenged": return <svg {...s}><rect x="5" y="8" width="3.6" height="9" fill={C} stroke={BLUE} strokeWidth="1" /><ellipse cx="6.8" cy="8" rx="4" ry="1.4" fill="none" stroke={INK} /><circle cx="14" cy="5" r="3.4" fill={INK} /><text x="14" y="6.8" fontSize="5" textAnchor="middle" fill="#000" fontWeight="700">!</text></svg>;
+    case "fall": return <svg {...s}><rect x="4" y="4" width="4" height="13" fill={C} stroke={BLUE} strokeWidth="1" /><rect x="2.6" y="9" width="6.8" height="5" fill={FALL} fillOpacity=".3" stroke={FALL} strokeWidth=".8" /><path d="M12.5 3v8.5" stroke={FALL} strokeWidth="2" /><path d="M10.3 10.5l2.2 3.2 2.2-3.2z" fill={FALL} /></svg>;
+    case "rise": return <svg {...s}><rect x="4" y="9" width="4" height="8" fill={C} stroke={BLUE} strokeWidth="1" /><rect x="3" y="2.5" width="6" height="6.5" fill={RISE} fillOpacity=".18" stroke={RISE} strokeWidth=".8" /><path d="M12.5 15V6" stroke={RISE} strokeWidth="1.5" /><path d="M10.6 6.8l1.9-2.9 1.9 2.9z" fill={RISE} /></svg>;
+    case "moved": return <svg {...s}><text x="5" y="9" fontSize="7" fill={RISE} textAnchor="middle">▲</text><text x="13" y="15" fontSize="7" fill={FALL} textAnchor="middle">▼</text></svg>;
     case "blocked": return <svg {...s}><circle cx="9" cy="9" r="5" fill="none" stroke={INK} strokeWidth="1.3" /><path d="M5.5 12.5l7-7" stroke={INK} strokeWidth="1.3" /></svg>;
     case "slot": return <svg {...s}><ellipse cx="9" cy="12" rx="4" ry="1.6" fill="none" stroke="#868d99" /></svg>;
     case "waterfall": return <svg {...s}><rect x="2" y="3" width="5" height="2.4" fill="#b4bac4" /><rect x="7" y="7" width="4" height="2.4" fill="#b4bac4" /><rect x="9" y="11" width="2" height="2.4" fill="#868d99" /><rect x="2" y="14.6" width="9" height="2" fill={INK} /></svg>;
@@ -49,7 +53,10 @@ const SKYLINE: Page = {
     { mark: "blocked", name: "Barred circle", text: "Brand fit fails: approval needs a PM override." },
     { mark: "pm", name: "Blue base", text: "The PM confirmed this band. Blue is only ever the PM." },
     { mark: "pmcap", name: "Blue edge + M ✓", text: "PM-confirmed column: blue outline and the confirmed band's letter." },
-    { mark: "challenged", name: "White ! + ring", text: "Challenged decision: the AI proposes another band (\"AI: Should ▼ · cause\"). Open it to accept or reject." },
+    { mark: "fall", name: "Red ▼ badge + drop line", text: "Downgrade: new evidence puts a band you confirmed lower (\"Must → Should · cause\"). The column stays at your band; the red ghost and line show where the AI now puts it. Review it first." },
+    { mark: "rise", name: "Green ▲ badge + ghost", text: "Upgrade opportunity: the AI now puts a band you confirmed higher (\"Should → Must\"). Consider upgrading." },
+    { mark: "moved", name: "Small green ▲ / red ▼", text: "Not confirmed by you: the AI's own band rose or fell since the last checkpoint." },
+    { mark: "challenged", name: "White ! + ring", text: "Weights preview only: the previewed weights would put a decision of yours in another band." },
   ],
   notes: ["Click a column or list row to open its score.", "[ and ] step through the line's markets; ← → change the checkpoint.", "Back to Definition lowers the columns onto the car."],
 };
@@ -60,7 +67,9 @@ const MATRIX: Page = {
   rows: [
     { mark: "matrix", name: "Cells", text: "Band mark (solid / outlined / line) and score; ▲▼ moved since JAN; P an open AI proposal." },
     { mark: "pm", name: "Blue underline + ✓", text: "Confirmed by the PM." },
-    { mark: "challenged", name: "White !", text: "The AI proposes another band than the PM's; the proposed band follows." },
+    { mark: "fall", name: "Red cell ▼", text: "Downgrade: the AI now puts a band you confirmed lower; the proposed band's letter follows." },
+    { mark: "rise", name: "Green cell ▲", text: "Upgrade opportunity: the AI now puts a band you confirmed higher." },
+    { mark: "moved", name: "Small green ▲ / red ▼", text: "An unconfirmed AI band moved since the last checkpoint." },
   ],
   notes: ["Click a cell to open that market's score.", "Esc returns to the skyline."],
 };

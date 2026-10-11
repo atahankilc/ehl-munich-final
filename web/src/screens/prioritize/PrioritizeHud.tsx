@@ -29,7 +29,8 @@ import { WeightsButton, WeightsPanel, setWeightsOpen, useWeightsOpen, weightsNot
 import { useRescoring } from "./rescore";
 import { Challenged } from "./challenged";
 import { BundleMembers, Deciding } from "./deciding";
-import { arrow, challengeOf } from "./pm";
+import { arrow, bandMove, challengeOf, rfRank, riseFallOf } from "./pm";
+import { RiseFallBanner } from "./risefall";
 import "./pm.css";
 import "./prioritize.css";
 
@@ -172,8 +173,8 @@ function RankedList({ pd, targets, line, market }: { pd: PrioData; targets: Targ
     <nav className="dlist plist" id="priorities-panel" aria-label="Priorities">
       <p className="dlist-head"><span className="sheet-layer">Priorities · {line} · {market}</span><span className="label">Score</span></p>
       {BANDS.map((b) => {
-        // challenged PM decisions first (white !), then by score
-        const items = sorted.filter((t) => shownBand(t) === b).sort((x, y) => Number(!!challengeOf(pd.data, y)) - Number(!!challengeOf(pd.data, x)));
+        // challenged PM decisions first: downgrades (red ▼) above upgrade opportunities (green ▲), then by score
+        const items = sorted.filter((t) => shownBand(t) === b).sort((x, y) => rfRank(riseFallOf(pd.data, x)) - rfRank(riseFallOf(pd.data, y)));
         if (!items.length) return null;
         return (
           <section key={b}>
@@ -184,23 +185,25 @@ function RankedList({ pd, targets, line, market }: { pd: PrioData; targets: Targ
                 const flags = parseFlags(t);
                 const p = proposals.get(t.key);
                 const d = t.prev ? t.score - t.prev.score : 0;
+                const rf = riseFallOf(pd.data, t);
+                const mv = bandMove(t);
                 return (
                   <li key={t.key}>
-                    <button className="dlist-row plist-row" aria-current={selected === t.key ? "true" : undefined}
+                    <button className="dlist-row plist-row" aria-current={selected === t.key ? "true" : undefined} data-rf={rf?.dir}
                             onClick={() => selectTarget(selected === t.key ? null : t.key)}
                             onPointerEnter={() => setP({ hover: t.key })} onPointerLeave={() => setP({ hover: null })}>
                       <span className="plist-rank">{t.rank}</span>
                       <BandMark band={shownBand(t)} color={domainColor(t.domain)} />
                       <span className="dlist-title">{t.title}</span>
                       <span className="plist-tags">
-                        {challengeOf(pd.data, t) && <b className="ptag-chal" title={`AI proposes ${challengeOf(pd.data, t)!.proposed_band}`}>!</b>}
+                        {rf && <b className="prf-tag" data-rf={rf.dir} title={`${rf.dir === "down" ? "Downgrade" : "Upgrade suggested"}: your ${rf.from} → AI ${rf.to} · ${rf.cause}`}>{rf.dir === "down" ? "▼" : "▲"} {rf.from} → {rf.to}</b>}
                         {pm && <span className="ptag-pmok">PM ✓</span>}
                         {isBlocked(t) && <span className="psky-blocked" title="Brand fit blocks approval" />}
                         {flags.some((f) => f.kind === "choose_jointly") && <span className="ptag" data-dashed="" title="Choose jointly">joint</span>}
-                        {p && <span className="ptag" title={`AI proposes ${p.proposed_band}`}>→ {p.proposed_band}</span>}
+                        {p && !rf && <span className="ptag" title={`AI proposes ${p.proposed_band}`}>→ {p.proposed_band}</span>}
                         <span className="plist-conf" title="Confidence">{t.confidence.level}</span>
                       </span>
-                      <span className="dlist-val">{fmt(t.score)}{Math.abs(d) >= 1 && <Arrow d={d} />}</span>
+                      <span className="dlist-val">{fmt(t.score)}{mv ? <Arrow d={mv === "up" ? 1 : -1} rf={mv} /> : Math.abs(d) >= 1 && <Arrow d={d} />}</span>
                     </button>
                   </li>
                 );
@@ -257,6 +260,7 @@ function Matrix({ pd, line, markets, market, onMarket }: { pd: PrioData; line: s
           <span><BandMark band="Must" color="var(--ink-2)" size="sm" />Must</span><span><BandMark band="Should" color="var(--ink-2)" size="sm" />Should</span>
           <span><BandMark band="Could" color="var(--ink-2)" size="sm" />Could</span><span><i className="pmatrix-pm" />PM confirmed</span>
           {position > 1 && <span>▲▼ since JAN</span>}<span><i className="pmatrix-dis" />markets disagree</span>
+          {position > 1 && <><span className="prf-legend" data-rf="down"><b>▼</b>below your band</span><span className="prf-legend" data-rf="up"><b>▲</b>above your band</span></>}
         </span>
       </header>
       <div className="pmatrix-grid" style={{ ["--m" as string]: markets.length }}>
@@ -278,14 +282,17 @@ function Matrix({ pd, line, markets, market, onMarket }: { pd: PrioData; line: s
                   const d = t.prev && position > 1 ? t.score - t.prev.score : 0;
                   const b = shownBand(t);
                   return (
-                    <button key={m} className="pmatrix-cell" data-current={m === market ? "" : undefined} title={`${m}: ${b} · ${fmt(t.score)}`}
+                    <button key={m} className="pmatrix-cell" data-current={m === market ? "" : undefined} data-rf={riseFallOf(pd.data, t)?.dir} title={`${m}: ${b} · ${fmt(t.score)}`}
                             onClick={() => { onMarket(m); selectTarget(r.key); }}>
                       <BandMark band={b} color={domainColor(t.domain)} pm={!!pmBand(t)} />
                       <span className="pmatrix-score">{fmt(t.score)}</span>
-                      {(Math.abs(d) >= 3 || (t.prev && t.prev.band !== t.band && position > 1)) && <Arrow d={d} />}
+                      {(() => { const mv = position > 1 ? bandMove(t) : null; return mv
+                        ? <Arrow d={mv === "up" ? 1 : -1} rf={mv} />
+                        : (Math.abs(d) >= 3 || (t.prev && t.prev.band !== t.band && position > 1)) && <Arrow d={d} />; })()}
                       {pmBand(t) && <span className="pmatrix-ok" aria-label="PM confirmed">✓</span>}
-                      {(() => { const ch = challengeOf(pd.data, t); return ch
-                        ? <span className="pmatrix-chal" title={`AI proposes ${ch.proposed_band} against your ${pmBand(t)}`}><b className="ptag-chal">!</b>{ch.proposed_band[0]}{arrow(ch.proposed_band, pmBand(t))}</span>
+                      {(() => { const rf = riseFallOf(pd.data, t); const ch = rf ? null : challengeOf(pd.data, t); return rf
+                        ? <span className="prf-cell" data-rf={rf.dir} title={`${rf.dir === "down" ? "Downgrade" : "Upgrade suggested"}: your ${rf.from} → AI ${rf.to} · ${rf.cause}`}>{rf.dir === "down" ? "▼" : "▲"}{rf.to[0]}</span>
+                        : ch ? <span className="pmatrix-chal" title={`AI proposes ${ch.proposed_band} against your ${pmBand(t)}`}><b className="ptag-chal">!</b>{ch.proposed_band[0]}{arrow(ch.proposed_band, pmBand(t))}</span>
                         : props.has(tid(t)) && <span className="pmatrix-prop" title="Open AI proposal">P</span>; })()}
                     </button>
                   );
@@ -320,6 +327,7 @@ function Inspector({ pd, t, markets, onMarket }: { pd: PrioData; t: Target; mark
   const bundle = t.bundle_id ? data.bundles.find((b) => b.id === t.bundle_id) ?? null : null;
   const bundleOn = useP((s) => s.bundle);
   const proposal = openProposals(data).find((p) => p.key === t.key && p.line === t.line && p.market === t.market) ?? null;
+  const rf = riseFallOf(data, t);   // a challenged PM decision: the red / green banner with Accept / Reject replaces the proposal box
   const d = t.prev ? t.score - t.prev.score : 0;
   const gates: [string, keyof Target["gates"]][] = [["Brand fit", "brand"], ["Segment fit", "segment"], ["Market fit", "market"], ["Feasibility", "feasibility"]];
 
@@ -331,6 +339,7 @@ function Inspector({ pd, t, markets, onMarket }: { pd: PrioData; t: Target; mark
         <p className="sheet-what">One requirement in one market. The AI scores it and proposes a band; the PM decides.</p>
       </header>
       <h2 className="sheet-title">{t.title}</h2>
+      {rf && <RiseFallBanner key={String(rf.proposal.id)} pd={pd} rf={rf} />}
       <Deciding t={t} />
 
       <div className="pfigure">
@@ -446,7 +455,7 @@ function Inspector({ pd, t, markets, onMarket }: { pd: PrioData; t: Target; mark
         </div>
       )}
 
-      {proposal && <ProposalBlock pd={pd} p={proposal} />}
+      {proposal && !rf && <ProposalBlock pd={pd} p={proposal} />}
       <DecisionBlock pd={pd} t={t} bundled={!!bundle && bundle.keys.length > 1} />
     </aside>
   );

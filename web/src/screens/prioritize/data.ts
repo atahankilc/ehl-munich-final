@@ -12,6 +12,11 @@ import { trackRescore } from "./rescore";
 
 export interface PrioData { data: PrioritizePayload; sample: boolean; why: string | null; pending: boolean }
 
+/** DEV / DEMO ONLY: `?sample=1` in the URL forces the page-4 sample fixture (fixture.ts: PM decisions and proposals,
+ *  incl. challenged ones) even while the live API is ready, e.g. for screenshots of the rise / fall marks before any
+ *  real PM decision exists. Writes stay local in sample mode (no decision or proposal reaches the API). */
+export const sampleForced = () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("sample") === "1";
+
 export function usePrioritize(): PrioData {
   const { cp } = useCheckpoint();
   const q = useQuery({
@@ -22,6 +27,7 @@ export function usePrioritize(): PrioData {
   });
   const fx = useMemo(() => fixtureFor(cp), [cp]);
   return useMemo(() => {
+    if (sampleForced()) return { data: fx, sample: true, why: "Forced by ?sample=1 (dev / demo only)", pending: false };
     const live = q.data?.ready && q.data.checkpoint === cp && q.data.targets?.length ? q.data : null;
     if (live) return { data: live, sample: false, why: null, pending: false };
     const why = q.isError ? "Prioritize API not available" : q.data && !q.data.ready ? "The prioritize stage has not run at this checkpoint" : "Waiting for the API";

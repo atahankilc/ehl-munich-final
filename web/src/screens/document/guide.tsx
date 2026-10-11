@@ -1,6 +1,7 @@
 // Guide content for page 5 (Document), rendered inside the shared Dock through its `guide` slot.
 import { BandMark, GateMark } from "../prioritize/marks";
 import { DOMAIN_COLOR } from "../definition/data";
+import "../prioritize/risefall.css";
 
 const C = DOMAIN_COLOR.digital;
 
@@ -19,6 +20,9 @@ export function DocumentGuide({ open }: { open: boolean }) {
         <li><BandMark band="Must" color={C} /><span><b>Band mark</b> Must solid, Should outlined, Could a thin line; hue = vehicle domain.</span></li>
         <li><BandMark band="Should" color={C} pm /><span><b>Blue underline · PM ✓</b> confirmed by the PM (the only blue).</span></li>
         <li><span className="doc-gtag doc-gmark">→</span><span><b>Arrow tag</b> an open AI proposal to change the band.</span></li>
+        <li><span className="gmark-rf" data-rf="down">▼</span><span><b>Red ▼ Must → Should</b> a PM decision new evidence now contradicts: the AI places it lower. Review it first.</span></li>
+        <li><span className="gmark-rf" data-rf="up">▲</span><span><b>Green ▲ Should → Must</b> an upgrade opportunity: the AI places a confirmed band higher.</span></li>
+        <li><span className="gmark-rf" data-rf="up" data-small="">▲</span><span><b>Small green ▲ / red ▼</b> an unconfirmed AI band rose or fell since JAN.</span></li>
         <li><GateMark result="warn" /><span><b>Gate</b> brand, segment, market, feasibility: pass, warn, fail.</span></li>
         <li><span className="doc-gtag doc-gmark">E2</span><span><b>Evidence level</b> E1 strongest … E4 weakest.</span></li>
       </ul>

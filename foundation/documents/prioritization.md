@@ -127,6 +127,10 @@ uv run python -m bmw_req.prioritize.run --checkpoint cp1 --report            ban
   target detail filters proposals and decisions the same way; "previous score" rows come from visible checkpoints only.
 - **Rejected proposals don't nag:** a proposal the PM rejected (after their latest decision on the target) is not re-proposed
   with the same old → new band until the score has moved ≥ 5 points.
+- **Rise / Fall (PM request 2026-10-11, frontend only):** a challenged decision is split by direction (proposed band above the
+  PM's = up, green; below = down, big red) on the skyline, HUD, inspector banner, matrix, list and page 5; see DESIGN.md →
+  Rise/Fall rule. It supersedes the white "!" marks below except in the weights preview. Dev / demo: `?sample=1` forces the
+  page-4 fixture (which now carries `against` and two down / two up challenged decisions) and overlays it on page 5.
 - **Page 4 PM marks:** confirmed columns get a sweep-blue edge and a blue "M ✓" chip (base disc stays); a challenged
   decision (open proposal with `against: "pm"`) gets a white ring at the AI score and "! AI: Should ▼ · <cause>", pulsing
   once per checkpoint arrival; matrix cells ✓ / white "!" + proposed band; list rows "PM ✓" in blue, challenged first with

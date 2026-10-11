@@ -12,7 +12,9 @@ export function GateMark({ result }: { result: GateResult }) {
   return <i className="pgate" data-r={result} aria-label={result} />;
 }
 
-export function Arrow({ d }: { d: number }) {
+/** score moved since JAN; `rf` = the (unconfirmed) AI band itself moved: the small rise / fall colour (pm.ts) */
+export function Arrow({ d, rf }: { d: number; rf?: "up" | "down" | null }) {
   if (!d) return null;
-  return <span className="parrow" data-d={d > 0 ? "up" : "down"} aria-label={d > 0 ? "rose" : "fell"}>{d > 0 ? "▲" : "▼"}</span>;
+  return <span className="parrow" data-d={d > 0 ? "up" : "down"} data-rf={rf ?? undefined}
+               aria-label={rf ? (rf === "up" ? "band rose since JAN" : "band fell since JAN") : d > 0 ? "rose" : "fell"}>{d > 0 ? "▲" : "▼"}</span>;
 }

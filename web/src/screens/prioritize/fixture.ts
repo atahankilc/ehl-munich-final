@@ -91,10 +91,12 @@ const S5 = "5 Series", S7 = "7 Series", S1 = "1 Series";
 const ROWS: Row[] = [
   // 5 Series · US: the deepest market (≈3.6k comments): customer voice carries it
   ["rq:easy-common-controls:0", S5, "US", [0.9, 0.7, 0.55, 0.72, 0.6, 0.62], { conf: "E1", jul: { 0: 0.06 }, pm: "Must", pmWhy: "Top complaint across US owners; touch-only climate keeps coming up." }],
-  ["rq:confident-real-world-range:0", S5, "US", [0.5, 0.3, 0.62, 0.7, 0.55, 0.82], { conf: "E2", jul: { 0: 0.14, 2: 0.35, 4: 0.1 }, rec: "target" }],
+  ["rq:confident-real-world-range:0", S5, "US", [0.5, 0.3, 0.62, 0.7, 0.55, 0.82], { conf: "E2", jul: { 0: 0.14, 2: 0.35, 4: 0.1 }, rec: "target",
+    pm: "Should", pmWhy: "Range matters, but US owners rank controls and comfort higher; keep it Should for now." }],
   ["rq:convenient-reliable-charging:2", S5, "US", [0.42, 0.32, 0.6, 0.7, 0.4, 0.78], { conf: "E2" }],
   ["rq:effortless-climate-comfort:0", S5, "US", [0.74, 0.6, 0.45, 0.72, 0.35, 0.5], { conf: "E1" }],
-  ["rq:engaging-driving-dynamics:0", S5, "US", [0.8, 0.62, 0.4, 0.72, 0.45, 0.4], { conf: "E1" }],
+  ["rq:engaging-driving-dynamics:0", S5, "US", [0.8, 0.62, 0.4, 0.72, 0.45, 0.4], { conf: "E1", jul: { 0: -0.16, 5: -0.04 },
+    pm: "Must", pmWhy: "Handling is the brand core; never let it slip in the successor." }],
   ["rq:dependable-driving-parking-assistance:0", S5, "US", [0.46, 0.4, 0.55, 0.72, 0.35, 0.66], { conf: "E2" }],
   ["rq:understandable-digital-features:0", S5, "US", [0.8, 0.6, 0.42, 0.72, 0.6, 0.58], { conf: "E1" }],
   ["rq:transparent-digital-services:0", S5, "US", [0.4, 0.3, 0.35, 0.72, 0.55, 0.5], { conf: "E2" }],
@@ -104,7 +106,8 @@ const ROWS: Row[] = [
   ["rq:refined-cabin-character:1", S5, "US", [0.66, 0.58, 0.45, 0.72, 0.35, 0.4], { conf: "E1" }],
   ["rq:comfortable-space-access:1", S5, "US", [0.38, 0.35, 0.3, 0.72, 0.3, 0.35], { conf: "E2" }],
   ["rq:everyday-cabin-storage:0", S5, "US", [0.6, 0.42, 0.5, 0.72, 0.3, 0.35], { conf: "E1" }],
-  ["rq:valuable-vehicle-technology:2", S5, "US", [0.56, 0.55, 0.38, 0.72, 0.25, 0.45], { conf: "E2", jul: { 0: -0.18 } }],
+  ["rq:valuable-vehicle-technology:2", S5, "US", [0.56, 0.55, 0.38, 0.72, 0.25, 0.45], { conf: "E2", jul: { 0: -0.18 },
+    pm: "Should", pmWhy: "Head-up display is valued by the owners who have it; keep it in the core package." }],
   ["rq:roof-openness-experience:0", S5, "US", [0.4, 0.25, 0.55, 0.72, 0.2, 0.4], { conf: "E2", jul: { 0: -0.12 } }],
   ["rq:refined-cabin-character:2", S5, "US", [0.32, 0.3, 0.4, 0.72, 0.2, 0.45], { conf: "E2" }],
   ["rq:reliable-connected-entertainment:2", S5, "US", [0.36, 0.3, 0.45, 0.72, 0.35, 0.6], { conf: "E2" }],
@@ -140,7 +143,8 @@ const ROWS: Row[] = [
   ["rq:quiet-smooth-ride:1", S7, "US", [0.76, 0.6, 0.4, 0.6, 0.5, 0.36], { conf: "E1" }],
   ["rq:comfortable-space-access:1", S7, "US", [0.55, 0.5, 0.42, 0.6, 0.3, 0.4], { conf: "E1" }],
   ["rq:refined-cabin-character:1", S7, "US", [0.72, 0.64, 0.5, 0.6, 0.35, 0.42], { conf: "E1" }],
-  ["rq:refined-cabin-character:2", S7, "US", [0.48, 0.46, 0.5, 0.6, 0.2, 0.5], { conf: "E2", jul: { 0: 0.1 } }],
+  ["rq:refined-cabin-character:2", S7, "US", [0.48, 0.46, 0.5, 0.6, 0.2, 0.5], { conf: "E2", jul: { 0: 0.1 },
+    pm: "Could", pmWhy: "Ambient lighting is a nice-to-have in the US flagship." }],
   ["rq:valuable-vehicle-technology:2", S7, "US", [0.55, 0.5, 0.35, 0.6, 0.25, 0.45], { conf: "E2" }],
   ["rq:easy-common-controls:0", S7, "US", [0.8, 0.6, 0.5, 0.6, 0.6, 0.6], { conf: "E1" }],
   ["rq:effortless-climate-comfort:0", S7, "US", [0.6, 0.52, 0.42, 0.6, 0.35, 0.5], { conf: "E1" }],
@@ -328,7 +332,8 @@ export function fixtureFor(cp: string): PrioritizePayload {
         if (Math.abs(d ?? 0) > bigV) { bigV = Math.abs(d ?? 0); big = Number(i); }
       }
       proposals.push({ id: id++, key: t.key, line: t.line, market: t.market, old_band: from, proposed_band: t.band,
-                       cause: CAUSE_OF[big] ?? "link_changed", factor_delta: delta, status: "open", created_at: "2026-07-31T18:02:00Z" });
+                       cause: CAUSE_OF[big] ?? "link_changed", factor_delta: delta, against: t.confirmed ? "pm" : "parent",
+                       status: "open", created_at: "2026-07-31T18:02:00Z" });
     }
   }
   const by_band: Partial<Record<Band, number>> = {};

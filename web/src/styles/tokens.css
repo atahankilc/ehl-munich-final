@@ -22,6 +22,16 @@
   --sweep-hi: #4d94ff;
   --sweep-wash: rgba(28, 105, 212, 0.18);
   --lost: #f5a524;
+  /* Rise / Fall (PM request 2026-10-11): ONLY for priority-level changes after a checkpoint — a band the AI now places
+     above (rise) or below (fall) the PM's confirmed band, and, small, an unconfirmed band that moved since the previous
+     checkpoint. Never a data hue, never hover, never decoration. Text on black: rise 8.8:1, rise-hi 13.3:1, fall 5.9:1,
+     fall-hi 7.5:1 (all WCAG AA); black text on a rise / fall fill keeps the same ratios. */
+  --rise: #2fbf71;
+  --rise-hi: #5ee69a;
+  --rise-glow: rgba(47, 191, 113, 0.26);
+  --fall: #ff3b30;
+  --fall-hi: #ff6961;
+  --fall-glow: rgba(255, 59, 48, 0.34);
 
   /* type */
   --font: "Mona Sans Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;

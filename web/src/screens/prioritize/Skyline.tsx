@@ -22,13 +22,16 @@ import { bandsAt, isBlocked, marketsOf, openProposals, parseFlags, pmBand, shown
 import { getP, selectTarget, setP, useP } from "./store";
 import { usePreview } from "./weights";
 import { CAUSE_LABEL } from "./data";
-import { BAND_RANK, type Challenge } from "./pm";
+import { BAND_RANK, bandMove, dirOf, type Challenge, type Dir } from "./pm";
 import "./pm.css";
 
 export const RING_R = 2.45;          // world units; the car's half-length is ≈ 1.73
 export const H_MAX = 2.0;            // height of a score of 100
 const LIFT_S = 2.3, STAGGER = 0.38, WAIT = 0.25;
 const INK = "#f2f4f7", SWEEP_HI = "#4d94ff";
+// Rise / Fall (tokens.css --rise / --fall): only for a PM-confirmed band the AI now places higher / lower
+const RF_COLOR: Record<Dir, string> = { up: "#2fbf71", down: "#ff3b30" };
+const CONE = new THREE.ConeGeometry(1, 2.2, 14).translate(0, 1.1, 0);   // tip at y = 2.2, base at 0
 const W = { Must: 0.064, Should: 0.064, Could: 0.016 };
 
 const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
@@ -65,8 +68,8 @@ export function Skyline({ active, frame, zones, carScale, reduced, nav, sweepId 
   const hover = useP((s) => s.hover);
   const bundle = useP((s) => s.bundle);
   const flat = useP((s) => s.view === "matrix");   // the matrix is in front: the skyline steps back
-  useP((s) => s.pending);
-  useP((s) => s.pendingProposals);
+  const pendingBands = useP((s) => s.pending);
+  const pendingProps = useP((s) => s.pendingProposals);
   // the weights panel's preview: proposed thresholds and per-target score / AI band, in memory only
   const pv = usePreview();
   const at = pv?.bands ?? bandsAt(data);
@@ -103,6 +106,24 @@ export function Skyline({ active, frame, zones, carScale, reduced, nav, sweepId 
     return [t.key, p ? { ...t, score: p.score, band: p.band } : t];
   })), [data.targets, line, market, pv]);
   const proposals = useMemo(() => new Map(openProposals(data).filter((p) => p.line === line && p.market === market).map((p) => [p.key, p])), [data, line, market]); // eslint-disable-line react-hooks/exhaustive-deps
+  /* rise / fall: a PM-confirmed band the AI now places higher or lower (open proposal against "pm"). The column stays at
+     the PM's level (JAN's score, clamped into the PM's band) — it is still the PM's position until they act — and the
+     AI's score becomes a coloured ghost with a rise / drop line. Not in the weights preview (hypothetical, stays white). */
+  const rfs = useMemo(() => {
+    const m = new Map<string, RF>();
+    if (pv) return m;
+    for (const [k, p] of proposals) {
+      const tg = inMarket.get(k);
+      if (!tg || p.against !== "pm" || pendingProps[String(p.id)]) continue;
+      const from = pendingBands[`${tg.key}|${tg.line}|${tg.market}`] ?? tg.confirmed?.priority ?? null;
+      const dir = from ? dirOf(p.proposed_band, from) : null;
+      if (!from || !dir) continue;
+      const lo = from === "Must" ? at.Must : from === "Should" ? at.Should : 0, hi = from === "Must" ? 100 : from === "Should" ? at.Must : at.Should;
+      const pmScore = Math.max(lo + 1, Math.min(hi - 1, tg.prev?.score ?? (lo + hi) / 2));
+      m.set(k, { dir, from, to: p.proposed_band, cause: CAUSE_LABEL[p.cause] ?? p.cause, pmScore, aiScore: tg.score });
+    }
+    return m;
+  }, [proposals, inMarket, pv, at.Must, at.Should, pendingBands, pendingProps]);
 
   /* domain group labels on the ground, outside the ring */
   const groups = useMemo(() => {
@@ -148,7 +169,7 @@ export function Skyline({ active, frame, zones, carScale, reduced, nav, sweepId 
       const r = refs.current.get(c.key);
       if (!r?.group) continue;
       const tg = inMarket.get(c.key);
-      const goalH = tg ? hOf(tg.score) : 0;
+      const goalH = tg ? hOf(rfs.get(c.key)?.pmScore ?? tg.score) : 0;
       const h0 = heights.current.get(c.key) ?? goalH;
       const h = Math.abs(goalH - h0) < 0.0005 ? goalH : h0 + (goalH - h0) * morph;
       heights.current.set(c.key, h);
@@ -168,6 +189,7 @@ export function Skyline({ active, frame, zones, carScale, reduced, nav, sweepId 
       if (r.pin) { const s = (1 - grow) * 0.05; r.pin.visible = s > 0.002; r.pin.scale.setScalar(Math.max(0.0001, s)); }
       if (r.base) r.base.visible = grow > 0.6;
       if (r.ghost) r.ghost.visible = grow > 0.98;
+      if (r.rf) r.rf.visible = grow > 0.98;
       if (r.label) { const o = smooth(0.85, 1, ti); r.label.style.opacity = o.toFixed(3); r.label.style.visibility = o > 0.02 ? "" : "hidden"; }
     }
     const show = smooth(0.55, 1, T);
@@ -263,14 +285,16 @@ export function Skyline({ active, frame, zones, carScale, reduced, nav, sweepId 
         // a challenged PM decision: an open proposal against the PM's band (or, in the weights preview, one it would get)
         const pmb = tg ? pmBand(tg) : null;
         const pr = proposals.get(c.key);
-        const challenge: Challenge | null = !tg || !pmb ? null
+        const rf = rfs.get(c.key) ?? null;
+        const challenge: Challenge | null = !tg || !pmb || rf ? null
           : pv ? (pmb !== tg.band ? { band: tg.band, from: pmb, cause: "weights preview" } : null)
           : pr && pr.against === "pm" ? { band: pr.proposed_band, from: pmb, cause: CAUSE_LABEL[pr.cause] ?? pr.cause } : null;
         return (
           <Column key={c.key} c={c} t={tg} band={band} hot={hot} on={on} dim={dim} pm={pmb} blocked={tg ? isBlocked(tg) : false}
-                  proposal={challenge ? null : pv ? null : pr?.proposed_band ?? null} challenge={challenge}
+                  proposal={challenge || rf ? null : pv ? null : pr?.proposed_band ?? null} challenge={challenge} rf={rf}
+                  move={!pv && tg && position > 1 && !rf ? bandMove(tg) : null}
                   prevH={tg?.prev && position > 1 && Math.abs(delta) >= 1 ? hOf(tg.prev.score) : null}
-                  pulse={moved || (challenge && !pv) ? `${sweepId}:${market}` : null} delta={delta} register={register} onRef={onRef} />
+                  pulse={moved || rf || (challenge && !pv) ? `${sweepId}:${market}` : null} delta={delta} register={register} onRef={onRef} />
         );
       })}
       <group ref={overlay}>
@@ -332,11 +356,15 @@ function Plane({ y, label, strength, facing, labelRef }: { y: number; label: str
 }
 
 /* ------------------------------------------------------------------------------------------- columns */
-interface ColRefs { group: THREE.Group | null; scale: THREE.Group | null; cap: THREE.Group | null; pin: THREE.Mesh | null; base: THREE.Group | null; ghost: THREE.Mesh | null; label: HTMLElement | null }
+interface ColRefs { group: THREE.Group | null; scale: THREE.Group | null; cap: THREE.Group | null; pin: THREE.Mesh | null; base: THREE.Group | null; ghost: THREE.Mesh | null; rf?: THREE.Group | null; label: HTMLElement | null }
+/** a challenged PM decision on the skyline: direction, the PM's band → the AI's, the PM's level and the AI's score */
+interface RF { dir: Dir; from: Band; to: Band; cause: string; pmScore: number; aiScore: number }
+/* the rise / drop line runs beside the column on the camera's side (perpendicular to the overview's view direction) */
+const RF_OFF: Vec3 = [0.768 * 0.075, 0, 0.64 * 0.075];
 
-const Column = memo(function Column({ c, t, band, hot, on, dim, pm, blocked, proposal, challenge, prevH, pulse, delta, register, onRef }: {
+const Column = memo(function Column({ c, t, band, hot, on, dim, pm, blocked, proposal, challenge, rf = null, move = null, prevH, pulse, delta, register, onRef }: {
   c: Col; t: Target | null; band: Band | null; hot: boolean; on: boolean; dim: boolean; pm: Band | null; blocked: boolean;
-  proposal: Band | null; challenge: Challenge | null; prevH: number | null; pulse: string | null; delta: number; register: Register; onRef: (k: string, r: ColRefs) => void;
+  proposal: Band | null; challenge: Challenge | null; rf?: RF | null; move?: Dir | null; prevH: number | null; pulse: string | null; delta: number; register: Register; onRef: (k: string, r: ColRefs) => void;
 }) {
   const r = useRef<ColRefs>({ group: null, scale: null, cap: null, pin: null, base: null, ghost: null, label: null });
   useEffect(() => { onRef(c.key, r.current); }, [c.key, onRef]);
@@ -350,7 +378,8 @@ const Column = memo(function Column({ c, t, band, hot, on, dim, pm, blocked, pro
     setP({ hover: c.key, hoverPos: ne ? { x: ne.clientX, y: ne.clientY } : null });
     document.body.style.cursor = "pointer";
   };
-  const labelRef = register(c.key, on || hot ? 1e9 : t ? t.score + (challenge ? 2000 : pm ? 1000 : 0) : -1);   // the PM's columns keep their chips
+  // the PM's columns keep their chips; a challenged one wins every collision (a downgrade is never hidden)
+  const labelRef = register(c.key, on || hot || rf?.dir === "down" ? 1e9 : rf ? 9e8 + (t?.score ?? 0) : t ? t.score + (challenge ? 2000 : pm ? 1000 : 0) : -1);
   return (
     <group ref={(g) => { r.current.group = g; }}>
       {/* the column, by band: Must solid, Should outlined over a faint fill, Could a thin line */}
@@ -392,6 +421,22 @@ const Column = memo(function Column({ c, t, band, hot, on, dim, pm, blocked, pro
           <meshBasicMaterial color={INK} transparent opacity={0.38 * k} depthWrite={false} />
         </mesh>
       )}
+      {/* rise / fall: the AI's level as a coloured ghost, a ring at the AI's score and a line from the PM's cap to it */}
+      {rf && (() => {
+        const hp = hOf(rf.pmScore), ha = hOf(rf.aiScore), col = RF_COLOR[rf.dir], down = rf.dir === "down";
+        const lo = Math.min(hp, ha), span = Math.max(0.004, Math.abs(hp - ha)), gw = Math.max(0.05, w * (down ? 1.9 : 1.6));
+        return (
+          <group ref={(g) => { r.current.rf = g; }} visible={false}>
+            <mesh geometry={BOX} position={[0, lo, 0]} scale={[gw, span, gw]} renderOrder={4}><meshBasicMaterial color={col} transparent opacity={(down ? 0.26 : 0.18) * k} depthWrite={false} /></mesh>
+            <lineSegments geometry={EDGES} position={[0, lo, 0]} scale={[gw, span, gw]} renderOrder={4}><lineBasicMaterial color={col} transparent opacity={0.95 * k} depthWrite={false} /></lineSegments>
+            <mesh geometry={HALO} position={[0, ha, 0]} scale={down ? 0.16 : 0.12} renderOrder={5}><meshBasicMaterial color={col} transparent opacity={k} depthWrite={false} side={THREE.DoubleSide} /></mesh>
+            <Line points={[[RF_OFF[0], hp, RF_OFF[2]], [RF_OFF[0], down ? ha + 0.05 : ha - 0.05, RF_OFF[2]]]} color={col} lineWidth={down ? 4 : 2.6} transparent opacity={k} depthWrite={false} renderOrder={6} />
+            <mesh geometry={CONE} position={[RF_OFF[0], down ? ha + 0.055 : ha - 0.055, RF_OFF[2]]} rotation={[down ? Math.PI : 0, 0, 0]} scale={[down ? 0.028 : 0.022, 0.025, down ? 0.028 : 0.022]} renderOrder={6}>
+              <meshBasicMaterial color={col} transparent opacity={k} depthWrite={false} />
+            </mesh>
+          </group>
+        );
+      })()}
       {/* the top: Could's cap dot, and the score numeral */}
       <group ref={(g) => { r.current.cap = g; }}>
         {band === "Could" && <mesh geometry={DOT} scale={0.024}><meshBasicMaterial color={color} transparent opacity={k} /></mesh>}
@@ -400,12 +445,20 @@ const Column = memo(function Column({ c, t, band, hot, on, dim, pm, blocked, pro
         {t && (
           <Html position={[0, 0.07, 0]} center zIndexRange={[13, 11]}>
             <div ref={(el) => { r.current.label = el; labelRef(el); }} className="psky-cap" data-hot={hot ? "" : undefined} data-on={on ? "" : undefined}
-                 data-dim={dim ? "" : undefined} data-band={band ?? undefined}>
-              {pulse && <i key={pulse} className="psky-pulse" aria-hidden />}
+                 data-dim={dim ? "" : undefined} data-band={band ?? undefined} data-rf={rf?.dir}>
+              {rf && (
+                <span className="psky-rf" data-rf={rf.dir} role="status"
+                      aria-label={rf.dir === "down" ? `Downgrade: AI now places it ${rf.to}, below your ${rf.from}. ${rf.cause}` : `Upgrade suggested: AI now places it ${rf.to}, above your ${rf.from}. ${rf.cause}`}>
+                  <b aria-hidden>{rf.dir === "down" ? "▼" : "▲"}</b>{rf.from} → {rf.to}<span className="psky-rf-why"> · {rf.dir === "down" ? rf.cause : "upgrade suggested"}</span>
+                </span>
+              )}
+              {pulse && <i key={pulse} className="psky-pulse" data-rf={rf?.dir} aria-hidden />}
+              {pulse && rf?.dir === "down" && <i key={`${pulse}:2`} className="psky-pulse psky-pulse-2" data-rf="down" aria-hidden />}
               {blocked && <span className="psky-blocked" title="Brand fit fails: approval blocked" aria-label="blocked by brand fit" />}
               <span className="psky-num">{Math.round(t.score)}</span>
               {delta !== 0 && Math.abs(delta) >= 1 && <span className="psky-delta">{delta > 0 ? "+" : "−"}{Math.abs(Math.round(delta))}</span>}
-              {proposal && <span className="psky-prop" aria-label={`AI proposes ${proposal}`}>{proposal === "Must" || (proposal === "Should" && band === "Could") ? "▲" : "▼"}</span>}
+              {move ? <span className="psky-prop" data-rf={move} aria-label={move === "up" ? "AI band rose since JAN" : "AI band fell since JAN"}>{move === "up" ? "▲" : "▼"}</span>
+                : proposal && <span className="psky-prop" aria-label={`AI proposes ${proposal}`}>{proposal === "Must" || (proposal === "Should" && band === "Could") ? "▲" : "▼"}</span>}
               {pm && <span className="psky-pm" aria-label={`PM confirmed ${pm}`}>{pm[0]} ✓</span>}
               {challenge && (
                 <span className="psky-chal" aria-label={`AI proposes ${challenge.band}, ${challenge.cause}`}>
