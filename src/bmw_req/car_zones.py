@@ -26,6 +26,7 @@ ZONES: dict[str, dict] = {
     "chassis":    {"label": "Chassis, ride & steering", "pos": (0.64, 1.0, 0.20), "view": (0.55, 1.0, 0.25), "dist": 1.9},
     "charging":   {"label": "Range & charging",        "pos": (-0.66, 1.0, 0.62), "view": (-0.6, 1.0, 0.4), "dist": 2.0},
     "trunk":      {"label": "Trunk & luggage",         "pos": (-0.97, 0.0, 0.62), "view": (-1.0, 0.35, 0.55), "dist": 2.1},
+    "underfloor": {"label": "Battery & energy",        "pos": (-0.05, 0.0, 0.14), "view": (0.2, 1.0, 0.18), "dist": 2.2},
 }
 
 # First match wins; checked against the lower-cased requirement title (then description).
