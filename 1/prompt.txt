@@ -1,0 +1,49 @@
+i want to do a repo clean up and restructuring. Find unused documents and dependencies, remove them, and later of restructure the repo so it satisfies standard repo structure
+
+---
+
+stop everyhtin working on the background if stoping them breks nothing and then restrat the server
+
+---
+
+why both of them shows the same thing? what is the difference between them
+
+---
+
+why are we running both of them then?
+
+---
+
+i dont get it, api is backend but it runs the frontend to?
+
+---
+
+okay, frst of all, lets implement different profiles like development or deployment on containers maybe
+
+---
+
+<task-notification>
+<task-id>bd9yxpvmj</task-id>
+<tool-use-id>toolu_01VsFf8QYLv9Jx5cEMcHwUWt</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-atahankilic-Documents-ehl-munich-final/ebac716e-a49e-4a69-b2e8-118f31523c1a/tasks/bd9yxpvmj.output</output-file>
+<status>failed</status>
+<summary>Background command "Start API server from backend/" failed with exit code 2</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bkw3fnxcg</task-id>
+<tool-use-id>toolu_012hyX8u4wwu3SWfDfxVTN2w</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-atahankilic-Documents-ehl-munich-final/ebac716e-a49e-4a69-b2e8-118f31523c1a/tasks/bkw3fnxcg.output</output-file>
+<status>failed</status>
+<summary>Background command "Start frontend dev server" failed with exit code 2</summary>
+</task-notification>
+
+---
+
+does python code also update itself?
+
+---
+
+can we run it on production? Does the prodoction one has its own db or still a sqlite?
