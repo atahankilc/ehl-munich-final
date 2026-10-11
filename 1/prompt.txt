@@ -47,3 +47,7 @@ does python code also update itself?
 ---
 
 can we run it on production? Does the prodoction one has its own db or still a sqlite?
+
+---
+
+commit the changes
