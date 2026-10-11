@@ -1,0 +1,96 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4N5YNYSATQRAJQ5R5HHQKT2",
+  "session_id": "e0594a85-f25c-47fd-b039-e90da8869858",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-11T09:51:05.188305Z",
+  "branch": "main",
+  "checkpoints_count": 4,
+  "save_step_count": 4,
+  "files_touched": [
+    "src/bmw_req/structure/areas.py",
+    "src/bmw_req/structure/classify_context.py",
+    "src/bmw_req/structure/contextualize.py",
+    "src/bmw_req/structure/events.py"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "turn_id": "3e75d2d9f4e1",
+  "checkpoint_transcript_start": 714,
+  "transcript_lines_at_start": 714,
+  "compact_transcript_start": 106,
+  "token_usage": {
+    "input_tokens": 46,
+    "cache_creation_tokens": 28331,
+    "cache_read_tokens": 5534798,
+    "output_tokens": 10739,
+    "api_call_count": 21
+  },
+  "session_metrics": {
+    "turn_count": 11
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-11T09:51:05.051134Z",
+    "agent_lines": 148,
+    "agent_removed": 29,
+    "human_added": 265,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 413,
+    "total_lines_changed": 442,
+    "agent_percentage": 40.04524886877828,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 459,
+      "user_lines_removed": 5,
+      "agent_lines_added": 4348,
+      "agent_lines_removed": 148,
+      "user_added_per_file": {
+        ".claude/scheduled_tasks.lock": 1,
+        ".impeccable/hook.cache.json": 1,
+        "src/bmw_req/definition/define.py": 11,
+        "src/bmw_req/definition/specify.py": 445,
+        "web/.impeccable/hook.cache.json": 1
+      },
+      "user_removed_per_file": {
+        "src/bmw_req/definition/define.py": 5
+      }
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 24,
+      "user_lines_removed": 0,
+      "agent_lines_added": 5803,
+      "agent_lines_removed": 170,
+      "user_added_per_file": {
+        ".claude/scheduled_tasks.lock": 1,
+        ".impeccable/hook.cache.json": 1,
+        "foundation/documents/requirement-definition.md": 21,
+        "web/.impeccable/hook.cache.json": 1
+      }
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 24,
+      "user_lines_removed": 0,
+      "agent_lines_added": 5803,
+      "agent_lines_removed": 170,
+      "user_added_per_file": {
+        ".claude/scheduled_tasks.lock": 1,
+        ".impeccable/hook.cache.json": 1,
+        "foundation/documents/requirement-definition.md": 21,
+        "web/.impeccable/hook.cache.json": 1
+      }
+    }
+  ]
+}
