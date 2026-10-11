@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01Hk2Q54hrqwCndrL85LfkP7",
+  "agent_id": "aac514aec557cf992",
+  "subagent_type": "general-purpose",
+  "task_description": "Research: segment-level model sales",
+  "token_usage": {
+    "input_tokens": 158,
+    "cache_creation_tokens": 194913,
+    "cache_read_tokens": 7201356,
+    "output_tokens": 1282,
+    "api_call_count": 79
+  },
+  "started_at": "2026-10-11T03:18:20.395921+02:00",
+  "completed_at": "2026-10-11T07:32:11.809854+02:00"
+}

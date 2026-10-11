@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01ExYisTAEc7WCV9RYcpCQGY",
+  "agent_id": "a5a2f205a4925e332",
+  "subagent_type": "general-purpose",
+  "task_description": "Research: German & legacy premium competitors",
+  "token_usage": {
+    "input_tokens": 74,
+    "cache_creation_tokens": 155543,
+    "cache_read_tokens": 3122958,
+    "output_tokens": 550,
+    "api_call_count": 37
+  },
+  "started_at": "2026-10-11T03:18:20.397495+02:00",
+  "completed_at": "2026-10-11T07:32:11.850958+02:00"
+}

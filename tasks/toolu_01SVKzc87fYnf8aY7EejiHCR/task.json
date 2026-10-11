@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01SVKzc87fYnf8aY7EejiHCR",
+  "agent_id": "ad6c2b16c2cb22537",
+  "subagent_type": "general-purpose",
+  "task_description": "China round 2: policy, consumers, tech",
+  "token_usage": {
+    "input_tokens": 82,
+    "cache_creation_tokens": 151337,
+    "cache_read_tokens": 3622210,
+    "output_tokens": 427,
+    "api_call_count": 41
+  },
+  "started_at": "2026-10-11T03:44:41.271078+02:00",
+  "completed_at": "2026-10-11T07:32:11.882103+02:00"
+}

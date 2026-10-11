@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01MT3g8cS8Ph1zeUWUqzuHyw",
+  "agent_id": "a95143b5573d831ad",
+  "subagent_type": "Plan",
+  "task_description": "Review: contextualize, graph, requirements",
+  "token_usage": {
+    "input_tokens": 40,
+    "cache_creation_tokens": 89405,
+    "cache_read_tokens": 1162194,
+    "output_tokens": 363,
+    "api_call_count": 20
+  },
+  "started_at": "2026-10-11T04:45:51.608156+02:00",
+  "completed_at": "2026-10-11T07:32:11.943062+02:00"
+}

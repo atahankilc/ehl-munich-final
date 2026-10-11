@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01HbxTEFwBvD7FKCaUmeVSd6",
+  "agent_id": "adf49018ad08ae99b",
+  "subagent_type": "general-purpose",
+  "task_description": "Research: policy & macro demand drivers",
+  "token_usage": {
+    "input_tokens": 138,
+    "cache_creation_tokens": 171610,
+    "cache_read_tokens": 6883145,
+    "output_tokens": 934,
+    "api_call_count": 69
+  },
+  "started_at": "2026-10-11T03:18:20.398094+02:00",
+  "completed_at": "2026-10-11T07:32:11.862824+02:00"
+}

@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01XV8WsEnZ5TTG8kbQWu4Ato",
+  "agent_id": "a5ddb7e9c5f35f020",
+  "subagent_type": "general-purpose",
+  "task_description": "China round 2: model-level sales",
+  "token_usage": {
+    "input_tokens": 148,
+    "cache_creation_tokens": 268500,
+    "cache_read_tokens": 7596754,
+    "output_tokens": 1891,
+    "api_call_count": 74
+  },
+  "started_at": "2026-10-11T03:44:41.271804+02:00",
+  "completed_at": "2026-10-11T07:32:11.897823+02:00"
+}

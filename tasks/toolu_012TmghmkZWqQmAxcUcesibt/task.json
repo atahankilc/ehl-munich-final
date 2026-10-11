@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_012TmghmkZWqQmAxcUcesibt",
+  "agent_id": "abd454c1fa2c4e576",
+  "subagent_type": "general-purpose",
+  "task_description": "Research: Tesla & Chinese EV brands",
+  "token_usage": {
+    "input_tokens": 130,
+    "cache_creation_tokens": 192081,
+    "cache_read_tokens": 6075081,
+    "output_tokens": 973,
+    "api_call_count": 65
+  },
+  "started_at": "2026-10-11T03:18:20.396425+02:00",
+  "completed_at": "2026-10-11T07:32:11.826022+02:00"
+}

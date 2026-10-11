@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01Dyof9ut7Q2MqD16ikHjmjz",
+  "agent_id": "acb855f5941138a5e",
+  "subagent_type": "Plan",
+  "task_description": "Review: classification/extraction step",
+  "token_usage": {
+    "input_tokens": 58,
+    "cache_creation_tokens": 84415,
+    "cache_read_tokens": 1650901,
+    "output_tokens": 280,
+    "api_call_count": 29
+  },
+  "started_at": "2026-10-11T04:45:51.618378+02:00",
+  "completed_at": "2026-10-11T07:32:11.956359+02:00"
+}

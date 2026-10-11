@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_0116UqhhjiJXYfyZC7N1qHog",
+  "agent_id": "adf6328b977dadced",
+  "subagent_type": "general-purpose",
+  "task_description": "Research: consumer studies & expectations",
+  "token_usage": {
+    "input_tokens": 92,
+    "cache_creation_tokens": 185843,
+    "cache_read_tokens": 4440139,
+    "output_tokens": 680,
+    "api_call_count": 46
+  },
+  "started_at": "2026-10-11T03:18:20.396912+02:00",
+  "completed_at": "2026-10-11T07:32:11.840234+02:00"
+}
