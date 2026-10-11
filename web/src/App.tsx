@@ -1,4 +1,4 @@
-// Successor: one scan volume per checkpoint. Screens are added as the pipeline stages are rebuilt
+// SharkSight: one scan volume per checkpoint. Screens are added as the pipeline stages are rebuilt
 // (classify → cluster → contextualize → elicit); each reads the shared checkpoint from useCheckpoint().
 import { Navigate, Route, Routes } from "react-router-dom";
 import { CheckpointProvider } from "@/state/checkpoint";

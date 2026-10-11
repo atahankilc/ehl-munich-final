@@ -1,5 +1,5 @@
 ---
-name: Successor
+name: SharkSight
 description: Track-while-scan for product evidence. Every checkpoint is a sweep over one fixed evidence space, shown on true black.
 colors:
   void: "#000000"
@@ -123,7 +123,7 @@ components:
     typography: "{typography.instrument}"
 ---
 
-# Design System: Successor
+# Design System: SharkSight
 
 ## Overview
 

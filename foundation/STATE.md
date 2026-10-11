@@ -159,3 +159,4 @@ Update the budget table after every paid run. Once the app exists, the source of
 - 2026-10-11 — Raw data page (parallel session): layer focus lift/fade, per-colour readout, cross-type filters (scan/filter.ts), checkpoint dial redesign.
 - 2026-10-11 — D-043: structure & context pipeline (extract-v4 A/B-tested, portfolio-wide incremental clustering, contextualize with evidence graph + RAG, requirement areas), page 2 "Structure" with comment→cluster morph and live agent panel; full run in progress.
 - 2026-10-11 — Scan filter bar always shown with a fold/unfold toggle (unused chips hide, chips in use stay); new filters: comment length, research topic + fact type, option availability.
+- 2026-10-11 — Renamed the app to "SharkSight": one-line geometric shark-head logo + favicon, wordmark beside the page tabs; top-bar pills 28 → 32px (D-044). No LLM spend.

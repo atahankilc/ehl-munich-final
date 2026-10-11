@@ -1,4 +1,4 @@
-// Thin client for the local Successor API (`api/`, FastAPI). Every write carries the acting PM in X-Actor;
+// Thin client for the local SharkSight API (`api/`, FastAPI). Every write carries the acting PM in X-Actor;
 // the server records it in the append-only audit trail.
 import { QueryClient } from "@tanstack/react-query";
 
