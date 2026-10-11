@@ -56,6 +56,15 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
   - There is no powertrain split, although the briefing promised one.
 - Also: F70 China 2024 is a formula cell (`=-D3-C10`, value 0) — another sign the file was constructed (2026-10-10).
 - Until answered: use the file as BMW-internal relative weights, don't blend it with public figures, and show the conflict (`data-inventory.md` §3, `portfolio-reference.md` §4).
+- **Update 2026-10-11 (verification, `research/sales-verification.md`):**
+  - **Ingest is correct.** All 36 DB cells match the file. There are no drops or duplicates, values are in units (no thousands), and CN→G68 is right.
+  - **Correction to the context above.** The 5 Series in China *grew* in 2025. CPCA shows 86,174 (2024) → 107,348 (Jan–Nov 2025), and PCauto retail shows 116,173 for FY2025. So the conflict is the **level** (the file is 21–39% low), not the direction.
+  - **New: G60 US is about 3× public.** BMW NA reports 25,315 (2024) and 27,107 (2025), incl. i5.
+  - **The G60+G68 total matches public.** The BMW Group Report p. 79 gives 299,582 for the 5/6 Series in 2025, about 1% from the file. Only the market split is off.
+  - **RoW is too low.** Korea alone is 23,876 for the 5 Series and 5,834 for the 7 Series in 2025, which is 83–85% of the file's RoW.
+  - **G70 direction is wrong.** The file's G70 total grows +24%, while public 7/8 Series fell −5.6% and the 7 Series in Germany fell −11% (KBA).
+  - **The 2030 growth for every cell contradicts H1 2026 actuals.**
+  - New sub-question for BMW: is the US row US-only, and does CN include the i5 LWB and imports?
 
 ### Q-016 — Is driver assistance (ADAS) in scope?
 - Owner: team (ask BMW mentors)
