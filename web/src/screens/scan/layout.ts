@@ -33,12 +33,12 @@ export function sector(car: string): [number, number] {
   return lineSector(car);
 }
 
-// Time ring: Jul 2025 → Jul 2026 over 300°, the JAN cut-off at bearing 0 (viewer's right). Older items collect just
-// before the start.
+// Time ring: Jul 2025 → Jul 2026 over 300°. Like the car rings, its gap (between the JUL 26 end and the JUL 25 start)
+// faces the viewer, so the ring names line up in one column there. Older items collect just before the start.
 const T0 = Date.parse("2025-07-01");
 const T1 = Date.parse("2026-07-31");
 const SPAN = (300 / 360) * TAU;
-export const TIME_START = -SPAN * ((Date.parse("2026-01-31") - T0) / (T1 - T0));
+export const TIME_START = START - (SPAN + TAU - 0.12) / 2;  // 0.12: the ring is drawn that far before the start (Scene)
 export function timeAngle(iso: string | null): number {
   const t = iso ? Date.parse(iso.length === 7 ? `${iso}-28` : iso.length === 4 ? `${iso}-12-31` : iso) : NaN;
   if (Number.isNaN(t) || t < T0) return TIME_START - 0.08;

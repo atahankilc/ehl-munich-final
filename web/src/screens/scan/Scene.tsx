@@ -577,6 +577,9 @@ function Rings({ sources, focus, filter, slots, onHover, onSelect, setCursor }: 
 
   return (
     <>
+      {/* Under StrictMode (dev), the first drei <Html> mounted here comes up empty: its double-mounted root is
+          unmounted mid-render and wipes the label (it hid the Research ring name). This blank one takes that hit. */}
+      <Html />
       <Layer id="research" focus={focus}>
         {guides("research")}
         {slots.research}
