@@ -616,3 +616,7 @@ have you downloaded the 3d models?
 ---
 
 i added the glb files to chalange information document folder, you can move them to place you need them to be
+
+---
+
+push the changes
