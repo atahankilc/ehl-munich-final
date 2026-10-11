@@ -3,11 +3,14 @@
   "checkpoint_id": "01M4MSKB12NF5EAZH24M5TDRDC",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 20,
+  "checkpoints_count": 22,
   "files_touched": [
     "foundation/STATE.md",
     "web/src/screens/scan/Scan.tsx",
+    "web/src/screens/scan/Scene.tsx",
+    "web/src/screens/structure/StructureLayer.tsx",
     "web/src/screens/structure/panels.tsx",
+    "web/src/screens/structure/stages.ts",
     "web/src/screens/structure/structure.css"
   ],
   "sessions": [
@@ -52,13 +55,27 @@
       "compact_transcript": "/5/transcript.jsonl",
       "content_hash": "/5/content_hash.txt",
       "prompt": "/5/prompt.txt"
+    },
+    {
+      "metadata": "/6/metadata.json",
+      "transcript": "/6/full.jsonl",
+      "compact_transcript": "/6/transcript.jsonl",
+      "content_hash": "/6/content_hash.txt",
+      "prompt": "/6/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 1024,
-    "cache_creation_tokens": 1097837,
-    "cache_read_tokens": 124855503,
-    "output_tokens": 378458,
-    "api_call_count": 493
+    "input_tokens": 1082,
+    "cache_creation_tokens": 1228113,
+    "cache_read_tokens": 127454201,
+    "output_tokens": 419153,
+    "api_call_count": 517,
+    "subagent_tokens": {
+      "input_tokens": 196,
+      "cache_creation_tokens": 308988,
+      "cache_read_tokens": 13843420,
+      "output_tokens": 95951,
+      "api_call_count": 98
+    }
   }
 }
