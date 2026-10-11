@@ -645,8 +645,9 @@ def run(conn, cp: str, actor: str = "system", trigger: str | None = None) -> dic
         prev = _prev_rows(conn, run_id, cp)
         decided = decisions_at(conn, cp)
         parent = conn.execute("SELECT parent_run_id FROM checkpoint_run WHERE id = ?", (run_id,)).fetchone()[0]
-        parent_band = {(r["req_key"], r["line"], r["market"]): r["band"] for r in
-                       conn.execute("SELECT req_key, line, market, band FROM prio_score WHERE run_id = ?", (parent,))} if parent else {}
+        parent_rows = {(r["req_key"], r["line"], r["market"]): dict(r) for r in
+                       conn.execute("SELECT * FROM prio_score WHERE run_id = ?", (parent,))} if parent else {}
+        parent_band = {t: r["band"] for t, r in parent_rows.items()}
         by_lm: dict[tuple, list] = defaultdict(list)
         for (k, line, m), b in results.items():
             by_lm[(line, m)].append((k, b))
@@ -681,12 +682,16 @@ def run(conn, cp: str, actor: str = "system", trigger: str | None = None) -> dic
                     continue   # the PM already rejected exactly this move; don't re-propose until the score really moves
                 if ref and ref != b["priority"]:
                     wmoved = t in old_res and old_res[t]["priority"] != b["priority"]
-                    cause, deltas = cause_of(p, b, ctx["spec_tracks"].get(k), wmoved)
+                    # explain the move against the previous checkpoint's score (what the PM decided on), not this
+                    # checkpoint's own earlier re-score, which would show "+0.0"
+                    base = parent_rows.get(t) or p
+                    cause, deltas = cause_of(base, b, ctx["spec_tracks"].get(k), wmoved)
                     conn.execute("""INSERT INTO prio_proposal (run_id, req_key, line, market, old_band, proposed_band, cause, factor_delta_json)
                                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                                  (run_id, k, line, m, ref, b["priority"], cause,
-                                  json.dumps({"points": deltas, "explain": delta, "against": "pm" if t in decided else "parent",
-                                              "score": b["score"], "prev_score": p["score"] if p else None}, ensure_ascii=False)))
+                                  json.dumps({"points": deltas, "explain": S.explain_delta(base, b) if base else delta,
+                                              "against": "pm" if t in decided else "parent",
+                                              "score": b["score"], "prev_score": base["score"] if base else None}, ensure_ascii=False)))
                     n_props += 1
         for bd in bundles:
             conn.execute("INSERT INTO prio_bundle (run_id, bundle_id, keys_json, relations_json, band_by_target_json) VALUES (?, ?, ?, ?, ?)",

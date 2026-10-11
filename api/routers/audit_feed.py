@@ -30,8 +30,38 @@ EVIDENCE_ACTORS = ("ingest.", "agent:", "research.", "pipeline.waves", "demo_sta
 STRUCTURE_STAGES = ("classify", "cluster", "contextualize", "areas")
 DEFINITION_STAGES = ("benchmarks", "define", "specify", "couple")
 DEFINITION_ACTIONS = ("def_choice", "def_link_review")
+PRIO_ACTIONS = ("confirm_priority", "proposal_accepted", "proposal_rejected")
 STAGE_NAME = {"acquire": "Sweep", "classify": "Classify", "cluster": "Cluster", "contextualize": "Contextualize", "areas": "Requirement areas",
               "benchmarks": "Benchmarks", "define": "Define requirements", "specify": "Specify targets", "couple": "Couple requirements"}
+
+
+def _target_name(conn, titles: dict, key: str, line: str | None, market: str | None) -> str:
+    """'<requirement title> (5 Series · CN)' for a prioritization target; the key if the title is unknown."""
+    if key not in titles:
+        r = conn.execute("SELECT title FROM def_requirement WHERE key = ? ORDER BY run_id DESC LIMIT 1", (key,)).fetchone()
+        titles[key] = r["title"] if r and r["title"] else key
+    where = " · ".join(x for x in (line, market) if x)
+    return f"{titles[key]}{f' ({where})' if where else ''}"
+
+
+def _prio_summary(conn, titles: dict, action: str, entity_id: str | None, payload: dict, rationale: str | None) -> str | None:
+    """Page-4 rows name what was decided: the requirement, its car line × market, the band, and the PM's reason."""
+    why = f" — “{rationale.strip()}”" if rationale and rationale.strip() else ""
+    if action == "confirm_priority" and entity_id and entity_id.count("|") == 2:
+        key, line, market = entity_id.split("|")
+        ai = payload.get("ai_band")
+        was = f", AI had {ai}" if ai and ai != payload.get("priority") else ", same as the AI" if ai else ""
+        how = " (accepted an AI proposal)" if payload.get("via_proposal") else " (brand-fit override)" if payload.get("override_brand") else ""
+        return f"PM set {payload.get('priority', '?')} for {_target_name(conn, titles, key, line, market)}{was}{how}{why}"
+    if action in ("proposal_accepted", "proposal_rejected") and entity_id:
+        p = conn.execute("SELECT req_key, line, market, old_band, proposed_band FROM prio_proposal WHERE id = ?", (entity_id,)).fetchone()
+        if p:
+            verb = "accepted" if action == "proposal_accepted" else "rejected"
+            move = f"{p['old_band'] or '–'} → {p['proposed_band']}"
+            return f"PM {verb} the AI proposal {move} for {_target_name(conn, titles, p['req_key'], p['line'], p['market'])}{why}"
+    if action == "change_weights":
+        return f"PM changed the prioritization weights (version {entity_id}){why}"
+    return None
 
 
 def _summary(action: str, entity_type: str, entity_id: str | None, payload: dict, rationale: str | None) -> str:
@@ -62,6 +92,7 @@ def feed(scope: str = Query("all", pattern="^(evidence|structure|definition|all)
             usage_cp[str(r[0])] = ("cp2" if r[1].endswith("cp2") else "cp1" if r[1].endswith("cp1")
                                    else "ab" if r[1].endswith(":ab") else None)
         items: list[dict] = []
+        titles: dict[str, str] = {}
 
         # audit events
         q = "SELECT id, ts, actor_type, actor_id, action, entity_type, entity_id, new_value, rationale, model, run_id FROM audit_event WHERE action != 'view'"
@@ -91,10 +122,13 @@ def feed(scope: str = Query("all", pattern="^(evidence|structure|definition|all)
             ecp = run_cp.get(r["run_id"]) or (usage_cp.get(r["entity_id"]) if r["entity_type"] == "llm_usage" else None)
             if is_definition and not ecp:   # PM choices / link reviews carry their checkpoint in the payload, not a run
                 ecp = payload.get("checkpoint_id") or payload.get("checkpoint") or payload.get("cp")
+            if r["action"] in PRIO_ACTIONS and not ecp:   # PM priority decisions carry their checkpoint in the payload
+                ecp = payload.get("checkpoint")
+            summary = None if is_structure else (_prio_summary(conn, titles, r["action"], r["entity_id"], payload, r["rationale"])
+                                                 or _summary(r["action"], r["entity_type"], r["entity_id"], payload, r["rationale"]))
             items.append({"id": f"a{r['id']}", "ts": r["ts"], "actor_type": r["actor_type"], "actor": actor, "model": r["model"],
                           "kind": "structure" if is_structure else "event", "stage": actor.split(".", 1)[1] if is_structure else None,
-                          "action": r["action"], "payload": payload, "checkpoint": ecp,
-                          "summary": None if is_structure else _summary(r["action"], r["entity_type"], r["entity_id"], payload, r["rationale"])})
+                          "action": r["action"], "payload": payload, "checkpoint": ecp, "summary": summary})
 
         # checkpoint runs: one row when a stage started and one when it finished
         for r in conn.execute("SELECT id, checkpoint_id, stage, parent_run_id, status, actor, started_at, finished_at, stats_json FROM checkpoint_run"):
