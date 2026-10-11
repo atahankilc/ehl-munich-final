@@ -23,6 +23,15 @@
         ],
         "createdAt": "2026-10-11T01:43:14.560Z",
         "reason": "agent: uppercase used only for 1-4 word labels (eyebrows, field labels, checkpoint switch), no body passages"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "web/src/screens/definition/definition.css"
+        ],
+        "createdAt": "2026-10-11T06:11:32.720Z",
+        "reason": "agent triage: L137 .ladder-rail::after is a CSS-triangle arrowhead (transparent borders + 5px border-left) on the ladder scale, not a card side accent"
       }
     ]
   }

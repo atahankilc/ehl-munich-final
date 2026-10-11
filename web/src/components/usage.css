@@ -1,0 +1,75 @@
+/* Audit → Usage. The panel widens for it; figures across the top, then the model split, one bar per pipeline and the
+   open pipeline's steps. Neutral ink steps only: models are told apart by name and a grey ramp, never by hue. */
+.audit[data-wide] { width: min(880px, calc(100vw - 2 * var(--edge))); }
+
+.usage { display: grid; gap: 20px; padding: 6px 30px 22px; overflow-y: auto; align-content: start; min-height: 0; }
+.usage-empty { padding: 18px 30px; }
+.usage-note { font-size: var(--t-micro); line-height: 1.5; color: var(--ink-3); max-width: 90ch; }
+.u-sub { font-size: var(--t-micro); color: var(--ink-3); }
+.u-r { text-align: right; justify-self: end; }
+.u-num { font-variant-numeric: tabular-nums; }
+.u-dim { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+/* figures */
+.u-figures { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 28px; }
+.u-fig { display: grid; gap: 6px; align-content: start; }
+.u-fig .num { font-size: 30px; color: var(--ink); }
+.u-budget { position: relative; height: 4px; border-radius: 2px; background: var(--hair); margin-top: 4px; }
+.u-budget i { position: absolute; inset: 0 auto 0 0; border-radius: 2px; background: var(--ink); }
+.u-budget span { position: absolute; top: -4px; bottom: -4px; width: 1px; background: var(--ink-3); }
+
+/* spend by model: one stacked bar, grey ramp */
+.u-models { display: grid; gap: 10px; }
+.u-stack { display: flex; height: 8px; border-radius: 4px; overflow: hidden; gap: 2px; }
+.u-stack i, .u-legend i { background: var(--ink-3); }
+.u-stack i[data-i="0"], .u-legend i[data-i="0"] { background: var(--ink); }
+.u-stack i[data-i="1"], .u-legend i[data-i="1"] { background: var(--ink-2); }
+.u-legend { display: flex; flex-wrap: wrap; gap: 8px 26px; font-size: var(--t-label); color: var(--ink-2); }
+.u-legend span { display: inline-flex; align-items: baseline; gap: 7px; }
+.u-legend i { width: 8px; height: 8px; border-radius: 2px; align-self: center; }
+.u-legend em { font-style: normal; font-size: var(--t-micro); color: var(--ink-3); }
+.u-legend b { font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* pipelines: four selectable bars */
+.u-pipes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.u-pipe { display: grid; gap: 6px; text-align: left; padding: 9px 12px 10px; border-radius: 8px; border: 1px solid var(--hair); transition: border-color var(--fast), background var(--fast); }
+.u-pipe:hover { border-color: var(--hair-2); }
+.u-pipe[aria-selected="true"] { border-color: var(--hair-2); background: rgba(255, 255, 255, 0.05); }
+.u-pipe-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.u-pipe-name { font-size: var(--t-label); font-weight: 600; color: var(--ink); }
+.u-pipe-usd { font-size: 15px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.u-pipe-bar { height: 2px; border-radius: 1px; background: var(--hair); overflow: hidden; }
+.u-pipe-bar i { display: block; height: 100%; background: var(--ink-2); }
+.u-pipe[aria-selected="true"] .u-pipe-bar i { background: var(--sweep-hi); }
+.u-pipe-sub { font-size: var(--t-micro); line-height: 1.4; color: var(--ink-3); }
+
+/* steps of the open pipeline */
+.u-steps { display: grid; }
+.u-row { display: grid; grid-template-columns: minmax(0, 2.4fr) 0.8fr 0.9fr 1.1fr 1.3fr; gap: 16px; align-items: center; padding: 7px 0; font-size: 13px; color: var(--ink-2); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+.u-head { font-size: var(--t-micro); color: var(--ink-3); padding: 0 0 6px; border-bottom-color: var(--hair); }
+.u-step { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.u-model { justify-self: start; font-size: var(--t-micro); letter-spacing: 0.04em; padding: 0 7px; line-height: 18px; border-radius: 4px; color: var(--ink-2); box-shadow: inset 0 0 0 1px var(--hair-2); }
+.u-model[data-model="Sol"] { color: var(--void); background: var(--ink-2); box-shadow: none; }   /* the expensive model reads first */
+.u-row em { font-style: normal; color: var(--ink-3); }
+.u-cost { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; width: 100%; }
+.u-cost b { font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; min-width: 6ch; text-align: right; }
+.u-cost-bar { height: 3px; border-radius: 2px; background: var(--hair); overflow: hidden; }
+.u-cost-bar i { display: block; height: 100%; background: var(--ink-3); }
+
+/* footer */
+.u-foot { display: grid; gap: 10px; justify-items: start; }
+.u-toggle { font-size: var(--t-label); color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--hair-2); text-underline-offset: 3px; }
+.u-toggle:hover { color: var(--ink); }
+.u-more { display: grid; gap: 16px; width: 100%; }
+.u-calls { list-style: none; margin: 0; padding: 0; display: grid; max-height: 240px; overflow-y: auto; }
+.u-calls li { display: grid; grid-template-columns: 0.9fr 2fr 0.6fr 1fr 0.6fr; gap: 14px; align-items: center; padding: 5px 0; font-size: var(--t-label); color: var(--ink-2); border-bottom: 1px solid rgba(255, 255, 255, 0.04); }
+.u-calls li[data-status="failed"] { color: var(--ink-3); }
+.u-prices { display: flex; flex-wrap: wrap; gap: 6px 26px; font-size: var(--t-label); color: var(--ink-3); }
+.u-prices .label { width: 100%; }
+.u-prices b { font-weight: 500; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 760px) {
+  .u-figures { grid-template-columns: 1fr 1fr; } .u-fig-spend { grid-column: 1 / -1; }
+  .u-pipes { grid-template-columns: 1fr 1fr; }
+  .u-row { grid-template-columns: minmax(0, 2fr) 0.8fr 1fr; } .u-row > :nth-child(3), .u-row > :nth-child(4) { display: none; }
+}

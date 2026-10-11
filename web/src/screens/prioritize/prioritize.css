@@ -1,0 +1,220 @@
+/* Page 4, Prioritize: the priority skyline's overlays. Same world as pages 1–3: true black, frameless instruments at
+   the 24px edge, numerals lead, domain hues on the marks only, band by SHAPE (Must solid, Should outlined, Could a
+   thin line), white = attention, sweep blue only for the PM's confirmed band. Reuses page 3's .dseg / .dlist / .dsheet. */
+
+/* the scan's DOM labels stay gone, as on page 3 */
+.scan[data-mode="prioritize"] :is(.ring-name, .ring-sub, .time-label, .ring-label, .theme-label, .area-label) { opacity: 0 !important; pointer-events: none; }
+.scan[data-mode="prioritize"] ~ .dock .dock-body, .scan[data-mode="prioritize"] .dock-body { max-height: min(40vh, 340px); }
+
+/* ------------------------------------------------------------------------------------------- band mark */
+.pband { display: inline-block; flex: none; position: relative; width: 8px; height: 14px; --c: var(--ink-2); }
+.pband[data-band="Must"] { background: var(--c); border-radius: 1px; }
+.pband[data-band="Should"] { box-shadow: inset 0 0 0 1.4px var(--c); border-radius: 1px; background: color-mix(in srgb, var(--c) 14%, transparent); height: 11px; margin-top: 3px; }
+.pband[data-band="Could"] { width: 8px; background: linear-gradient(var(--c), var(--c)) center 3px / 1.6px calc(100% - 3px) no-repeat; height: 8px; margin-top: 6px; }
+.pband[data-band="Could"]::before { content: ""; position: absolute; left: 2px; top: 0; width: 4px; height: 4px; border-radius: 50%; background: var(--c); }
+.pband[data-band="none"] { width: 8px; height: 3px; margin-top: 11px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--ink-3); }
+.pband[data-size="sm"] { transform: scale(0.8); transform-origin: bottom center; }
+.pband[data-size="lg"] { transform: scale(1.4); transform-origin: bottom center; }
+/* the PM's confirmed band: the PM's position, so the one blue mark: a sweep-hi underline with its wash */
+.pband[data-pm]::after { content: ""; position: absolute; left: -3px; right: -3px; bottom: -4px; height: 2px; border-radius: 1px; background: var(--sweep-hi); box-shadow: 0 0 0 2px var(--sweep-wash); }
+
+.pgate { width: 10px; height: 10px; border-radius: 50%; flex: none; position: relative; display: inline-block; }
+.pgate[data-r="pass"] { background: var(--ink-2); }
+.pgate[data-r="warn"] { box-shadow: inset 0 0 0 1.4px var(--ink); background: linear-gradient(90deg, var(--ink) 50%, transparent 50%); }
+.pgate[data-r="fail"] { box-shadow: inset 0 0 0 1.4px var(--ink); }
+.pgate[data-r="fail"]::after { content: ""; position: absolute; left: 4.3px; top: 0.5px; width: 1.4px; height: 9px; background: var(--ink); transform: rotate(45deg); }
+.pgate[data-r="unchecked"] { box-shadow: inset 0 0 0 1px var(--ink-3); }
+.parrow { font-size: 8px; margin-left: 4px; color: var(--ink); vertical-align: 1px; }
+.parrow[data-d="down"] { color: var(--ink-3); }
+
+/* ------------------------------------------------------------------------------------------- top-left */
+/* top-left like pages 1–3: the band numbers are the only row that sits beside the top bar, so they stay narrow */
+.hud-tl.phud { gap: 12px; width: max-content; max-width: calc(100vw - 2 * var(--edge) - 460px); }
+.pcontrols { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.pcontrols .dseg { flex: none; }
+.preadout { margin: 0; display: flex; align-items: flex-end; gap: 22px; pointer-events: none; }
+.preadout > div { display: grid; gap: 6px; }
+.preadout dt { display: inline-flex; align-items: flex-end; gap: 6px; }
+.preadout dd { margin: 0; }
+.preadout-band .num { font-size: 34px; color: var(--ink); }
+.pstats { margin: -2px 0 0; display: flex; flex-wrap: wrap; gap: 4px 16px; pointer-events: none; }
+.pstats > div { display: inline-flex; align-items: baseline; gap: 5px; flex-direction: row-reverse; }   /* number first, label after */
+.pstats dd { margin: 0; font-size: 15px; color: var(--ink); }
+.pstats dt { color: var(--ink-3); }
+.pnote { color: var(--ink-3); margin-top: -4px; }
+
+/* ------------------------------------------------------------------------------------------- skyline labels (3D) */
+.psky-cap {
+  position: relative; display: inline-flex; align-items: baseline; gap: 3px; padding: 0 4px; border-radius: 3px; background: rgba(0, 0, 0, 0.62);
+  font-size: var(--t-micro); color: var(--ink-2); white-space: nowrap; pointer-events: none; user-select: none; transform: translateY(-50%);
+  transition: color var(--fast);
+}
+.psky-cap[data-band="Must"] .psky-num { color: var(--ink); }
+.psky-num { font-size: 12px; font-stretch: 118%; font-weight: 400; font-variant-numeric: tabular-nums; }
+.psky-cap[data-collide] { visibility: hidden !important; }
+.psky-cap[data-hot] { color: var(--ink); z-index: 2; }
+.psky-cap[data-hot] .psky-num { color: var(--ink); }
+.psky-cap[data-on] { box-shadow: inset 0 0 0 1px var(--ink); }
+.psky-cap[data-dim] { opacity: 0.35 !important; }
+.psky-delta { font-size: 10px; color: var(--ink-3); }
+.psky-prop { font-size: 8px; color: var(--ink); }
+.psky-blocked, .plist-tags .psky-blocked { display: inline-block; width: 9px; height: 9px; border-radius: 50%; box-shadow: inset 0 0 0 1.2px var(--ink); position: relative; align-self: center; }
+.psky-blocked::after { content: ""; position: absolute; left: 3.8px; top: 0.5px; width: 1.3px; height: 8px; background: var(--ink); transform: rotate(45deg); }
+/* risers and fallers at a checkpoint change: one white ring (0ms under reduced motion) */
+.psky-pulse { position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; box-shadow: 0 0 0 1.5px var(--ink); opacity: 0; animation: psky-pulse 1.6s var(--ease) 1.2s 1 both; pointer-events: none; }
+@keyframes psky-pulse { 0% { opacity: 0.95; transform: scale(1); } 100% { opacity: 0; transform: scale(3.2); } }
+@media (prefers-reduced-motion: reduce) { .psky-pulse { display: none; } }
+.psky-plane {
+  padding: 1px 6px; border-radius: 4px; background: rgba(0, 0, 0, 0.6); font-size: var(--t-micro); font-weight: 600; letter-spacing: 0.08em;
+  color: var(--ink-3); white-space: nowrap; pointer-events: none; user-select: none; text-transform: uppercase;
+}
+.psky-group {
+  display: inline-flex; align-items: center; gap: 6px; height: 20px; padding: 0 8px; border-radius: 99px; background: rgba(0, 0, 0, 0.62);
+  font-size: var(--t-micro); color: var(--ink-2); white-space: nowrap; pointer-events: none; user-select: none;
+}
+.psky-group i { width: 6px; height: 6px; border-radius: 50%; background: var(--c); }
+.psky-group b { font-weight: 600; color: var(--ink); }
+
+/* ------------------------------------------------------------------------------------------- ranked list */
+.plist { width: min(400px, calc(100vw - 32px)); }
+.plist-band { color: var(--ink); gap: 8px; }
+.plist-row { grid-template-columns: 18px 10px 1fr auto auto; }
+.plist-rank { font-size: var(--t-micro); color: var(--ink-3); font-variant-numeric: tabular-nums; text-align: right; }
+.plist-tags { display: inline-flex; align-items: center; gap: 5px; }
+.plist-conf { font-size: 10px; color: var(--ink-3); letter-spacing: 0.04em; }
+.ptag, .ptag-pm {
+  font-size: 9.5px; font-weight: 600; letter-spacing: 0.06em; line-height: 14px; padding: 0 4px; border-radius: 3px; color: var(--ink-2);
+  box-shadow: inset 0 0 0 1px var(--hair-2); white-space: nowrap;
+}
+.ptag[data-dashed] { box-shadow: none; outline: 1px dashed var(--ink-3); outline-offset: -1px; color: var(--ink); }
+.ptag-pm { color: var(--sweep-hi); box-shadow: inset 0 0 0 1px rgba(77, 148, 255, 0.6); }
+
+/* ------------------------------------------------------------------------------------------- inspector */
+.psheet { gap: 20px; }
+.psheet .sheet-layer .pband { margin-right: 2px; }
+.pfigure { display: flex; align-items: center; gap: 16px; }
+.pfigure-num { font-size: 52px; font-stretch: 118%; font-weight: 300; line-height: 0.9; letter-spacing: -0.03em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.pfigure-side { display: grid; gap: 3px; }
+.pfigure-band { display: inline-flex; align-items: center; gap: 8px; font-size: var(--t-body); font-weight: 600; color: var(--ink); }
+.pmkts { display: flex; gap: 6px; flex-wrap: wrap; }
+.pmkt {
+  display: inline-flex; align-items: flex-end; gap: 7px; height: 34px; padding: 0 10px 7px; border-radius: 6px; border: 1px solid var(--hair);
+  background: rgba(0, 0, 0, 0.5); transition: border-color var(--fast), background var(--fast);
+}
+.pmkt:hover:not(:disabled) { border-color: var(--hair-2); }
+.pmkt[aria-pressed="true"] { border-color: var(--ink-3); background: rgba(255, 255, 255, 0.06); }
+.pmkt:disabled { opacity: 0.5; cursor: default; }
+.pmkt-m { font-size: var(--t-label); font-weight: 600; letter-spacing: 0.06em; color: var(--ink); }
+.pmkt-s { font-size: 13px; font-stretch: 112%; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+/* waterfall */
+.pwf { display: grid; gap: 4px; --lab: 128px; --val: 58px; }
+.pwf-scale { position: relative; height: 14px; margin: 0 var(--val) 0 var(--lab); }
+.pwf-th { position: absolute; transform: translateX(-50%); bottom: 0; font-size: 10px; color: var(--ink-3); white-space: nowrap; letter-spacing: 0.02em; }
+.pwf-th b { font-weight: 600; color: var(--ink-2); }
+.pwf-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.pwf-row { display: grid; grid-template-columns: var(--lab) 1fr var(--val); align-items: center; min-height: 18px; position: relative; }
+.pwf-dim { grid-column: 1 / -1; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); margin: 6px 0 1px; }
+.pwf-label { font-size: var(--t-label); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; }
+.pwf-track { position: relative; height: 18px; }
+.pwf-line { position: absolute; top: -2px; bottom: -2px; width: 0; border-left: 1px dashed rgba(255, 255, 255, 0.18); }
+.pwf-bar { position: absolute; top: 5px; height: 8px; background: var(--ink-2); border-radius: 1px; min-width: 1px; }
+.pwf-row[data-neg] .pwf-bar { background: repeating-linear-gradient(135deg, var(--ink-3) 0 2px, transparent 2px 4px); box-shadow: inset 0 0 0 1px var(--ink-3); }
+.pwf-row[data-kind="base"] .pwf-bar { background: none; box-shadow: inset 0 0 0 1px var(--ink-2); }
+.pwf-row[data-kind="score"] { margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--hair); }
+.pwf-row[data-kind="score"] .pwf-bar { background: var(--ink); height: 10px; top: 4px; }
+.pwf-row:is([data-kind="base"], [data-kind="score"]) .pwf-label { color: var(--ink); font-weight: 600; }
+.pwf-gap { position: absolute; top: 4px; width: 14px; height: 10px; border: 1px dashed var(--ink-3); border-radius: 2px; }
+.pwf-row[data-kind="gap"] .pwf-label, .pwf-row[data-kind="gap"] .pwf-val { color: var(--ink-3); }
+.pwf-whatif { position: absolute; top: -1px; width: 1.5px; height: 20px; background: var(--ink); box-shadow: 0 0 0 1px #000; }
+.pwf-whatif::after { content: "what-if"; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); font-size: 9px; color: var(--ink); white-space: nowrap; }
+.pwf-val { font-size: var(--t-label); color: var(--ink-2); text-align: right; font-stretch: 112%; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pwf-val b { font-size: 15px; font-weight: 400; color: var(--ink); }
+.pwf-val em { font-style: normal; font-size: var(--t-micro); color: var(--ink-3); }
+
+.pgates { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.pgates li { display: grid; grid-template-columns: 10px 90px 1fr; align-items: center; gap: 4px 10px; font-size: var(--t-label); color: var(--ink-2); }
+.pgates-name { color: var(--ink-2); }
+.pgates-r { color: var(--ink-3); text-transform: capitalize; }
+.pgates li[data-r="fail"] :is(.pgates-name, .pgates-r) { color: var(--ink); font-weight: 600; }
+.pgates-why { grid-column: 2 / -1; font-size: var(--t-label); color: var(--ink-3); line-height: 1.45; }
+.pblock { padding: 2px 0 2px 12px; border-left: 1px solid var(--ink); font-size: var(--t-label); color: var(--ink); line-height: 1.45; }
+
+.prungs { justify-self: start; }
+.prungs button { text-transform: capitalize; }
+.pwhatif { display: grid; gap: 6px; }
+.pwhatif p { display: flex; align-items: baseline; gap: 8px; color: var(--ink-2); }
+.pwhatif .num { font-size: 20px; color: var(--ink); }
+.pwhatif .drail b { font-weight: 600; color: var(--ink); }
+
+.pmembers, .pflags { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.pmembers-s { margin-left: 8px; font-stretch: 112%; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.pmembers-off { color: var(--ink-3); }
+.pflags li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.phistory { list-style: none; margin: 0; padding: 0 0 0 12px; border-left: 1px solid var(--hair-2); display: grid; gap: 6px; }
+.phistory li { display: grid; grid-template-columns: 52px 12px 32px 1fr; align-items: end; gap: 8px; }
+.phistory-cp { font-size: var(--t-label); font-weight: 600; letter-spacing: 0.08em; color: var(--ink-2); }
+.phistory-s { font-size: 15px; font-stretch: 118%; font-weight: 300; color: var(--ink); font-variant-numeric: tabular-nums; }
+.pproposal-line { display: flex; align-items: flex-end; gap: 6px; font-size: var(--t-body); color: var(--ink); }
+.pdecide-bands { display: flex; gap: 6px; }
+.pdecide-bands button {
+  display: inline-flex; align-items: flex-end; gap: 7px; height: 34px; padding: 0 12px 8px; border-radius: 6px; border: 1px solid var(--hair);
+  background: rgba(0, 0, 0, 0.5); font-size: var(--t-label); color: var(--ink-2); transition: color var(--fast), border-color var(--fast);
+}
+.pdecide-bands button:hover { color: var(--ink); border-color: var(--hair-2); }
+.pdecide-bands button[aria-checked="true"] { color: var(--ink); border-color: var(--ink); }
+.pdecide-bands button[data-pm] { color: var(--ink); border-color: rgba(77, 148, 255, 0.6); }
+.pdecide-bands .ladder-ai { margin-left: 2px; }
+
+/* ------------------------------------------------------------------------------------------- matrix */
+.pmatrix {
+  /* on the far left, under the HUD and above the dock's pills, so the car in the centre stays clear; clear of the
+     right panel too */
+  position: fixed; left: var(--edge); top: calc(var(--phud-bottom, 248px) + 14px); bottom: 96px; z-index: 13; width: min(560px, calc(100vw - 2 * var(--edge) - 460px));
+  overflow-y: auto; padding: 16px 22px 24px; display: grid; gap: 12px; align-content: start;
+  background: var(--field); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  --feather: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 16px), transparent), linear-gradient(to bottom, transparent, #000 12px, #000 calc(100% - 22px), transparent);
+  -webkit-mask-image: var(--feather); mask-image: var(--feather); -webkit-mask-composite: source-in; mask-composite: intersect;
+  animation: sheet-in var(--med) var(--ease);
+}
+.pmatrix-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.pmatrix-legend { display: inline-flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
+.pmatrix-legend > span { display: inline-flex; align-items: flex-end; gap: 5px; }
+.pmatrix-pm { display: inline-block; width: 10px; height: 2px; margin-bottom: 2px; background: var(--sweep-hi); box-shadow: 0 0 0 2px var(--sweep-wash); }
+.pmatrix-grid { display: grid; gap: 12px; }
+.pmatrix-group { display: grid; gap: 1px; }
+.pmatrix-row { display: grid; grid-template-columns: minmax(0, 1fr) repeat(var(--m), 64px) 14px; align-items: center; gap: 0 6px; min-height: 28px; border-radius: 6px; padding: 0 6px; margin: 0 -6px; transition: background var(--fast); }
+.pmatrix-row[data-hover], .pmatrix-row[data-on] { background: rgba(255, 255, 255, 0.05); }
+.pmatrix-cols { position: sticky; top: -16px; z-index: 1; background: rgba(0, 0, 0, 0.9); min-height: 30px; }
+.pmatrix-mkt { height: 24px; border-radius: 99px; font-size: var(--t-label); font-weight: 600; letter-spacing: 0.08em; color: var(--ink-3); transition: color var(--fast), background var(--fast); }
+.pmatrix-mkt:hover { color: var(--ink); }
+.pmatrix-mkt[aria-pressed="true"] { color: var(--ink); background: rgba(255, 255, 255, 0.08); }
+.pmatrix-title { text-align: left; font-size: 13px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pmatrix-row[data-on] .pmatrix-title, .pmatrix-title:hover { color: var(--ink); }
+.pmatrix-cell { display: inline-flex; align-items: flex-end; justify-content: center; gap: 6px; height: 26px; padding-bottom: 6px; border-radius: 5px; transition: background var(--fast); position: relative; }
+button.pmatrix-cell:hover { background: rgba(255, 255, 255, 0.07); }
+.pmatrix-cell[data-current] { box-shadow: inset 0 0 0 1px var(--hair); }
+.pmatrix-cell[data-empty] { color: var(--ink-3); font-size: 13px; align-items: center; padding: 0; }
+.pmatrix-score { font-size: 13px; font-stretch: 112%; color: var(--ink-2); font-variant-numeric: tabular-nums; min-width: 18px; text-align: left; }
+.pmatrix-prop { position: absolute; right: 2px; top: 1px; font-size: 8.5px; font-weight: 600; color: var(--ink); letter-spacing: 0.04em; }
+.pmatrix-dis { width: 2px; height: 14px; justify-self: center; border-radius: 1px; }
+.pmatrix-dis[data-on], .pmatrix-legend .pmatrix-dis { background: var(--ink); }
+.pmatrix-legend .pmatrix-dis { display: inline-block; height: 10px; }
+
+/* the matrix takes the left column: the dock's open panel (Guide/Agent) would sit under it, so it folds away while the
+   matrix is open (its pills stay; the matrix header carries its own legend) */
+body:has(.pmatrix) .dock-body { display: none; }
+@media (max-width: 1200px) { .pmatrix { width: calc(100vw - 2 * var(--edge)); } }
+@media (max-width: 760px) {
+  .phud { max-width: calc(100vw - 32px); }
+  .preadout { gap: 14px; flex-wrap: wrap; }
+  .preadout-band .num { font-size: 24px; }
+  .pmatrix { left: 16px; right: 16px; width: auto; top: 220px; }
+}
+
+/* the two threshold names sit either side of their line so they never collide */
+.pwf-th:first-child { transform: translateX(calc(-100% - 4px)); }
+.pwf-th:last-child { transform: translateX(4px); }
+
+/* with the matrix in front the skyline steps back: its labels go quiet */
+.scan:has(.pmatrix) :is(.psky-cap, .psky-group, .psky-plane, .dlink-label) { opacity: 0.12 !important; }

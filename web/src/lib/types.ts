@@ -78,10 +78,18 @@ export interface ThemeNode {
 export interface EvidenceEdge {
   src_type: string; src_id: string; dst_type: string; dst_id: string; relation: string; why: string | null; state: TrackState | null;
 }
+/** D-046: the markets an area's comments come from, with BMW's (stylized, weight-only) volume share, the latest
+ *  cited public sales trend and whether BMW's file and public figures disagree there. */
+export interface AreaMarket {
+  label: string; bmw_volume_share: number;
+  markets: { key: string; comments: number; bmw_share: number | null; conflict: boolean;
+             trend: { yoy: number; period: string; region: string; tier: string | null; source_id: number } | null }[];
+}
 export interface AreaNode {
   id: number; key: string; title: string; need: string; kind: "improve" | "keep" | "emerging" | "quality";
   themes: string[]; why_now: string | null; open_questions: string[]; change_note: string | null; state: TrackState | null;
-  metrics: { comments?: number; themes?: number; by_line_market?: Record<string, number>; evidence?: Record<string, number> };
+  metrics: { comments?: number; themes?: number; by_line_market?: Record<string, number>; evidence?: Record<string, number>;
+             market?: AreaMarket };
 }
 export interface StructurePayload {
   checkpoint: CheckpointId; ready: boolean;

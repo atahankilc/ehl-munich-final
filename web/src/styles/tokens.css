@@ -8,6 +8,9 @@
   --glass: rgba(10, 12, 15, 0.72);
   --hair: rgba(255, 255, 255, 0.09);
   --hair-2: rgba(255, 255, 255, 0.16);
+  /* the frameless panel field (inspector, hover card, filter values, audit trail, dock): plain black at 86%, as the
+     audit trail had it; no tint, no glow */
+  --field: rgba(0, 0, 0, 0.86);
 
   /* ink */
   --ink: #f2f4f7;

@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { api } from "@/lib/api";
-import type { SignalRow, StructurePayload, TrackState } from "@/lib/types";
+import type { SignalRow, StructurePayload, TrackState, AreaMarket } from "@/lib/types";
 import { useCheckpoint } from "@/state/checkpoint";
 import { STAGE_LABEL, atLeast, type Stage } from "./stages";
 import "./structure.css";
@@ -83,10 +83,22 @@ export function Funnel({ data, stage, done, onStage, onStep }: {
 
 /* ------------------------------------------------------------------------------------------- signals */
 export function SignalList({ sourceId }: { sourceId: number }) {
-  const q = useQuery({ queryKey: ["signals", sourceId], queryFn: () => api.get<{ classified: boolean; in_scope: boolean | null; reason: string | null; signals: SignalRow[] }>(`/api/structure/signals/${sourceId}`), staleTime: 60_000 });
+  const q = useQuery({ queryKey: ["signals", sourceId], queryFn: () => api.get<{ classified: boolean; in_scope: boolean | null; reason: string | null; signals: SignalRow[]; aspects?: { key: string; aspect: string; category: string | null }[] }>(`/api/structure/signals/${sourceId}`), staleTime: 60_000 });
   if (!q.data) return null;
   if (!q.data.classified) return <p className="sig-none label">Not classified yet</p>;
   if (q.data.in_scope === false) return <p className="sig-none label">Out of scope: {q.data.reason}</p>;
+  // research, study and options: read and placed in the aspect space, but context rather than a customer signal
+  if (!q.data.signals.length && q.data.aspects?.length) {
+    const names = [...new Set(q.data.aspects.filter((a) => a.aspect !== "other").map((a) => ASPECT(a.aspect)))];
+    return (
+      <div className="sig-list">
+        <div className="label">What the AI found</div>
+        <p className="sig-mapped">{names.length
+          ? <>About <b>{names.join(", ")}</b>. Read as context for this topic, not as a customer signal.</>
+          : <>Market context (sales, policy or a market figure), not about one product topic and not a customer signal. It can still back themes as evidence.</>}</p>
+      </div>
+    );
+  }
   return (
     <div className="sig-list">
       <div className="label">What the AI found</div>
@@ -202,6 +214,26 @@ export function ThemeBody({ k }: { k: string }) {
 /* ------------------------------------------------------------------------------------------- area */
 const KIND: Record<string, string> = { improve: "improve", keep: "keep — protect in the successor", emerging: "emerging expectation", quality: "quality hand-over" };
 
+// D-046: per line × market the comments, how big the market is for BMW (internal file, a weight only), the latest cited
+// public sales trend, and a mark where BMW's file and public figures disagree by more than 25 %.
+function AreaMarkets({ m }: { m: AreaMarket }) {
+  const max = Math.max(1, ...m.markets.map((r) => r.comments));
+  return (
+    <div className="mk">
+      <div className="mk-head label"><span>Market</span><span>Comments</span><span>BMW volume</span><span>Public sales trend</span></div>
+      {m.markets.map((r) => (
+        <div key={r.key} className="mk-row">
+          <span className="mk-name">{LINE_MARKET(r.key)}</span>
+          <span className="mk-n"><span className="lm-bar"><i style={{ transform: `scaleX(${r.comments / max})` }} /></span>{r.comments}</span>
+          <span className="mk-share">{r.bmw_share != null ? `${Math.round(r.bmw_share * 100)}%` : "–"}{r.conflict && <i className="mk-conflict" title="BMW's file and public figures differ by more than 25 % here">≠ public</i>}</span>
+          <span className="mk-trend">{r.trend ? <><b>{r.trend.yoy > 0 ? "+" : ""}{Math.round(r.trend.yoy)}%</b> {r.trend.period}{r.trend.region !== r.key.split(":")[1] ? ` · ${r.trend.region}` : ""}<span className="mk-src">{r.trend.tier} · src {r.trend.source_id}</span></> : "–"}</span>
+        </div>
+      ))}
+      <p className="mk-note">BMW volume: share of BMW's own sales file, internal and stylized, used only to weigh markets, never as a trend. Trends are cited public figures.</p>
+    </div>
+  );
+}
+
 export function AreaBody({ k, data }: { k: string; data: StructurePayload | undefined }) {
   const a = data?.areas.find((x) => x.key === k);
   if (!a) return null;
@@ -221,7 +253,7 @@ export function AreaBody({ k, data }: { k: string; data: StructurePayload | unde
       </div>
       {a.change_note && <div className="note"><div className="label">Changed at this checkpoint</div><p>{a.change_note}</p></div>}
       {a.why_now && <div className="facts1"><span className="label">Why now</span><p>{a.why_now}</p></div>}
-      {lm.length > 0 && (
+      {a.metrics.market ? <AreaMarkets m={a.metrics.market} /> : lm.length > 0 && (
         <div className="lm">
           {lm.map(([key, v]) => <div key={key} className="lm-row"><span>{LINE_MARKET(key)}</span><span className="lm-bar"><i style={{ transform: `scaleX(${v / max})` }} /></span><span>{v}</span></div>)}
         </div>

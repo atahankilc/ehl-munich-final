@@ -11,6 +11,7 @@ import * as THREE from "three";
 import type { PointsPayload, ResearchItem, Selection, SourcesPayload, StructurePayload } from "@/lib/types";
 import { StructureLayer } from "../structure/StructureLayer";
 import { ClassifyPulse } from "../structure/ClassifyPulse";
+import { VolumeSink } from "../definition/VolumeSink";
 import { passOption, passResearch, passSales, passStudy, type Filter } from "./filter";
 import type { Stage } from "../structure/stages";
 import { Navigator, SpreadCtx, spreadOf, useSpread, type NavInput } from "./navigate";
@@ -200,7 +201,9 @@ interface SceneProps {
   onHover: (h: Hover | null) => void;
   onSelect: (s: Selection, at: [number, number, number]) => void;
   /** page 2: comments fly into their clusters and the AI's structure appears on top */
-  mode?: "scan" | "structure";
+  mode?: "scan" | "structure" | "definition" | "prioritize";
+  /** page 3: the definition layer (car, pins, link arcs), drawn outside the universe while the volume sinks away */
+  extra?: ReactNode;
   structure?: StructurePayload;
   selected?: Selection | null;
   hoverKey?: string | null;
@@ -472,8 +475,10 @@ export function Scene(p: SceneProps) {
       {/* zoom goes toward the cursor and may come close, so any spot can be reached; right-drag (or Shift-drag) pans */}
       <OrbitControls makeDefault enablePan screenSpacePanning zoomToCursor minDistance={0.15} maxDistance={16 * spread.spread}
                      enableDamping dampingFactor={0.08} maxPolarAngle={Math.PI * 0.62} />
-      <Navigator spread={spread.spread} nav={p.nav} fit={fit} />
+      {/* pages with their own home view (Definition, Prioritize) re-plan their own flight on Reset */}
+      <Navigator spread={spread.spread} nav={p.nav} fit={fit} homeOverride={p.mode !== "scan" && p.mode !== "structure"} />
       <SpreadCtx.Provider value={spread}>
+      <VolumeSink sunk={p.mode === "definition" || p.mode === "prioritize"}>
       <group scale={spread.spread}>
       <Layer id="comment" focus={p.focus}>
         <points geometry={comments} material={commentMat} {...onComment} />
@@ -500,7 +505,9 @@ export function Scene(p: SceneProps) {
       {p.mode === "structure" && p.locked && p.focus == null && <Reticle at={p.locked} />}
       <ClassifyPulse ids={p.pulse} posOf={posOf} dpr={dpr * spread.grow} />
       </group>
+      </VolumeSink>
       </SpreadCtx.Provider>
+      {p.extra}
     </>
   );
 }

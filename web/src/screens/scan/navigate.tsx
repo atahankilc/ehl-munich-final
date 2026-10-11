@@ -30,7 +30,9 @@ const typing = (t: EventTarget | null) =>
 
 type Orbit = { target: THREE.Vector3; update: () => void };
 
-export function Navigator({ spread, nav, fit }: { spread: number; nav: MutableRefObject<NavInput>; fit: () => number }) {
+/** `homeOverride`: a page with its own home view (Definition, Prioritize) re-plans its own flight on a reset; the scan's
+ *  glide back to the volume is skipped there. */
+export function Navigator({ spread, nav, fit, homeOverride = false }: { spread: number; nav: MutableRefObject<NavInput>; fit: () => number; homeOverride?: boolean }) {
   const { camera } = useThree();
   const controls = useThree((s) => s.controls) as unknown as Orbit | null;
   const held = useRef(new Set<string>());
@@ -59,7 +61,7 @@ export function Navigator({ spread, nav, fit }: { spread: number; nav: MutableRe
     // reset: glide back to the opening view
     if (nav.current.reset !== lastReset.current) {
       lastReset.current = nav.current.reset;
-      home.current = { t0: clock.elapsedTime, from: camera.position.clone(), fromT: controls.target.clone() };
+      if (!homeOverride) home.current = { t0: clock.elapsedTime, from: camera.position.clone(), fromT: controls.target.clone() };
     }
     if (home.current) {
       const h = home.current, p = Math.min(1, (clock.elapsedTime - h.t0) / 0.7), e = 1 - Math.pow(1 - p, 3);

@@ -1,13 +1,14 @@
 // Bottom-left dock: the Guide explains the screen (a legend drawn with the scene's own marks) and, once something is
-// opened, what that kind of item is and how the AI uses it. On Structure it shares the corner with the Agent panel as
-// a second tab. The dock folds to its tab row; folded/unfolded is remembered per browser.
+// opened, what that kind of item is and how the AI uses it. On Structure the Agent panel sits next to it. Each is a
+// pill like the Audit button; clicking one opens its panel above the pills and closes the other, clicking the open one
+// closes it. Which one is open (or none) is remembered per browser.
 import { useEffect, useState, type ReactNode } from "react";
-import { ChevronDown } from "lucide-react";
+import { BookOpen, Bot } from "lucide-react";
 import type { Selection } from "@/lib/types";
 import { TYPE_COLOR } from "@/screens/scan/colors";
 import "./guide.css";
 
-type Mode = "scan" | "structure";
+type Mode = "scan" | "structure" | "definition" | "prioritize" | "document";
 type MarkKind =
   | "comment" | "research" | "study" | "option" | "sales" | "sales-fc" | "public" | "held" | "new"
   | "improve" | "keep" | "strengthened" | "weakened" | "lost" | "theme" | "area-improve" | "area-keep"
@@ -88,36 +89,42 @@ const STRUCTURE: Page = {
 
 const TIERS = "Trust: T1 official (BMW, OEMs, registration statistics), T2 reputable press and analysts, T3 forums and social media.";
 
-function forSelection(sel: Selection): Page {
+// On Evidence the inspector shows the source only; the AI's reading of it sits on Structure, one link away
+const ON_STRUCTURE = "If the AI used it at this checkpoint, \"View in Structure\" shows how.";
+
+function forSelection(sel: Selection, mode: Mode): Page {
+  const ai = mode === "structure";
   switch (sel.kind) {
     case "comment": return {
       title: "Customer comment",
       lead: "One verbatim from a BMW feedback channel, with its car, market, channel and BMW's own label.",
       uses: "The AI reads it and writes signals: the aspect (e.g. seat comfort), whether it is a like, a gap or a wish, how strongly it is said, and the customer's words as proof. Signals from many comments form the clusters on the Structure page.",
-      notes: ["\"What the AI found\" lists this comment's signals.", "Its place in the cloud comes from its meaning; neighbours say similar things."],
+      notes: [ai ? "\"What the AI found\" lists this comment's signals." : "\"View in Structure\" opens the cluster its signals joined.",
+              "Its place in the cloud comes from its meaning; neighbours say similar things."],
     };
     case "research": return sel.item.ring ? {
       title: { study: "Public rating", options: "Product news", sales: "Public sales figure" }[sel.item.ring],
       lead: "Cited, published information about one car line, kept beside BMW's own data and never mixed into it.",
       uses: "Linked to themes as evidence when it supports, contradicts or adds context to them.",
-      notes: [TIERS, "\"Not classified yet\" means the per-item AI reading has not run for research; links to themes are made in a later step."],
+      notes: [TIERS, ai ? "\"Not classified yet\" means the per-item AI reading has not run for research; links to themes are made in a later step." : ON_STRUCTURE],
     } : {
       title: "Web research",
       lead: "A cited source found by the research agents: the claim, its URL, publication date and trust tier. Placed on the dashed ring by date.",
       uses: "Not split into signals like comments. When the AI builds themes it searches these sources and links the relevant ones as evidence: supports, contradicts, competitor, trend or context.",
-      notes: [TIERS, "\"Not classified yet\" means the per-item AI reading has not run for research; the links to themes are made in a later step."],
+      notes: [TIERS, ai ? "\"Not classified yet\" means the per-item AI reading has not run for research; the links to themes are made in a later step." : ON_STRUCTURE],
     };
     case "study": return {
       title: "Customer study",
       lead: "One question from BMW's 2025 customer study for one car in one market.",
       uses: "Linked to themes as evidence: a topic rated well supports a \"keep\", a topic rated poorly supports an \"improve\".",
       notes: ["Tick direction: outward = above this car's average in this market, inward = below.",
-              "USA: share of the top two answers on a 7-point scale. Europe and China: mean rating out of 10."],
+              "USA: share of the top two answers on a 7-point scale. Europe and China: mean rating out of 10.", ...(ai ? [] : [ON_STRUCTURE])],
     };
     case "option": return {
       title: "Equipment option",
       lead: "One option of today's car from the German price list: standard, optional or part of a package.",
       uses: "Linked to themes when customers ask for something the car already offers (\"available as option\"), a hint that it is hard to find or poorly packaged rather than missing.",
+      notes: ai ? undefined : [ON_STRUCTURE],
     };
     case "sales": return {
       title: "BMW sales volume",
@@ -146,7 +153,7 @@ function forSelection(sel: Selection): Page {
 }
 
 function GuideBody({ mode, sel }: { mode: Mode; sel: Selection | null }) {
-  const page = sel ? forSelection(sel) : mode === "structure" ? STRUCTURE : SCAN;
+  const page = sel ? forSelection(sel, mode) : mode === "structure" ? STRUCTURE : SCAN;
   return (
     <div className="guide">
       <p className="guide-title">{page.title}</p>
@@ -163,30 +170,40 @@ function GuideBody({ mode, sel }: { mode: Mode; sel: Selection | null }) {
 }
 
 /* ------------------------------------------------------------------------------------------- dock */
-const FOLD_KEY = "dock.folded";
-const readFold = () => { try { return localStorage.getItem(FOLD_KEY) === "1"; } catch { return false; } };
+type Panel = "guide" | "agent";
+const OPEN_KEY = "dock.open";
+const readOpen = (): Panel | null => {
+  try { const v = localStorage.getItem(OPEN_KEY); return v === "" ? null : v === "agent" ? "agent" : "guide"; } catch { return "guide"; }
+};
 
-export function Dock({ mode, sel, agent, running = false }: { mode: Mode; sel: Selection | null; agent?: ReactNode; running?: boolean }) {
-  // on Structure the live agent stays in view while it works; otherwise the Guide comes first
-  const start = () => (mode === "structure" && agent && running ? "agent" : "guide");
-  const [tab, setTab] = useState<"guide" | "agent">(start);
-  const [folded, setFolded] = useState(readFold);
-  useEffect(() => { try { localStorage.setItem(FOLD_KEY, folded ? "1" : "0"); } catch { /* private mode */ } }, [folded]);
-  useEffect(() => { setTab(start()); }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (sel) setTab("guide"); }, [sel]);      // opening something explains it
-  const active = agent ? tab : "guide";
+/** `guide` replaces the built-in Guide content (page 3 brings its own, screens/definition/guide.tsx). */
+export function Dock({ mode, sel, agent, running = false, guide }: { mode: Mode; sel: Selection | null; agent?: ReactNode; running?: boolean; guide?: ReactNode }) {
+  // on Structure the live agent opens first while it works; otherwise whatever was open last (the Guide by default)
+  const start = (): Panel | null => (mode !== "scan" && agent && running ? "agent" : readOpen());
+  const [open, setOpen] = useState<Panel | null>(start);
+  useEffect(() => { try { localStorage.setItem(OPEN_KEY, open ?? ""); } catch { /* private mode */ } }, [open]);
+  useEffect(() => { setOpen(start()); }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (sel) setOpen((o) => (o ? "guide" : o)); }, [sel]);   // opening something explains it, if the dock is in use
+  const shown = open === "agent" && !agent ? "guide" : open;
+  const toggle = (p: Panel) => setOpen((o) => (o === p ? null : p));
   return (
-    <section className="dock" data-folded={folded ? "" : undefined} aria-label="Guide">
-      <div className="dock-head">
-        <div className="dock-tabs" role="tablist">
-          <button role="tab" aria-selected={active === "guide"} onClick={() => { setTab("guide"); setFolded(false); }}>Guide</button>
-          {agent && <button role="tab" aria-selected={active === "agent"} onClick={() => { setTab("agent"); setFolded(false); }}>Agent</button>}
+    <section className="dock" data-open={shown ?? undefined} aria-label="Guide">
+      {shown && (
+        <div className="dock-body" id="dock-panel" key={shown}>
+          {shown === "agent" ? agent : guide ?? <GuideBody mode={mode} sel={sel} />}
         </div>
-        <button className="dock-fold" onClick={() => setFolded((f) => !f)} aria-expanded={!folded} aria-label={folded ? "Show" : "Hide"}>
-          <ChevronDown size={14} aria-hidden />
+      )}
+      <div className="dock-pills">
+        <button className="dock-pill" aria-expanded={shown === "guide"} aria-controls="dock-panel" onClick={() => toggle("guide")}>
+          <BookOpen size={14} aria-hidden /> Guide
         </button>
+        {agent && (
+          <button className="dock-pill" aria-expanded={shown === "agent"} aria-controls="dock-panel" onClick={() => toggle("agent")}
+                  data-running={running ? "" : undefined}>
+            <Bot size={14} aria-hidden /> Agent{running && <i className="dock-live" aria-label="working" />}
+          </button>
+        )}
       </div>
-      {!folded && <div className="dock-body">{active === "agent" ? agent : <GuideBody mode={mode} sel={sel} />}</div>}
     </section>
   );
 }

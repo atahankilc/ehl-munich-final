@@ -15,7 +15,9 @@ interface Activity {
   recent: number[];
 }
 
-const STAGE_NAME: Record<string, string> = { classify: "Classify", cluster: "Cluster", contextualize: "Contextualize", areas: "Requirement areas" };
+const STAGE_NAME: Record<string, string> = { classify: "Classify", cluster: "Cluster", contextualize: "Contextualize", areas: "Requirement areas",
+  define: "Define", specify: "Specify", couple: "Couple", gate: "Fit gate", prioritize: "Prioritize" };
+export type Layer = "structure" | "definition" | "prioritize";
 const n = (v: unknown) => (typeof v === "number" ? v.toLocaleString("en-US") : "");
 const ex = (p: Record<string, unknown>) => {
   const e = (p.examples as string[] | undefined)?.[0];
@@ -30,7 +32,19 @@ export function line(e: { action: string; stage: string; payload: Record<string,
     case "map_options": return `Mapped ${n(p.items)} equipment options onto aspects`;
     case "map_research": return `Read ${n(p.items)} research items`;
     case "clustered": return `Grouped ${n(p.signals)} signals into ${n(p.clusters)} clusters`;
-    case "start": return e.stage === "areas" ? `Grouping ${n(p.themes)} themes into requirement areas` : `Reading ${n(p.clusters)} clusters`;
+    case "start": return e.stage === "areas" ? `Grouping ${n(p.themes)} themes into requirement areas`
+      : e.stage === "define" ? `Drafting requirements for ${n(p.to_draft)} areas (${n(p.carried)} carried)`
+      : e.stage === "specify" ? `Specifying ${n(p.to_specify)} requirements (${n(p.carried)} carried)`
+      : e.stage === "couple" ? `Judging ${n(p.to_judge)} candidate links` : `Reading ${n(p.clusters)} clusters`;
+    case "draft": return `Drafted ${n(p.requirements)} requirements from ${n(p.areas)} areas${ex(p)}`;
+    case "spec": return `Specified ${n(p.requirements)} requirements${ex(p)}`;
+    case "repair": return `Re-asked ${n((p.requirements as unknown[] | undefined)?.length)} requirements that failed checks`;
+    case "judge": return `Judged ${n(p.pairs)} pairs → ${n(p.links)} links`;
+    case "recheck": return `Re-checked ${n(p.links)} strong links → ${n(p.kept)} kept`;
+    case "finish": return e.stage === "define" ? `Wrote ${n(p.requirements)} requirements` : e.stage === "couple" ? `Wrote ${n(p.links)} links` : `Finished ${e.stage}`;
+    case "batch_failed": return `A ${e.stage} batch failed; continuing`;
+    case "extracted": return `Extracted ${n(p.stored)} benchmark facts`;
+    case "gap_research": return `Researched missing benchmarks`;
     case "grouped": return `Found ${n(p.areas)} requirement areas${ex(p)}`;
     case "standardize": return `Wrote ${n(p.clusters)} findings${ex(p)}`;
     case "duplicates": return `Checked ${n(p.pairs)} look-alike pairs → ${n(p.merged)} duplicates`;
@@ -45,17 +59,19 @@ function ago(ts: string, now: number) {
   return s < 60 ? `${s}s` : s < 3600 ? `${Math.round(s / 60)}m` : `${Math.round(s / 3600)}h`;
 }
 
-export function useActivity() {
+export function useActivity(layer: Layer = "structure") {
   const { cp } = useCheckpoint();
   return useQuery({
-    queryKey: ["activity", cp],
-    queryFn: () => api.get<Activity>(`/api/structure/activity?cp=${cp}`),
+    queryKey: ["activity", cp, layer],
+    queryFn: () => api.get<Activity>(`/api/structure/activity?cp=${cp}&layer=${layer}`),
     refetchInterval: (q) => (q.state.data?.running ? 2000 : 15000),
   });
 }
 
-const SHORT: Record<string, string> = { classify: "Classify", cluster: "Cluster", contextualize: "Context", areas: "Areas" };
-const DOING: Record<string, string> = { classify: "classified", cluster: "Clustering signals", contextualize: "Adding context", areas: "Finding requirement areas" };
+const SHORT: Record<string, string> = { classify: "Classify", cluster: "Cluster", contextualize: "Context", areas: "Areas",
+  define: "Define", specify: "Specify", couple: "Couple", gate: "Gate", prioritize: "Score" };
+const DOING: Record<string, string> = { classify: "classified", cluster: "Clustering signals", contextualize: "Adding context", areas: "Finding requirement areas",
+  define: "drafted", specify: "specified", couple: "judged", gate: "checked", prioritize: "Scoring targets" };
 
 // what each stage does, condensed (D-043); the visible mark it makes in the volume is named in the second sentence
 const EXPLAIN: Record<string, string> = {
@@ -63,11 +79,16 @@ const EXPLAIN: Record<string, string> = {
   cluster: "Groups signals that say nearly the same thing, across all car lines; likes and complaints never mix. No AI here, just text similarity. Each cluster is a dot: blue to improve, white to keep.",
   contextualize: "Writes one clean need per cluster, merges look-alikes and groups them into themes (the halos). Then links each theme to the research, study and option items that support or contradict it (the arcs).",
   areas: "Groups themes into requirement areas a PM would recognise (the diamonds): the need, improve, keep or emerging, why now, open questions. Pure quality defects go to a separate list. Not requirements yet.",
+  define: "Drafts 1–3 requirements per area, each one product decision, with the car lines and markets its evidence supports. Domain and car zone come from the aspects, not the AI. The pins on the car.",
+  specify: "Makes each requirement measurable: one metric the customer experiences, acceptance criteria under market conditions, and a ladder per line × market: baseline, threshold, target, stretch. Every number cited, projected or marked a gap.",
+  gate: "Checks every requirement for brand and segment fit, and every target for market fit and feasibility (luna, sol re-checks a fail). A brand fail blocks approval unless the PM overrides it.",
+  prioritize: "Scores every requirement × line × market target from the evidence (no AI): six weighted factors, × confidence, + effort and market fit; bundles share a band, a moved band becomes a proposal. The skyline.",
+  couple: "Finds requirements that draw on the same resource (energy, mass, heat, space, attention…) and judges whether they conflict, compete, enable or help each other. The arcs through the car.",
 };
 
-export function AgentPanel() {
+export function AgentPanel({ layer = "structure" }: { layer?: Layer }) {
   const [hot, setHot] = useState<string | null>(null);
-  const q = useActivity();
+  const q = useActivity(layer);
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const t = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(t); }, []);
   const a = q.data;
@@ -90,7 +111,7 @@ export function AgentPanel() {
           <><span className="num">{n(run.progress.done)}</span><span className="agent-of">/ {n(run.progress.total)} {run.progress.unit} {DOING[run.stage] ?? ""}</span></>
         ) : run ? <span className="agent-doing">{DOING[run.stage] ?? STAGE_NAME[run.stage] ?? run.stage}…</span>
           : failed ? <span className="agent-doing">Stopped at {STAGE_NAME[failed.stage] ?? failed.stage}</span>
-          : idle ? <span className="agent-doing">Not structured at this checkpoint yet</span>
+          : idle ? <span className="agent-doing">{layer === "definition" ? "Not defined at this checkpoint yet" : layer === "prioritize" ? "Not prioritized at this checkpoint yet" : "Not structured at this checkpoint yet"}</span>
           : <><span className="num">{done}</span><span className="agent-of">/ {a.stages.length} stages done</span></>}
       </p>
 

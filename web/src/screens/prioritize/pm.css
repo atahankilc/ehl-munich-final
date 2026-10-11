@@ -1,0 +1,15 @@
+/* Page 4: the PM's position and challenges to it (pm.ts). Blue = the PM's confirmed band, the only blue on the page;
+   white = attention (a challenged decision). No amber. */
+.psky-pm {
+  display: inline-flex; align-items: center; height: 15px; padding: 0 5px; margin-left: 2px; border-radius: 3px; background: var(--sweep-hi);
+  color: #fff; font-size: 10px; font-weight: 600; letter-spacing: 0.02em; box-shadow: 0 0 0 2px var(--sweep-wash);
+}
+.psky-chal { display: inline-flex; align-items: center; gap: 4px; margin-left: 4px; font-size: 10px; color: var(--ink); white-space: nowrap; }
+.psky-chal b, .ptag-chal {
+  display: inline-grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; background: var(--ink); color: #000;
+  font-size: 10px; font-weight: 700; line-height: 1;
+}
+.psky-cap:has(.psky-chal) { box-shadow: inset 0 0 0 1px rgba(242, 244, 247, 0.55); }
+.ptag-pmok { color: var(--sweep-hi); font-size: var(--t-micro); font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; }
+.pmatrix-chal { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; color: var(--ink); }
+.pmatrix-ok { color: var(--sweep-hi); font-size: 10px; font-weight: 600; }

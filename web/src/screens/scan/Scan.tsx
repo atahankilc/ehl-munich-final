@@ -2,7 +2,8 @@
 import { Suspense, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Canvas } from "@react-three/fiber";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronsLeft, ChevronsRight, ExternalLink, SlidersHorizontal, X } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ArrowRight, ChevronsLeft, ChevronsRight, ExternalLink, SlidersHorizontal, X } from "lucide-react";
 import { api } from "@/lib/api";
 import type { Comment, PointsPayload, ResearchItem, Selection, SourcesPayload, StructurePayload } from "@/lib/types";
 import { AreaBody, ClusterBody, Funnel, SignalList, ThemeBody } from "../structure/panels";
@@ -15,6 +16,13 @@ import { Scene, TYPE_COLOR, layerOf, studyValue, type Hover } from "./Scene";
 import { CAR_NAME, MARKET_NAME } from "./layout";
 import { HOME, NavPad, SPREAD_MAX, SPREAD_MIN, newNav } from "./navigate";
 import { DIMS, SCOPE_NOTE, commentMask, isActive, keyValues, passOption, passResearch, passSales, passStudy, valueName, type Dim, type Filter, type Scope } from "./filter";
+import { DefinitionLayer } from "../definition/DefinitionLayer";
+import { DefinitionHud } from "../definition/DefinitionHud";
+import { PrioritizeHud } from "../prioritize/PrioritizeHud";
+import { DocumentPage } from "../document/DocumentPage";
+import { selectTarget } from "../prioritize/store";
+import { select as selectRequirement } from "../definition/store";
+import { areaLayout } from "../structure/StructureLayer";
 import "./scan.css";
 
 // the spread is a per-viewer convenience: remembered in this browser, 1× when storage is unavailable
@@ -26,7 +34,9 @@ function storedSpread() {
 const fmt = (n: number | undefined | null) => (n == null ? "–" : n.toLocaleString("en-US"));
 
 
-export function Scan({ mode = "scan" }: { mode?: "scan" | "structure" }) {
+export function Scan({ mode: page = "scan" }: { mode?: "scan" | "structure" | "definition" | "prioritize" | "document" }) {
+  // page 5 (Document) keeps page 4's scene behind its sheet: everything 3D treats it as Prioritize
+  const mode = page === "document" ? "prioritize" : page;
   const { cp, from, sweepId, position, checkpoints } = useCheckpoint();
   const structure = useQuery({ queryKey: ["structure", cp], queryFn: () => api.get<StructurePayload>(`/api/structure?cp=${cp}`),
                                staleTime: 30_000, placeholderData: (prev) => prev });
@@ -95,23 +105,49 @@ export function Scan({ mode = "scan" }: { mode?: "scan" | "structure" }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [selected]);
-  useEffect(() => { setSelected(null); setHover(null); }, [mode]);
+  // switching pages drops the selection, unless the switch came from the inspector's "view in Structure" link
+  const carry = useRef<{ sel: Selection; at: [number, number, number] } | null>(null);
+  useEffect(() => { setSelected(carry.current); carry.current = null; setHover(null); }, [mode]);
+  // page 3 (Definition): its layer mounts on the first visit and then stays, so leaving can run the car back down;
+  // leaving glides the camera home to the volume as it rises again
+  const [defSeen, setDefSeen] = useState(mode === "definition" || mode === "prioritize");   // page 4 continues on page 3's car
+  const prevMode = useRef(mode);
+  useEffect(() => {
+    if (mode === "definition" || mode === "prioritize") setDefSeen(true);
+    if ((mode === "scan" || mode === "structure") && (prevMode.current === "definition" || prevMode.current === "prioritize")) nav.current.reset++;
+    else if (mode === "prioritize" && prevMode.current === "definition") nav.current.reset++;
+    prevMode.current = mode;
+  }, [mode]);
+  const navigate = useNavigate();
+  const { search } = useLocation();
+  const openInStructure = (sel: Selection, at: [number, number, number]) => { carry.current = { sel, at }; navigate(`/structure${search}`); };
+  // ?area=<key> on Structure (page 3's "From area" link): select that area once the structure is loaded, then drop the param
+  useEffect(() => {
+    const key = mode === "structure" ? new URLSearchParams(search).get("area") : null;
+    if (!key || !structure.data?.ready) return;
+    const themeOf = Object.fromEntries(structure.data.themes.map((t) => [t.key, t]));
+    const hit = areaLayout(structure.data, themeOf).find((x) => x.a.key === key);
+    if (hit) { setStageView("areas"); setSelected({ sel: { kind: "area", key }, at: hit.at }); }
+    const p = new URLSearchParams(search); p.delete("area");
+    navigate(`/structure${p.size ? `?${p}` : ""}`, { replace: true });
+  }, [mode, search, structure.data]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <main className="scan" data-mode={mode} aria-label={mode === "structure" ? "Structure and context at the selected checkpoint" : "Raw evidence at the selected checkpoint"}>
+    <main className="scan" data-mode={page} aria-label={page === "document" ? "The requirement document per car line and market at the selected checkpoint" : mode === "structure" ? "Structure and context at the selected checkpoint" : mode === "definition" ? "Requirement definitions on today's car at the selected checkpoint" : mode === "prioritize" ? "Requirement priorities per market around today's car at the selected checkpoint" : "Raw evidence at the selected checkpoint"}>
       <div className="scan-canvas">
         {points.data && (
           <Canvas dpr={[1, 2]} camera={{ position: HOME, fov: 40, near: 0.05, far: 60 }}
                   raycaster={{ params: { Points: { threshold: 0.018 }, Line: { threshold: 0 }, Mesh: {}, LOD: {}, Sprite: {} } }}
                   gl={{ antialias: true, alpha: false }} onCreated={({ gl }) => gl.setClearColor("#000000")}
-                  onPointerMissed={() => setSelected(null)}>
+                  onPointerMissed={() => { setSelected(null); if (mode === "definition") selectRequirement(null); if (mode === "prioritize") selectTarget(null); }}>
             <Suspense fallback={null}>
               <Scene points={points.data} sources={sources.data} mask={sceneMask} position={position} fromPosition={fromPosition}
                      sweepId={sweepId} hoverComment={hover?.comment ?? null} locked={selected?.at ?? null} focus={selected ? layerOf(selected.sel) : null}
                      onHover={setHover} onSelect={(sel, at) => { setSelected({ sel, at }); setHover(null); }}
                      mode={mode} structure={structure.data} selected={selected?.sel ?? null} hoverKey={hoverKey}
                      onStructureHover={(h, k) => { setHover(h); setHoverKey(k ?? null); }} pulse={activity.data?.recent} filter={filter}
-                     spread={spread} nav={nav} stage={stage} />
+                     spread={spread} nav={nav} stage={stage}
+                     extra={defSeen ? <DefinitionLayer active={mode === "definition" || mode === "prioritize"} prioritize={mode === "prioritize"} sweepId={sweepId} spread={spread} nav={nav} /> : null} />
             </Suspense>
           </Canvas>
         )}
@@ -125,13 +161,14 @@ export function Scan({ mode = "scan" }: { mode?: "scan" | "structure" }) {
           {points.data && <FilterBar points={points.data} sources={sources.data} position={position} filter={chosen.f} order={chosen.order}
                                      onToggle={toggle} onClear={clear} />}
         </div>
-      ) : <Funnel data={structure.data} stage={stage} done={done} onStage={setStageView} onStep={step} />}
-      <Dock mode={mode} sel={selected?.sel ?? null} agent={mode === "structure" ? <AgentPanel /> : undefined} running={!!activity.data?.running} />
+      ) : mode === "structure" ? <Funnel data={structure.data} stage={stage} done={done} onStage={setStageView} onStep={step} /> : page === "document" ? <DocumentPage /> : mode === "prioritize" ? <PrioritizeHud /> : <DefinitionHud />}
+      {mode !== "definition" && mode !== "prioritize" && <Dock mode={mode} sel={selected?.sel ?? null} agent={mode === "structure" ? <AgentPanel /> : undefined} running={!!activity.data?.running} />}
       <PageSwitch />
       {points.data && <NavPad spread={spread} onSpread={setSpread} nav={nav} />}
 
       {hover && !selected && <HoverCard hover={hover} points={points.data} />}
-      {selected && <Inspector sel={selected.sel} sales={sources.data?.sales ?? []} onClose={() => setSelected(null)} structure={structure.data}
+      {selected && mode !== "definition" && mode !== "prioritize" && <Inspector sel={selected.sel} at={selected.at} mode={mode} onOpenStructure={openInStructure}
+                              sales={sources.data?.sales ?? []} onClose={() => setSelected(null)} structure={structure.data}
                               cpLabel={(id) => checkpoints?.find((c) => c.id === id)?.label ?? id} />}
     </main>
   );
@@ -328,8 +365,14 @@ const PUBLIC_LAYER: Record<"sales" | "study" | "options", { name: string; what: 
   options: { name: "Product news", what: "Published news about this car's equipment, prices or availability.", glyph: "option" },
 };
 
-function Inspector({ sel, sales, onClose, cpLabel, structure }: { sel: Selection; sales: SourcesPayload["sales"]; onClose: () => void; cpLabel: (id: string) => string; structure?: StructurePayload }) {
+// Evidence shows the source only; what the AI made of it (signals, theme links) is shown on Structure, with a link across.
+function Inspector({ sel, at, mode, onOpenStructure, sales, onClose, cpLabel, structure }: {
+  sel: Selection; at: [number, number, number]; mode: "scan" | "structure"; onOpenStructure: (sel: Selection, at: [number, number, number]) => void;
+  sales: SourcesPayload["sales"]; onClose: () => void; cpLabel: (id: string) => string; structure?: StructurePayload;
+}) {
   const L = sel.kind === "research" && sel.item.ring ? PUBLIC_LAYER[sel.item.ring] : LAYER[sel.kind];
+  const ai = mode === "structure";
+  const bridge = !ai && <StructureLink sel={sel} at={at} structure={structure} cpLabel={cpLabel} onOpen={onOpenStructure} />;
   return (
     <aside className="sheet" aria-label={L.name}>
       <button className="sheet-close" onClick={onClose} aria-label="Close"><X size={16} /></button>
@@ -337,17 +380,17 @@ function Inspector({ sel, sales, onClose, cpLabel, structure }: { sel: Selection
         <span className="sheet-layer"><Glyph kind={L.glyph} />{L.name}</span>
         <p className="sheet-what">{L.what}</p>
       </header>
-      {sel.kind === "comment" && <><CommentBody id={sel.id} cpLabel={cpLabel} /><SignalList sourceId={sel.id} /></>}
+      {sel.kind === "comment" && <><CommentBody id={sel.id} cpLabel={cpLabel} />{ai ? <SignalList sourceId={sel.id} /> : bridge}</>}
       {sel.kind === "cluster" && <ClusterBody k={sel.key} data={structure} />}
       {sel.kind === "theme" && <ThemeBody k={sel.key} />}
       {sel.kind === "area" && <AreaBody k={sel.key} data={structure} />}
-      {sel.kind === "study" && <><StudyBody s={sel.item} /><EvidenceUse type="study" id={sel.item.id} structure={structure} /></>}
+      {sel.kind === "study" && <><StudyBody s={sel.item} />{ai ? <EvidenceUse type="study" id={sel.item.id} structure={structure} /> : bridge}</>}
       {sel.kind === "option" && (
         <>
           <h2 className="sheet-title">{sel.item.name ?? sel.item.code}</h2>
           <Facts rows={[["Car", CAR_NAME[sel.item.car] ?? sel.item.car], ["Category", sel.item.category], ["Availability", sel.item.availability],
                         ["Package", sel.item.package], ["Option code", sel.item.code]]} />
-          <EvidenceUse type="option" id={sel.item.id} structure={structure} />
+          {ai ? <EvidenceUse type="option" id={sel.item.id} structure={structure} /> : bridge}
         </>
       )}
       {sel.kind === "sales" && <SalesBody row={sel.item} all={sales} />}
@@ -363,11 +406,39 @@ function Inspector({ sel, sales, onClose, cpLabel, structure }: { sel: Selection
           <Facts rows={[["Published", sel.item.published_at ?? "undated"], ["Known from", sel.item.new ? "JUL 26" : "JAN 26"],
                         ["About", sel.item.entity], ["Region", sel.item.region], ["Trust", sel.item.tier]]} />
           {sel.item.url && <a className="sheet-link" href={sel.item.url} target="_blank" rel="noreferrer">Open source <ExternalLink size={13} /></a>}
-          <EvidenceUse type="research" id={sel.item.id} structure={structure} />
-          <SignalList sourceId={sel.item.id} />
+          {ai ? <><EvidenceUse type="research" id={sel.item.id} structure={structure} /><SignalList sourceId={sel.item.id} /></> : bridge}
         </>
       )}
     </aside>
+  );
+}
+
+// One quiet line on Evidence: whether the AI used this item at this checkpoint, and a jump to Structure with it selected.
+// Comments are not selectable on Structure (they fly into their clusters), so a comment opens its cluster instead.
+function StructureLink({ sel, at, structure, cpLabel, onOpen }: {
+  sel: Selection; at: [number, number, number]; structure?: StructurePayload; cpLabel: (id: string) => string;
+  onOpen: (sel: Selection, at: [number, number, number]) => void;
+}) {
+  if (!structure || (sel.kind !== "comment" && sel.kind !== "research" && sel.kind !== "study" && sel.kind !== "option")) return null;
+  const cp = cpLabel(structure.checkpoint);
+  let text: string, target: [Selection, [number, number, number]] | null = null;
+  if (!structure.ready) text = `Not structured by the AI yet at ${cp}`;
+  else if (sel.kind === "comment") {
+    const i = structure.member.ids.indexOf(sel.id);
+    const c = i >= 0 ? structure.clusters[structure.member.cluster[i]] : undefined;
+    text = c ? `Grouped into a cluster at ${cp}` : `Not in a cluster at ${cp}`;
+    if (c) target = [{ kind: "cluster", key: c.key }, [c.x, c.y, c.z]];
+  } else {
+    const type = sel.kind, id = String(sel.item.id);
+    const themes = new Set(structure.edges.filter((e) => e.src_type === type && e.src_id === id && e.dst_type === "theme").map((e) => e.dst_id)).size;
+    text = themes ? `Used in ${themes} theme${themes > 1 ? "s" : ""} at ${cp}` : `Not used as evidence at ${cp}`;
+    if (themes) target = [sel, at];
+  }
+  return (
+    <div className="bridge">
+      <span>{text}</span>
+      {target && <button className="bridge-go" onClick={() => onOpen(...target)}>View in Structure <ArrowRight size={13} /></button>}
+    </div>
   );
 }
 

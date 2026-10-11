@@ -1,24 +1,26 @@
-/* Bottom-left dock: Guide (and Agent on Structure). Same frameless feathered black field as the audit trail, 300px
-   wide like the checkpoint timeline in the opposite corner. */
+/* Bottom-left dock: a row of pills (Guide, and Agent on Structure) styled like the Audit button, and the open one's
+   panel above them on the same frameless feathered black field as the audit trail, 300px wide like the checkpoint
+   timeline in the opposite corner. Only one panel is open at a time. */
 .dock {
   position: fixed; left: var(--edge); bottom: calc(var(--edge) + env(safe-area-inset-bottom, 0px)); z-index: 12;
-  width: 300px; display: grid; gap: 10px; padding: 12px 14px 14px; margin: -12px -14px -14px;
-  background: rgba(0, 0, 0, 0.78); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  --feather: linear-gradient(to right, transparent, #000 14px, #000 calc(100% - 14px), transparent), linear-gradient(to bottom, transparent, #000 12px, #000);
-  -webkit-mask-image: var(--feather); mask-image: var(--feather); -webkit-mask-composite: source-in; mask-composite: intersect;
-  box-sizing: content-box;
+  width: 300px; display: grid; gap: 12px; justify-items: start;
 }
-.dock[data-folded] { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
-.dock-head { display: flex; align-items: center; justify-content: space-between; }
-.dock-tabs { display: flex; gap: 16px; }
-.dock-tabs button { font-size: var(--t-label); font-weight: 600; color: var(--ink-3); padding: 4px 0; border-bottom: 1px solid transparent; transition: color var(--fast), border-color var(--fast); }
-.dock-tabs button:hover { color: var(--ink-2); }
-.dock-tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--sweep-hi); }
-.dock[data-folded] .dock-tabs button[aria-selected="true"] { border-bottom-color: transparent; color: var(--ink-2); }
-.dock-fold { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 7px; color: var(--ink-3); transition: color var(--fast), background var(--fast), transform var(--fast) var(--ease); }
-.dock-fold:hover { color: var(--ink); background: rgba(255, 255, 255, 0.06); }
-.dock[data-folded] .dock-fold { transform: rotate(180deg); }
-.dock-body { max-height: min(46vh, 420px); overflow-y: auto; margin-right: -6px; padding-right: 6px; animation: dock-in var(--med) var(--ease); }
+.dock-pills { display: flex; gap: 8px; }
+.dock-pill {
+  height: 32px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px 0 12px; border-radius: 99px;
+  font-size: 13px; color: var(--ink-2); background: rgba(0, 0, 0, 0.6); border: 1px solid var(--hair);
+  transition: color var(--fast), border-color var(--fast), background var(--fast);
+}
+.dock-pill:hover { color: var(--ink); border-color: var(--hair-2); background: rgba(255, 255, 255, 0.04); }
+.dock-pill[aria-expanded="true"] { color: var(--ink); border-color: var(--hair-2); background: rgba(255, 255, 255, 0.06); }
+.dock-live { width: 6px; height: 6px; margin-left: 2px; border-radius: 50%; background: var(--ink); animation: agent-pulse 1.4s ease-out infinite; }
+.dock-body {
+  justify-self: stretch; max-height: min(46vh, 420px); overflow-y: auto; padding: 12px 14px 14px; margin: -12px -14px 0;
+  background: var(--field); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  --feather: linear-gradient(to right, transparent, #000 14px, #000 calc(100% - 14px), transparent), linear-gradient(to bottom, transparent, #000 12px, #000 calc(100% - 12px), transparent);
+  -webkit-mask-image: var(--feather); mask-image: var(--feather); -webkit-mask-composite: source-in; mask-composite: intersect;
+  animation: dock-in var(--med) var(--ease);
+}
 @keyframes dock-in { from { opacity: 0; transform: translateY(4px); } }
 
 /* the agent panel lives inside the dock on Structure */

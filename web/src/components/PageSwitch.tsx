@@ -12,6 +12,9 @@ export function PageSwitch() {
       <span className="brand"><LogoMark /><span className="brand-name">SharkSight</span></span>
       <NavLink to={`/${q}`} end>Evidence</NavLink>
       <NavLink to={`/structure${q}`}>Structure</NavLink>
+      <NavLink to={`/definition${q}`}>Definition</NavLink>
+      <NavLink to={`/prioritize${q}`}>Prioritize</NavLink>
+      <NavLink to={`/document${q}`}>Document</NavLink>
     </nav>
   );
 }

@@ -127,6 +127,26 @@ interface Props {
 // a cluster's name before context has run: its most frequent aspect
 const topAspect = (c: ClusterNode) => Object.entries(c.aspects ?? {}).sort((a, b) => b[1] - a[1])[0]?.[0]?.replace(/_/g, " ");
 
+/** Where each requirement area floats above the galaxy (also where page 3 lifts its diamonds from). */
+export function areaLayout(data: StructurePayload, themeOf: Record<string, ThemeNode>) {
+  const placed: { a: AreaNode; ts: ThemeNode[]; bearing: number }[] = [];
+  for (const a of data.areas) {
+    const ts = a.themes.map((k) => themeOf[k]).filter(Boolean);
+    if (!ts.length) continue;
+    const w = ts.reduce((n, t) => n + (t.comments || 1), 0);
+    const x = ts.reduce((n, t) => n + t.x * (t.comments || 1), 0) / w, z = ts.reduce((n, t) => n + t.z * (t.comments || 1), 0) / w;
+    placed.push({ a, ts, bearing: Math.atan2(z, x) });
+  }
+  placed.sort((m, n) => m.bearing - n.bearing);
+  const n = placed.length || 1;
+  return placed.map(({ a, ts }, i) => {
+    const ang = (i / n) * Math.PI * 2 - Math.PI / 2;
+    const r = a.kind === "quality" ? 0.35 : 1.05;
+    const y = a.kind === "quality" ? AREA_Y - 0.25 : AREA_Y + (i % 2) * 0.12;   // alternate heights for neighbours
+    return { a, ts, at: [r * Math.cos(ang), y, r * Math.sin(ang)] as [number, number, number] };
+  });
+}
+
 export function StructureLayer(p: Props) {
   const showThemes = atLeast(p.stage, "contextualize"), showAreas = p.stage === "areas";
   const clusters = useMemo(() => p.data.clusters.filter((c) => c.comments > 0 && !c.tail), [p.data]);
@@ -166,24 +186,7 @@ export function StructureLayer(p: Props) {
 
   /* requirement areas float on a ring above the galaxy: each at an evenly spaced slot, in the order of its themes'
      bearing, so labels never pile up over the centre; stems tie every area to its themes below */
-  const areas = useMemo(() => {
-    const placed: { a: AreaNode; ts: ThemeNode[]; bearing: number }[] = [];
-    for (const a of p.data.areas) {
-      const ts = a.themes.map((k) => themeOf[k]).filter(Boolean);
-      if (!ts.length) continue;
-      const w = ts.reduce((n, t) => n + (t.comments || 1), 0);
-      const x = ts.reduce((n, t) => n + t.x * (t.comments || 1), 0) / w, z = ts.reduce((n, t) => n + t.z * (t.comments || 1), 0) / w;
-      placed.push({ a, ts, bearing: Math.atan2(z, x) });
-    }
-    placed.sort((m, n) => m.bearing - n.bearing);
-    const n = placed.length || 1;
-    return placed.map(({ a, ts }, i) => {
-      const ang = (i / n) * Math.PI * 2 - Math.PI / 2;
-      const r = a.kind === "quality" ? 0.35 : 1.05;
-      const y = a.kind === "quality" ? AREA_Y - 0.25 : AREA_Y + (i % 2) * 0.12;   // alternate heights for neighbours
-      return { a, ts, at: [r * Math.cos(ang), y, r * Math.sin(ang)] as [number, number, number] };
-    });
-  }, [p.data, themeOf]);
+  const areas = useMemo(() => areaLayout(p.data, themeOf), [p.data, themeOf]);
   const focusArea = p.selected?.kind === "area" ? p.selected.key : null;
   const stems = useMemo(() => {
     const v: number[] = [], hot: number[] = [];

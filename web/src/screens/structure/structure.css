@@ -43,6 +43,8 @@
 
 .sig-list { display: grid; gap: 8px; }
 .sig-none { padding-top: 2px; }
+.sig-mapped { font-size: var(--t-label); line-height: 1.5; color: var(--ink-2); }
+.sig-mapped b { font-weight: 500; color: var(--ink); }
 .sig { display: grid; gap: 5px; padding: 10px 12px; border-radius: 8px; background: rgba(255, 255, 255, 0.035); border: 1px solid var(--hair); }
 .sig-head { display: flex; align-items: center; gap: 8px; font-size: var(--t-label); }
 .sig-aspect { color: var(--ink); font-weight: 600; text-transform: capitalize; }
@@ -128,6 +130,20 @@
 @media (max-width: 760px) { .agent { left: 16px; right: 16px; width: auto; bottom: 200px; } .agent-feed li:nth-child(n + 3) { display: none; } }
 .area-label { font-size: var(--t-label); font-weight: 600; color: var(--ink); white-space: nowrap; pointer-events: none; user-select: none; padding: 2px 7px; border-radius: 5px; background: rgba(0, 0, 0, 0.65); }
 .area-label:not([data-active]) { font-weight: 500; color: var(--ink-2); font-size: var(--t-micro); }
+
+/* area inspector: markets (D-046) — no boxes, a quiet table */
+.mk { display: grid; gap: 6px; }
+.mk-head, .mk-row { display: grid; grid-template-columns: 1.15fr 0.95fr 0.8fr 1.4fr; gap: 10px; align-items: baseline; }
+.mk-head { padding-bottom: 2px; border-bottom: 1px solid var(--hair); }
+.mk-row { font-size: var(--t-label); color: var(--ink-2); }
+.mk-name { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mk-n { display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.mk-n .lm-bar { flex: 1; min-width: 24px; }
+.mk-share { font-variant-numeric: tabular-nums; display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: baseline; }
+.mk-conflict { font-style: normal; font-size: var(--t-micro); color: var(--ink); padding: 0 4px; border-radius: 4px; outline: 1px dashed var(--ink-3); outline-offset: -1px; line-height: 16px; white-space: nowrap; }
+.mk-trend b { font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; }
+.mk-src { display: block; font-size: var(--t-micro); color: var(--ink-3); }
+.mk-note { font-size: var(--t-micro); line-height: 1.45; color: var(--ink-3); }
 
 /* hovering or focusing a stage: its explanation takes the feed's place */
 .agent-stages li { cursor: help; outline: none; }

@@ -1,16 +1,19 @@
-// Audit, top-right. Opens on what the current page is about: on Evidence, what entered the data and when; on
-// Structure, when the agent ran each stage and every AI step, for the selected checkpoint. "Everything" shows the
-// whole append-only trail. Styled like the rest of the HUD: a 28px pill like the filter chips, a glass sheet like the
+// Audit, top-right. Opens on what the current page is about, for the selected checkpoint only: on Evidence, what
+// entered the data and when; on Structure, when the agent ran each stage and every AI step. "Everything" shows both
+// checkpoints, each row tagged; history from before the checkpoint rebuild (the old wave-based app) is kept in the
+// append-only trail but only shown there on request. Styled like the rest of the HUD: a 28px pill like the filter chips, a glass sheet like the
 // inspector. Inside, the trail runs down one hairline rail: stage runs are milestones, every other row is a step.
 // Identical steps of one stream (same action, stage and checkpoint, no gap over 10 minutes; the agent classifies 20
 // comments per call) fold into one row with their totals and can be opened, even when another run's steps interleave. Chips on top show or hide who acted.
 import { useEffect, useMemo, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
-import { ChevronRight, History, X } from "lucide-react";
+import { ChevronRight, History, ListChecks, ListOrdered, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { useCheckpoint } from "@/state/checkpoint";
 import { line } from "@/screens/structure/AgentPanel";
+import { setTopPanel, toggleTopPanel, useTopPanel } from "./topPanel";
+import { UsageView } from "./Usage";
 import "./audit.css";
 
 interface Row {
@@ -21,14 +24,18 @@ interface Page { items: Row[]; more: boolean }
 type Who = Row["actor_type"];
 type Item = { day: string; rows: Row[] };   // one row, or a fold of identical consecutive steps (newest first)
 
-const CP_LABEL: Record<string, string> = { cp1: "JAN 26", cp2: "JUL 26" };
+const CP_LABEL: Record<string, string> = { cp1: "JAN 26", cp2: "JUL 26", ab: "A/B TEST" };
 const WHO: Record<Who, string> = { ai: "AI", system: "System", human: "PM" };
 const WHO_ORDER: Who[] = ["ai", "system", "human"];
-const WHAT: Record<"evidence" | "structure" | "all", string> = {
+const WHAT: Record<"evidence" | "structure" | "definition" | "prioritize" | "all", string> = {
+  // the feed has no page-4 scope yet, so the Prioritize tab reads the whole trail (scope=all)
+  prioritize: "Every recorded change, including the gate checks, scores and every PM priority decision or proposal verdict.",
+  definition: "When the agent defined, specified and coupled requirements, and every PM choice of a target or link.",
   evidence: "What entered the data, and when.",
   structure: "When the agent ran each stage, and every AI step.",
-  all: "Every recorded change, append-only. Nothing is ever edited or removed.",
+  all: "Every recorded change at both checkpoints, append-only. Nothing is ever edited or removed.",
 };
+const USAGE_WHAT = "Every model call the app made: which model each step uses, tokens and cost against the budget.";
 // steps whose counts add up when folded ("Classified 20 comments" × 153 → "Classified 3,060 comments")
 const SUMMABLE = new Set(["classify_comments", "map_study", "map_options", "map_research", "standardize", "duplicates"]);
 
@@ -70,18 +77,27 @@ function foldText(rows: Row[]) {
 export function AuditPanel() {
   const { pathname } = useLocation();
   const { cp } = useCheckpoint();
-  const [open, setOpen] = useState(false);
+  // the corner is shared with Definition's requirements: opening one closes the other (topPanel.ts)
+  const top = useTopPanel();
+  const open = top === "audit";
+  const setOpen = (v: boolean) => setTopPanel(v ? "audit" : null);
   const [all, setAll] = useState(false);
+  const [usage, setUsage] = useState(false);         // the Usage tab: model calls and spend instead of the trail
+  const [history, setHistory] = useState(false);
   const [hidden, setHidden] = useState<Set<Who>>(new Set());
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const page = pathname.startsWith("/structure") ? "structure" : "evidence";
+  const page = pathname.startsWith("/structure") ? "structure" : pathname.startsWith("/definition") ? "definition" : pathname.startsWith("/prioritize") ? "prioritize" : "evidence";
   const scope = all ? "all" : page;
+  const withHistory = all && history;
+  // the requirements pill exists on Definition only; leaving the page closes that panel
+  useEffect(() => { if (page !== "definition") setTopPanel((t) => (t === "requirements" ? null : t)); }, [page]);
+  useEffect(() => { if (page !== "prioritize") setTopPanel((t) => (t === "priorities" ? null : t)); }, [page]);
 
   const q = useInfiniteQuery({
-    queryKey: ["audit-feed", scope, cp],
-    enabled: open,
+    queryKey: ["audit-feed", scope, cp, withHistory],
+    enabled: open && !usage,
     initialPageParam: "",
-    queryFn: ({ pageParam }) => api.get<Page>(`/api/audit/feed?scope=${scope}&cp=${cp}&limit=400${pageParam ? `&before=${encodeURIComponent(pageParam)}` : ""}`),
+    queryFn: ({ pageParam }) => api.get<Page>(`/api/audit/feed?scope=${scope === "prioritize" ? "all" : scope}&cp=${cp}&limit=400${withHistory ? "&history=true" : ""}${pageParam ? `&before=${encodeURIComponent(pageParam)}` : ""}`),
     getNextPageParam: (last) => (last.more && last.items.length ? last.items[last.items.length - 1].ts : undefined),
     refetchInterval: open ? 5000 : false,
   });
@@ -108,28 +124,42 @@ export function AuditPanel() {
   let lastDay = "";
   return (
     <>
-      <button className="audit-btn" aria-expanded={open} aria-controls="audit-panel" onClick={() => setOpen((o) => !o)}>
-        <History size={14} aria-hidden /> Audit
-      </button>
+      <div className="tr-pills">
+        {page === "definition" && (
+          <button className="audit-btn" aria-expanded={top === "requirements"} aria-controls="requirements-panel" onClick={() => toggleTopPanel("requirements")}>
+            <ListChecks size={14} aria-hidden /> Requirements
+          </button>
+        )}
+        {page === "prioritize" && (
+          <button className="audit-btn" aria-expanded={top === "priorities"} aria-controls="priorities-panel" onClick={() => toggleTopPanel("priorities")}>
+            <ListOrdered size={14} aria-hidden /> Priorities
+          </button>
+        )}
+        <button className="audit-btn" aria-expanded={open} aria-controls="audit-panel" onClick={() => toggleTopPanel("audit")}>
+          <History size={14} aria-hidden /> Audit
+        </button>
+      </div>
       {open && (
-        <aside id="audit-panel" className="audit" aria-label="Audit trail">
+        <aside id="audit-panel" className="audit" aria-label="Audit trail" data-wide={usage ? "" : undefined}>
           <button className="audit-close" onClick={() => setOpen(false)} aria-label="Close audit"><X size={16} /></button>
           <header className="audit-head">
             <span className="audit-layer"><History size={14} aria-hidden />Audit trail</span>
-            <p className="audit-what">{WHAT[scope]}</p>
+            <p className="audit-what">{usage ? USAGE_WHAT : WHAT[scope]}</p>
             <div className="audit-tabs" role="tablist">
-              <button role="tab" aria-selected={!all} onClick={() => setAll(false)}>{page === "structure" ? `Structure · ${CP_LABEL[cp]}` : "Evidence"}</button>
-              <button role="tab" aria-selected={all} onClick={() => setAll(true)}>Everything</button>
+              <button role="tab" aria-selected={!all && !usage} onClick={() => { setAll(false); setUsage(false); }}>{`${page === "structure" ? "Structure" : page === "definition" ? "Definition" : page === "prioritize" ? "Prioritize" : "Evidence"} · ${CP_LABEL[cp] ?? cp}`}</button>
+              <button role="tab" aria-selected={all && !usage} onClick={() => { setAll(true); setUsage(false); }}>Everything</button>
+              <button role="tab" aria-selected={usage} onClick={() => setUsage(true)}>Usage</button>
             </div>
-            <div className="audit-who-chips" aria-label="Who acted">
+            {!usage && <div className="audit-who-chips" aria-label="Who acted">
               {WHO_ORDER.filter((w) => counts[w]).map((w) => (
                 <button key={w} className="audit-chip" aria-pressed={!hidden.has(w)} onClick={() => toggleWho(w)}>
                   <i className="audit-mark" data-who={w} aria-hidden />{WHO[w]}<span className="audit-chip-n">{counts[w].toLocaleString("en-US")}</span>
                 </button>
               ))}
-            </div>
+            </div>}
           </header>
 
+          {usage ? <UsageView /> : <>
           <ol className="audit-list">
             {q.isPending && <li className="audit-empty label">Loading…</li>}
             {!q.isPending && items.length === 0 && <li className="audit-empty label">Nothing recorded here yet.</li>}
@@ -169,11 +199,17 @@ export function AuditPanel() {
               );
             })}
           </ol>
+          {all && !q.hasNextPage && !q.isPending && (
+            <button className="audit-more" aria-pressed={history} onClick={() => setHistory((h) => !h)}>
+              {history ? "Hide history before the checkpoint rebuild" : "Show history before the checkpoint rebuild"}
+            </button>
+          )}
           {q.hasNextPage && (
             <button className="audit-more" onClick={() => q.fetchNextPage()} disabled={q.isFetchingNextPage}>
               {q.isFetchingNextPage ? "Loading…" : "Show older"}
             </button>
           )}
+          </>}
         </aside>
       )}
     </>

@@ -1,0 +1,98 @@
+/* Page 4 weights panel: far left under the HUD, on the matrix's field (one of the two at a time). Numerals lead,
+   labels at micro size, neutral ink only: blue stays the PM's confirmed band. The current value is an ink-3 tick on
+   the track once the slider has moved away from it. */
+.pweights {
+  /* far left under the HUD, where the matrix goes (one of the two at a time), above the dock's pills */
+  position: fixed; left: var(--edge); top: calc(var(--phud-bottom, 248px) + 14px); bottom: 96px; z-index: 13;
+  width: min(400px, calc(100vw - 2 * var(--edge))); overflow-y: auto; padding: 16px 22px 24px; display: grid; gap: 16px; align-content: start;
+  grid-auto-rows: max-content;   /* rows never shrink below their content; the panel scrolls instead */
+  background: var(--field); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  --feather: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 16px), transparent), linear-gradient(to bottom, transparent, #000 12px, #000 calc(100% - 22px), transparent);
+  -webkit-mask-image: var(--feather); mask-image: var(--feather); -webkit-mask-composite: source-in; mask-composite: intersect;
+  animation: sheet-in var(--med) var(--ease);
+}
+.pweights .audit-close { top: 10px; right: 16px; }
+.pweights-open span { margin-left: 6px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.dseg .pweights-open[aria-expanded="true"] { color: var(--ink); background: rgba(255, 255, 255, 0.09); }
+
+.pw-group { display: grid; gap: 4px; }
+.pw-row { display: grid; grid-template-columns: 118px 1fr 26px 34px; align-items: center; gap: 10px; min-height: 26px; }
+.pw-label { font-size: 13px; color: var(--ink-2); display: grid; line-height: 1.2; }
+.pw-label i { font-style: normal; font-size: var(--t-micro); color: var(--ink-3); }
+.pw-row[data-moved] .pw-label { color: var(--ink); }
+.pw-val { font-size: 15px; color: var(--ink); text-align: right; font-stretch: 118%; font-weight: 300; font-variant-numeric: tabular-nums; }
+.pw-share { font-size: var(--t-micro); color: var(--ink-3); text-align: right; font-variant-numeric: tabular-nums; }
+
+.pw-track { position: relative; height: 18px; display: grid; align-items: center; }
+.pw-track input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 18px; margin: 0; background: transparent; cursor: pointer; }
+.pw-track input[type="range"]:disabled { cursor: default; opacity: 0.4; }
+.pw-track input[type="range"]::-webkit-slider-runnable-track { height: 2px; border-radius: 1px; background: var(--hair-2); }
+.pw-track input[type="range"]::-moz-range-track { height: 2px; border-radius: 1px; background: var(--hair-2); }
+.pw-track input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; margin-top: -5px; border-radius: 50%; background: var(--ink); border: 0; }
+.pw-track input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: var(--ink); border: 0; }
+.pw-track input[type="range"]:focus-visible { outline: none; }
+.pw-track input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25); }
+.pw-was { position: absolute; top: 4px; width: 1.4px; height: 10px; margin-left: -0.7px; background: var(--ink-3); pointer-events: none; }
+
+.pw-preview { display: grid; gap: 6px; padding-top: 10px; border-top: 1px solid var(--hair); }
+.pw-readout { display: flex; gap: 26px; transition: opacity var(--fast); }
+.pw-readout[data-busy] { opacity: 0.55; }
+.pw-readout > div { display: grid; gap: 4px; }
+.pw-readout .num { font-size: 28px; color: var(--ink); }
+.pw-moves { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: var(--t-label); color: var(--ink-2); }
+.pw-moves b { color: var(--ink); font-weight: 400; font-variant-numeric: tabular-nums; }
+.pw-err { font-size: var(--t-label); color: var(--ink); }
+
+.pw-hist ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+.pw-hrow {
+  width: calc(100% + 16px); margin-left: -8px; padding: 4px 8px; border-radius: 6px; text-align: left; display: grid;
+  grid-template-columns: 36px auto 1fr; gap: 10px; align-items: baseline; transition: background var(--fast);
+}
+.pw-hrow:hover { background: rgba(255, 255, 255, 0.05); }
+.pw-hrow[aria-current="true"] .pw-hv { color: var(--ink); }
+.pw-hv { font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.pw-hwho { font-size: var(--t-micro); color: var(--ink-3); white-space: nowrap; }
+.pw-hwhy { font-size: var(--t-label); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* the HUD's quiet re-scoring state after a PM action */
+.prescore { color: var(--ink-2); }
+.prescore::before { content: ""; display: inline-block; width: 5px; height: 5px; margin: 0 5px 1px 2px; border-radius: 50%; background: var(--ink-2); animation: prescore 1s var(--ease) infinite alternate; }
+@keyframes prescore { from { opacity: 0.25; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .prescore::before { animation: none; } }
+
+/* challenged PM decisions (challenged.tsx): a compact line under the HUD stats; white = attention, one pulse on arrival */
+.pchal { display: grid; gap: 4px; max-width: 420px; }
+.pchal-head { display: inline-flex; align-items: baseline; gap: 6px; justify-self: start; font-size: var(--t-label); color: var(--ink); text-align: left; }
+.pchal-head .num { font-size: 15px; }
+.pchal-head:hover span:last-child { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--hair-2); }
+.pchal-dot { position: relative; align-self: center; width: 7px; height: 7px; border-radius: 50%; background: var(--ink); flex: none; }
+.pchal-dot::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; box-shadow: 0 0 0 1.5px var(--ink); opacity: 0; animation: psky-pulse 1.6s var(--ease) 0.6s 1 both; }
+@media (prefers-reduced-motion: reduce) { .pchal-dot::after { animation: none; } }
+.pchal-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; pointer-events: auto; }
+.pchal-list button {
+  width: calc(100% + 16px); margin-left: -8px; padding: 3px 8px; border-radius: 6px; text-align: left; display: flex; flex-wrap: wrap;
+  align-items: baseline; gap: 2px 8px; background: rgba(0, 0, 0, 0.6); transition: background var(--fast);
+}
+.pchal-list button:hover { background: rgba(255, 255, 255, 0.07); }
+.pchal-title { font-size: 13px; color: var(--ink); max-width: 230px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pchal-move { display: inline-flex; align-items: flex-end; gap: 5px; font-size: var(--t-label); color: var(--ink-2); }
+
+/* inspector: what the PM decides on (deciding.tsx), bundle members as rows, the decision's scope line */
+.pdeciding { gap: 8px; }
+.pdeciding-statement { font-size: var(--t-body); line-height: 1.5; color: var(--ink-2); max-width: 56ch; margin: 0; }
+.pdeciding-facts { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; align-items: baseline; }
+.pdeciding-facts dd { margin: 0; font-size: 13px; color: var(--ink); }
+.pdeciding-acc { margin: 0; }
+.pdeciding .dtext { justify-self: start; }
+.pmembers-rows { gap: 1px; }
+.pmember {
+  width: calc(100% + 16px); margin-left: -8px; padding: 4px 8px; border-radius: 6px; text-align: left; display: grid;
+  grid-template-columns: 12px 1fr auto; gap: 2px 10px; align-items: center; transition: background var(--fast);
+}
+.pmember:hover { background: rgba(255, 255, 255, 0.05); }
+.pmember[aria-current="true"] { background: rgba(255, 255, 255, 0.08); }
+.pmember-title { font-size: 13px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pmember:hover .pmember-title, .pmember[aria-current="true"] .pmember-title { color: var(--ink); }
+.pmember-sub { grid-column: 2 / -1; }
+.pdecide-scope { margin: 0; font-size: var(--t-label); color: var(--ink-2); line-height: 1.45; }
+.pdecide-scope b { color: var(--ink); font-weight: 600; }
