@@ -1,0 +1,19 @@
+# Allowlist (D-053): only what the image needs. The raw BMW data, data/ (DB, models) and .env must never enter
+# an image (AGENTS rule 1) — they are mounted / passed at run time by compose.yaml.
+*
+!backend/pyproject.toml
+!backend/uv.lock
+!backend/src/
+!backend/scripts/
+!frontend/package.json
+!frontend/package-lock.json
+!frontend/index.html
+!frontend/lab.html
+!frontend/tsconfig.json
+!frontend/vite.config.ts
+!frontend/public/
+!frontend/src/
+!research/checkpoints/checkpoints.json
+**/__pycache__
+**/node_modules
+**/.DS_Store

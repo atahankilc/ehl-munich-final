@@ -8,7 +8,7 @@ web
 
 ## Stack
 
-React + TypeScript (Vite) frontend with three.js via react-three-fiber for real-time 3D; a small FastAPI JSON layer (`api/`) over the existing Python pipeline (`src/bmw_req`, SQLite). Chosen by Atahan on 2026-10-11 to replace the Streamlit UI (D-039). Runs locally only (confidential BMW data, AGENTS rule 1).
+React + TypeScript (Vite) frontend with three.js via react-three-fiber for real-time 3D; a small FastAPI JSON layer (`backend/src/api/`) over the existing Python pipeline (`backend/src/bmw_req`, SQLite). Chosen by Atahan on 2026-10-11 to replace the Streamlit UI (D-039). Runs locally only (confidential BMW data, AGENTS rule 1).
 
 ## Users
 

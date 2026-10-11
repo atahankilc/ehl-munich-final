@@ -2,7 +2,7 @@
 
 Hackathon project for the **BMW "AI for Product Decision Making"** challenge: an AI app that turns customer feedback, BMW product/sales data and web research into **prioritized, evidence-linked customer requirements** for successor BMW vehicles, with a **product manager (PM) in the loop** and a **full audit trail**.
 
-**Portfolio-level by design:** multiple models, markets, shared platforms (CLAR, FAAR → Neue Klasse) and plants from day one. The 5 Series (G60 + China LWB G68) is the deepest example; F70 and G70 use the same pipeline. **LLM provider: OpenAI.** Stack: Python 3.12/uv, LangGraph, SQLite + sqlite-vec, no graph DB, Streamlit (D-015–D-020).
+**Portfolio-level by design:** multiple models, markets, shared platforms (CLAR, FAAR → Neue Klasse) and plants from day one. The 5 Series (G60 + China LWB G68) is the deepest example; F70 and G70 use the same pipeline. **LLM provider: OpenAI.** Stack: Python 3.12/uv, LangGraph, SQLite + sqlite-vec, no graph DB (D-015–D-020), FastAPI + React/three.js PM app (D-039). Layout (D-052): `backend/` (Python: `src/bmw_req`, `src/api`, `tests`, `scripts` — run `uv run …` from there), `frontend/` (PM app), `research/`, `docs/`, `foundation/`; root `Makefile` for common commands.
 
 ## Session start — mandatory
 
@@ -62,7 +62,7 @@ Then read only what your task needs:
 - Feedback xlsx has **one row per classification** — dedupe by `ID` when counting verbatims.
 - No China verbatims exist; US verbatims dominate G60/G70 (90–95%); F70 has no US data but ~⅓ Japan; almost no EU verbatims for G70. No dates in feedback.
 - BMW sales volumes look stylized and conflict with public data (Q-015) — never blend them silently.
-- Local anaconda Python is broken for pandas — use a `uv` venv (Python 3.12).
+- Local anaconda Python is broken for pandas — use the `uv` venv in `backend/` (Python 3.12).
 
 ## Commits
 

@@ -28,7 +28,7 @@
         "rule": "side-tab",
         "value": "*",
         "files": [
-          "web/src/screens/definition/definition.css"
+          "frontend/src/screens/definition/definition.css"
         ],
         "createdAt": "2026-10-11T06:11:32.720Z",
         "reason": "agent triage: L137 .ladder-rail::after is a CSS-triangle arrowhead (transparent borders + 5px border-left) on the ladder scale, not a card side accent"

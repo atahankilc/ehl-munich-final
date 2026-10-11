@@ -57,6 +57,8 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-034 | Validation fixes: rejected new requirement → status rejected; stale priority proposals superseded; honest new-requirement cause; Streamlit on localhost | accepted |
 | D-050 | Prioritization layer (page 4): deterministic `prio-v1` per requirement × line × market (Customer 45 / Business 35 / Future 20), bundle band, choose-jointly flags, enabler credit, PM rung changes the stored score, new LLM gate | accepted |
 | D-051 | Page 5 "Document" = BMW step 5 deliverable per line × market (all brief fields, JAN→JUL changes, MD/CSV export, logged); PM-editable weights + bands with preview; auto re-score after PM actions; challenged-decision alerts | accepted |
+| D-052 | Repo cleanup + monorepo layout: Streamlit app removed (completes D-039); `backend/` (Python) + `frontend/` (was `web/`) + `docs/pitch/`; root Makefile | accepted |
+| D-053 | Run profiles `APP_ENV` development/production; Docker image (targets dev/prod) + compose profiles, 127.0.0.1 only, no confidential data in images | accepted |
 
 Keep this index in sync when adding a decision.
 
@@ -563,3 +565,27 @@ Template:
   4. **Checkpoint visibility fix:** proposals/decisions only show at checkpoints where they are visible (JAN leaked 38 JUL proposals).
   5. **Page 5 "Document"** (BMW step 5): per line × market the final, traceable requirement list with every deliverable field from the brief (ID, description, sources, priority/score, rationale, evidence level, assumptions/uncertainties, decision status) plus metric/ladder/acceptance, gates, links, history; JAN → JUL changes; Markdown/CSV export, each export audited.
 
+## D-052 — Repo cleanup and monorepo layout
+- Date: 2026-10-11
+- Decided by: Atahan (asked for cleanup + standard structure; chose "full monorepo split" over a Python-only tidy)
+- Status: accepted
+- Context: D-039 replaced the Streamlit app but it was still in the repo (`app.py`, `ui/`, `.streamlit/`, `streamlit` dependency pulling pandas/altair); Python packages, tests, scripts and the frontend sat side by side at the root.
+- Decision:
+  1. Remove the Streamlit app and dependency; remove unused npm deps `cmdk`, `motion`; untrack `web/tsconfig.tsbuildinfo` (`*.tsbuildinfo` ignored). Declare directly imported `httpx`, `numpy`; `pitch` dependency group (`python-pptx`, `pillow`) for the pptx builder.
+  2. Layout: `backend/` = `src/bmw_req/`, `src/api/` (was root `api/`), `tests/`, `scripts/`, `pyproject.toml`, `uv.lock`, `.venv`; `frontend/` = the PM app (was `web/`); `docs/pitch/` (was `pitch/`). Unchanged at the root: `foundation/` (D-001), `research/`, `data/`, `.env`, raw data folder (rule 1), AGENTS/CLAUDE/DESIGN/PRODUCT/README. Root `Makefile` (`install`, `api`, `dev`, `build`, `test`).
+  3. `bmw_req.config.ROOT` stays the repo root (`parents[3]`), so `data/`, `research/` and `.env` paths are unchanged; the API serves `frontend/dist`; `demo_state.py` is loaded from `backend/scripts/`.
+- Alternatives considered: Python-only tidy (`api/` into `src/`, keep `web/`); cleanup only.
+- Consequences: all `uv run …` commands run from `backend/` (or via `make`). Older entries and the session log keep their original paths (`web/`, `api/`, `scripts/`, `src/bmw_req`) — read them as `frontend/`, `backend/src/api/`, `backend/scripts/`, `backend/src/bmw_req`. New `reference` ingest batches record `backend/src/bmw_req/reference_data.py` as file.
+
+## D-053 — Run profiles and containers
+- Date: 2026-10-11
+- Decided by: Atahan (asked for development/deployment profiles, "on containers maybe"); details by the agent
+- Status: accepted
+- Context: host, port and mode were hardcoded (`127.0.0.1:8600`, no reload); dev (API + Vite) and demo (API serving the build) were only told apart in docs.
+- Decision:
+  1. `APP_ENV=development|production` (default development; anything else fails at start). development: uvicorn reload on `backend/src`; production: no reload, warns if `frontend/dist` is missing. `API_HOST`/`API_PORT`/`API_RELOAD` env overrides; Vite reads `API_URL`/`VITE_HOST`. Defaults unchanged (127.0.0.1).
+  2. Containers: one multi-stage `Dockerfile` (node build → python 3.12-slim + uv; targets `dev`, `prod`), layout mirrors the repo so `ROOT=/app`. `compose.yaml` profiles `prod` (one container) and `dev` (API with bind-mounted source + Vite container). Ports published on 127.0.0.1 only; inside the container the server listens on 0.0.0.0 (needed for port publishing).
+  3. Confidentiality (AGENTS rule 1): `.dockerignore` is an allowlist; raw BMW data, `data/` and `.env` never enter an image — `data/` is mounted, `.env` passed as env_file. Raw data is not mounted (pipeline CLIs run natively).
+  4. Makefile: `api`/`dev` (native dev), `serve` (native prod), `up`/`up-dev`/`down`/`logs` (containers).
+- Alternatives considered: native only; separate frontend server (nginx) in prod — unnecessary, the API already serves the build from the same origin.
+- Consequences: native and container runs must not overlap (same port, same SQLite file). In development a code save restarts the API and ends any job running in it. Images are local only — nothing is pushed to a registry.

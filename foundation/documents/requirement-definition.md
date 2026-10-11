@@ -75,7 +75,7 @@ Every write by a stage → `structure.events.log` (actor `structure.<stage>`, fe
 
 Tracks: `rq:<key>` (define; weight = area share), `spec:<key>` (specify; payload = recommended target per line×market so a moved bar shows as changed), `link:<a>|<b>|<relation>` (couple).
 
-## API (`api/routers/definition.py`)
+## API (`backend/src/api/routers/definition.py`)
 
 ```
 GET  /api/definition?cp=cp2

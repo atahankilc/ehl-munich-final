@@ -9,16 +9,17 @@
 | Budget | $100 total. Plan, prices, thresholds and cost rules live in **D-014 only** (not repeated here); running spend in `STATE.md` → Budget | D-010, D-014 |
 | Config | Model names via env (`OPENAI_MODEL_FAST/SMART/EMBED`), never hardcoded | AGENTS rule 12 |
 | All LLM calls | Go through one budget-guarded wrapper that logs usage | D-014 |
-| Language / runtime | Python 3.12 via `uv`; package `src/bmw_req/` | D-020 |
+| Language / runtime | Python 3.12 via `uv`; packages `backend/src/bmw_req/` (pipeline) + `backend/src/api/` (API); `uv run …` from `backend/` | D-020, D-052 |
 | Orchestration | **LangGraph**. No LangChain; graph nodes call OpenAI through the wrapper | D-015 |
 | Storage | **SQLite**, one file `data/app.db` | D-016 |
 | Graph | **No graph DB**; relational link tables + graph view in the UI | D-017 |
 | Vector store / RAG | **sqlite-vec** in the same SQLite file; every vector row carries its source ID | D-018 |
-| UI | **React + TypeScript (Vite) + three.js/react-three-fiber** (`web/`) over a **FastAPI** JSON layer (`api/`, 127.0.0.1:8600); Streamlit `app.py` kept until retired | D-039 (supersedes D-019) |
+| UI | **React + TypeScript (Vite) + three.js/react-three-fiber** (`frontend/`) over a **FastAPI** JSON layer (`backend/src/api/`, 127.0.0.1:8600); Streamlit app removed | D-039 (supersedes D-019), D-052 |
 | OpenAI call path | OpenAI Python SDK, Responses API, inside `bmw_req.llm` (incl. `web_search`) | D-020 |
 | Structured output | Pydantic models → `responses.parse` | D-020 |
+| Profiles / deployment | `APP_ENV=development` (API reload + Vite) or `production` (API serves `frontend/dist`); natively via `make`, or Docker (`Dockerfile` targets dev/prod, `compose.yaml` profiles dev/prod, ports on 127.0.0.1, `data/` mounted, allowlist `.dockerignore`) | D-053 |
 | Tests | `pytest`, no paid calls | D-020 |
-| Data model | Demo table set in `src/bmw_req/db.py` | D-021 |
+| Data model | Demo table set in `backend/src/bmw_req/db.py` | D-021 |
 | Excel parsing | `openpyxl` (no pandas in the app) | D-021 |
 | Ingest | `uv run python -m bmw_req.ingest G60` — seeds brand/markets/models, one `source_item` per verbatim ID | D-021 |
 

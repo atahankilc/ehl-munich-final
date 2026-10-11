@@ -1,0 +1,52 @@
+# SharkSight in containers (D-053). Pick a profile:
+#   docker compose --profile prod up -d --build   → http://127.0.0.1:8600 (one container, built app)
+#   docker compose --profile dev up --build       → http://127.0.0.1:5173 (Vite, live reload) + API on :8600
+# Ports are published on 127.0.0.1 only (AGENTS rule 1). data/ (DB, snapshots, 3D models) is mounted, never baked in.
+# Don't run the native API (`make api`) at the same time: same port and same SQLite file.
+name: sharksight
+
+x-api: &api
+  env_file:
+    - path: .env
+      required: false
+  ports:
+    - "127.0.0.1:8600:8600"
+
+services:
+  app:
+    <<: *api
+    profiles: [prod]
+    build: { context: ., target: prod }
+    image: sharksight:prod
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+
+  api-dev:
+    <<: *api
+    profiles: [dev]
+    build: { context: ., target: dev }
+    image: sharksight:dev
+    environment:
+      APP_ENV: development
+    volumes:
+      - ./data:/app/data
+      - ./backend/src:/app/backend/src
+      - ./backend/scripts:/app/backend/scripts
+      - ./research:/app/research:ro
+
+  web-dev:
+    profiles: [dev]
+    image: node:22-slim
+    working_dir: /app/frontend
+    command: sh -c "npm ci && npx vite --strictPort"
+    environment:
+      API_URL: http://api-dev:8600
+      VITE_HOST: 0.0.0.0
+    ports:
+      - "127.0.0.1:5173:5173"
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules   # container's own (Linux) node_modules, not the host's macOS ones
+    depends_on:
+      api-dev: { condition: service_healthy }

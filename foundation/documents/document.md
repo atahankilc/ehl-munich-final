@@ -4,7 +4,7 @@ The challenge's deliverable (challenge-brief.md; BMW process step 5 "Documentati
 export: the final, traceable requirement list **per car line × market at a checkpoint**. Read-only over the
 definition (D-048) and prioritization (D-050) layers; the PM decides on page 4, never here.
 
-## API (`api/routers/document.py`)
+## API (`backend/src/api/routers/document.py`)
 
 | Endpoint | Returns |
 |---|---|
@@ -28,12 +28,12 @@ Ordering: confirmed band (PM) else AI band, then AI score.
 
 Everything is read as of `cp`: `def_choice`, `def_link_review` and `prio_decision` rows with a later
 `checkpoint_id` are ignored; proposals only from runs at checkpoints visible at `cp`; history only up to `cp`. The
-document reuses helpers from `api/routers/prioritize.py` (`_target`, `_proposal`, `_prev_band`, `_states`, `_runs`) and
-`api/routers/definition.py` (`_evidence`, `_area_titles`) but filters choices, link reviews, proposals and decisions
+document reuses helpers from `backend/src/api/routers/prioritize.py` (`_target`, `_proposal`, `_prev_band`, `_states`, `_runs`) and
+`backend/src/api/routers/definition.py` (`_evidence`, `_area_titles`) but filters choices, link reviews, proposals and decisions
 itself.
 
 ## Frontend
 
-`web/src/screens/document/` (DocumentPage, guide, document.css), types in `web/src/lib/document.ts`, route
+`frontend/src/screens/document/` (DocumentPage, guide, document.css), types in `frontend/src/lib/document.ts`, route
 `/document`. The scene behind is page 4's (Scan treats `document` as `prioritize`), dimmed behind a full-height
-sheet. Visual spec: DESIGN.md → "Document (page 5)". Tests: `tests/test_document.py`.
+sheet. Visual spec: DESIGN.md → "Document (page 5)". Tests: `backend/tests/test_document.py`.

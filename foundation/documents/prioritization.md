@@ -54,7 +54,7 @@ prio_proposal(id PK, run_id, req_key, line, market, old_band, proposed_band, cau
               status, decided_by, decided_at, decision_rationale, created_at)
 ```
 
-## API (`api/routers/prioritize.py`)
+## API (`backend/src/api/routers/prioritize.py`)
 
 ```
 GET  /api/prioritize?cp=   → { checkpoint, ready, runs: {prioritize, gate}, weights, labels: {market_weight: "stylized (Q-015)"},
@@ -75,8 +75,8 @@ Continues page 3's object story in the same canvas: the requirement pins on the 
 
 ## As built (additive to the contract above)
 
-Code: `src/bmw_req/prioritize/` (`__init__.py` schema, `score.py` stage `prioritize`, `gate.py` stage `gate`, `run.py` CLI),
-`api/routers/prioritize.py`, tests `tests/test_prioritize.py`. Shared helpers factored out of score-v3 without changing it:
+Code: `backend/src/bmw_req/prioritize/` (`__init__.py` schema, `score.py` stage `prioritize`, `gate.py` stage `gate`, `run.py` CLI),
+`backend/src/api/routers/prioritize.py`, tests `backend/tests/test_prioritize.py`. Shared helpers factored out of score-v3 without changing it:
 `scoring.voice_curve / shrink / renormalised / cap_unobserved / align_basic`, `fit.luna_then_sol`.
 
 ```
@@ -109,7 +109,7 @@ uv run python -m bmw_req.prioritize.run --checkpoint cp1 --report            ban
     the skyline columns morph to the previewed scores / AI bands (PM bands stay), "n band changes", moves, "PM decisions
     → proposal"; Save needs a rationale; Reset; last 6 versions (click = load). HUD micro line: "Scoring formula prio-v1 ·
     weights vN (default, D-050 | by <actor>, <date>)".
-- **Automatic re-score (`src/bmw_req/prioritize/auto.py`, worker `api/rescore.py`):** after `POST /decision` and
+- **Automatic re-score (`backend/src/bmw_req/prioritize/auto.py`, worker `backend/src/api/rescore.py`):** after `POST /decision` and
   `POST /proposal/{id}` (re-score the LATER checkpoints only: inputs at the decision's own checkpoint did not change),
   `POST /weights` (all checkpoints), `POST /api/definition/choice` (from the choice's checkpoint, or all) and
   `POST /api/definition/link-review` (all: link reviews apply everywhere). The POST commits, then queues and returns
@@ -161,7 +161,7 @@ uv run python -m bmw_req.prioritize.run --checkpoint cp1 --report            ban
   `segment_warn` / `segment_fail`, `gate_pending`, `borrowed_voice` (no comment base of its own, D-038), `no_comment_cap`,
   `basic_aligned`, `bundle_band|<band>`, `volume_conflict` (BMW file vs public), `competitive_fallback` / `competitive_none`,
   `choose_jointly|<via>|<partner key>`.
-- **Payload shapes (match `web/src/lib/prioritize.ts`):** `weights = {scheme, version, factors, bands: {Must, Should}}`;
+- **Payload shapes (match `frontend/src/lib/prioritize.ts`):** `weights = {scheme, version, factors, bands: {Must, Should}}`;
   `markets` = list; unavailable factors have `value: null, points: 0, available: false`; proposals' `factor_delta` =
   points per factor (`explain`, `against`, `score`, `prev_score` alongside; status may also be `superseded`); target detail
   `history[] = {checkpoint, label, run_id, score, band, rank, rung, rationale, confirmed}`, `evidence = {comments, study,

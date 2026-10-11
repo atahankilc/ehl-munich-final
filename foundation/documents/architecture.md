@@ -2,7 +2,7 @@
 
 > **As built (2026-10-10):** the workflow below is implemented end to end — modules per step in the repo `README.md`; decisions D-024–D-033. Deviations from this concept: findings span all markets of a derivative with per-market/per-wave metrics (not one finding per market); feasibility is non-blocking (D-030); market fit is a score modifier; requirement status is per requirement, priority per target.
 
-**Status: DRAFT v3 — conceptual.** The workflow, entities and rules below are the agreed *concept* (D-005, D-008–D-013). The *technical* stack is decided (LangGraph, SQLite, sqlite-vec, no graph DB, Streamlit — D-015–D-020, see `tech-stack.md`). The data model below is built in SQLite (`src/bmw_req/db.py`) per D-021, with three entities folded in: `segment` → `vehicle_model.segment`, `market_profile` → columns on `market`, `finding_scope` → scope columns on `finding`. Added: `source_item.country`, `source_embedding` (sqlite-vec), `llm_cache`.
+**Status: DRAFT v3 — conceptual.** The workflow, entities and rules below are the agreed *concept* (D-005, D-008–D-013). The *technical* stack is decided (LangGraph, SQLite, sqlite-vec, no graph DB, Streamlit — D-015–D-020, see `tech-stack.md`). The data model below is built in SQLite (`backend/src/bmw_req/db.py`) per D-021, with three entities folded in: `segment` → `vehicle_model.segment`, `market_profile` → columns on `market`, `finding_scope` → scope columns on `finding`. Added: `source_item.country`, `source_embedding` (sqlite-vec), `llm_cache`.
 
 ## Guiding principle
 
@@ -136,11 +136,11 @@ Requirement IDs are global (`REQ-0001`); scope lives in `requirement_target`, so
 
 ## PM frontend v2 (D-041, replaces the D-039 screens)
 
-Black, near-textless, 3D-first ("track-while-scan"). App-wide checkpoint state (`web/src/state/checkpoint.tsx`, URL `?cp=`, ← / →) and a bottom-right sweep control; switching checkpoints animates a sweep that acquires the new contacts. First screen **Scan** (`/`): the comment galaxy plus range rings for the other raw sources (study items as z-score ticks, option dots, sales bars with the 2030 forecast as outline, dated research on a time ring); hover shows the comment, click opens it. API: `api/routers/scan.py` (`/api/checkpoints`, `/api/scan/points|comment|sources`). Further screens are added per rebuilt pipeline stage.
+Black, near-textless, 3D-first ("track-while-scan"). App-wide checkpoint state (`frontend/src/state/checkpoint.tsx`, URL `?cp=`, ← / →) and a bottom-right sweep control; switching checkpoints animates a sweep that acquires the new contacts. First screen **Scan** (`/`): the comment galaxy plus range rings for the other raw sources (study items as z-score ticks, option dots, sales bars with the 2030 forecast as outline, dated research on a time ring); hover shows the comment, click opens it. API: `backend/src/api/routers/scan.py` (`/api/checkpoints`, `/api/scan/points|comment|sources`). Further screens are added per rebuilt pipeline stage.
 
 ## PM frontend (D-039, superseded by D-041 — kept for history)
 
-`web/` (React + three.js) over `api/` (FastAPI, localhost). Workflow, one destination per PM job:
+`frontend/` (React + three.js) over `api/` (FastAPI, localhost). Workflow, one destination per PM job:
 - **Briefing** — what the last wave changed (compiled from the latest run, no AI), portfolio pulse car × market, movers, event feed.
 - **Decide** — one queue for everything needing a human: AI priority changes, merges (`extend`), requirements to review, AI content/evidence edits. Reason required; brand-gate override inline; "Ask the AI" = challenge job.
 - **Cars** — today's car in 3D (glTF in `data/models/`), requirements pinned to zones (`car_zones`), market switch, same-car market comparison, market profile, competitors, plants, today's equipment per zone.

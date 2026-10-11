@@ -11,12 +11,34 @@ Portfolio-level from day one: 1 Series (F70), 5 Series (G60 + China LWB G68), 7 
 ## Quick start
 
 ```bash
-uv sync                                   # Python 3.12 venv
-cp .env.example .env                      # add OPENAI_API_KEY (LLM provider: OpenAI)
-uv run python -m api                      # API on http://127.0.0.1:8600 (serves web/dist when built)
-cd web && npm install && npm run dev      # PM app (dev) on http://127.0.0.1:5173
-cd web && npm run build                   # then the API alone serves the app at http://127.0.0.1:8600
-uv run streamlit run app.py               # legacy Streamlit app (being retired, D-039)
+cp .env.example .env      # add OPENAI_API_KEY (LLM provider: OpenAI)
+```
+
+Two profiles (`APP_ENV`, D-053), natively or in containers. Run only one of them at a time — they share port 8600
+and the SQLite file `data/app.db`.
+
+| | Native | Containers (Docker) |
+|---|---|---|
+| **development** — API auto-reloads on save, PM app with live reload on http://127.0.0.1:5173 | `make install`, then `make api` + `make dev` | `make up-dev` |
+| **production** — the API serves the built app on http://127.0.0.1:8600 | `make serve` | `make up` (detached; `make down`, `make logs`) |
+
+`make test` runs pytest + the frontend typecheck. Images never contain the raw BMW data, `data/` or `.env`
+(`.dockerignore` is an allowlist); compose mounts `data/` and reads `.env`, and publishes ports on 127.0.0.1 only.
+
+## Repository layout
+
+```
+backend/            Python 3.12 (uv) — run every `uv run …` from here
+  src/bmw_req/      pipeline: ingest, research, structure, definition, prioritize, LLM budget guard
+  src/api/          FastAPI JSON layer for the PM app
+  tests/            pytest (no paid calls)
+  scripts/          demo states, benchmarks, pilot, checkpoint research merge
+frontend/           PM app: React + TypeScript (Vite) + three.js
+Dockerfile, compose.yaml   images (targets dev / prod) and compose profiles dev / prod
+research/           cited checkpoint research (JSON) + sales verification
+docs/pitch/         pitch deck, script, pptx builder
+foundation/         project memory: state, decisions, open questions, reference docs
+data/               derived data + SQLite DB (git-ignored)
 ```
 
 The raw BMW data (`challange information document/`) and the database (`data/app.db`) are git-ignored.
@@ -29,6 +51,7 @@ Demo states (`data/snapshots/`):
 | `demo` | wave 1 → PM review → wave 2 → PM decides proposals → wave 3 | explore the full ~2-year history |
 
 ```bash
+cd backend
 uv run python scripts/demo_state.py restore wave1   # stop the app first; keeps the LLM usage log + cache
 uv run python scripts/demo_build.py                 # rebuild wave1 + demo from the evidence snapshot
 ```

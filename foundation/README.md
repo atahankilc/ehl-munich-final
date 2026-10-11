@@ -38,7 +38,7 @@ This folder is the project's memory. Every agent (Claude, Codex, humans) reads i
 ## Fresh clone
 
 1. **Raw data** (not in git): put the BMW challenge folder at the repo root under its original name `challange information document/` (typo intended), containing `mission.md`, `BMW_Hackathon_Briefing_Short.pdf`, the three PNGs and `BMW-Data/` (3 feedback xlsx, customer studies xlsx, `sales_volumes.xlsx`, 3 option-list PDFs). Get it from the team. Treat it as read-only.
-2. **Python**: `uv sync` (creates `.venv` with Python 3.12 from `pyproject.toml`). Tests: `uv run pytest`. UI: `uv run python -m api` + `cd web && npm install && npm run dev` (D-039; legacy: `uv run streamlit run app.py`). Don't use the system anaconda Python (broken pandas).
+2. **Python + PM app** (layout D-052): `make install` (= `cd backend && uv sync` for the Python 3.12 venv + `cd frontend && npm install`). Tests: `make test`. App: `make api` + `make dev`. Every `uv run …` command in these docs runs from `backend/`. Don't use the system anaconda Python (broken pandas).
 3. **PDF tools**: `brew install poppler` for `pdftotext` (option lists) and `pdftoppm`. The briefing PDF has no text layer, so render it with `pdftoppm` to read it.
 4. **Secrets**: copy `.env.example` to `.env`, then add `OPENAI_API_KEY` (ask Atahan).
 5. **Derived data** and the SQLite DB go to `data/` (git-ignored).

@@ -9,7 +9,7 @@ _Last updated: 2026-10-11_
 - Findings: verbatim clusters G60 243 · F70 166 · G70 242 (D-025), 391 study findings (D-026).
 - Requirements pipeline: derivation (sol, derive-v6) → portfolio consolidation → dedup vs backlog (D-035) → evidence linker → fit checks → scoring v3 → change proposals, orchestrated per simulated wave (LangGraph, D-027–D-029). D-038: defects go to a Quality hand-over page instead of becoming requirements, strict merging, markets without comments can't outrank evidenced ones, one priority for Expected needs.
 - PM app (Streamlit, D-032, restructured D-036, D-037: Home → How it works → Review → Priorities by market → AI suggestions, plus detail pages, Quality hand-over (D-038) and a demo tour) with approve/reject/defer/edit/challenge/override/priority/inbox, audit trail, export.
-- Demo states via `scripts/demo_state.py` + `scripts/demo_build.py` (snapshots `evidence`, `wave1`, `demo`).
+- Demo states via `backend/scripts/demo_state.py` + `backend/scripts/demo_build.py` (snapshots `evidence`, `wave1`, `demo`).
 
 ## Team & logistics (fill in — Q-007, Q-008)
 
@@ -59,11 +59,10 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 
 ## Demo (how to run)
 
-- **New PM app (D-039):** `uv run python -m api` → http://127.0.0.1:8600 (serves the built app from `web/dist`; build once with `cd web && npm install && npm run build`). Dev mode: API + `cd web && npm run dev` → http://127.0.0.1:5173.
+- **PM app (D-039, layout D-052, profiles D-053):** production `make serve` or `make up` (container) → http://127.0.0.1:8600; development `make api` + `make dev` or `make up-dev` → http://127.0.0.1:5173. Only one at a time (same port and DB). All `uv run …` commands run from `backend/`.
 - **Pitch:** click **Present** in the top band (or ⌘K → "Present the demo story"): Briefing → Decide (AI priority change, then one requirement decided with a reason) → 5 Series USA in 3D → 5 Series LWB China (cockpit x-ray) → Markets/China → REQ-0001 fully opened ("Trace step by step") → Evidence gaps → Process timeline → Audit → Deliverable. `[` / `]` step.
 - **3D models:** `data/models/{f70,g60,g70}.glb` (git-ignored, Q-025); without them a placeholder car renders.
-- DB holds the full `demo` state (wave 3). To replay waves live: Process → System → restore `wave1` (or `uv run python scripts/demo_state.py restore wave1` with the API stopped).
-- Legacy Streamlit app: `uv run streamlit run app.py` (to be retired).
+- DB holds the full `demo` state (wave 3). To replay waves live: Process → System → restore `wave1` (or `cd backend && uv run python scripts/demo_state.py restore wave1` with the API stopped).
 
 ## Next up (suggested order)
 
@@ -190,3 +189,5 @@ Update the budget table after every paid run. Once the app exists, the source of
 - 2026-10-11 — Pitch: team slide with names and photo; PowerPoint export `pitch/SharkSight-pitch.pptx` built by `pitch/build_pptx.py` (python-pptx, ad hoc via uv --with, no project dependency), speaker notes from script.md. No LLM spend.
 - 2026-10-11 — D-050/D-051: prioritization layer (gate $0.18 + deterministic prio-v1, cp1 run 33 / cp2 run 35, 39 JUL proposals), page 4 skyline + matrix + waterfall, editable weights/bands with preview, auto re-score, challenged-decision marks, page 5 Document with MD/CSV export. Total spend ≈ $11.9. Open: China targets thin (no CN comments; proposal to target CN from CN study/research as assumptions), brand guardrail too strict on luxury comfort, competitive gap only via fallback.
 - 2026-10-11 — Audit: page-4 rows now say what the PM decided — `confirm_priority` → "PM set Must for <requirement> (1 Series · EU), AI had Should — “reason”", proposal accept/reject name the band move and target, weight changes name the version (`api/routers/audit_feed.py` `_prio_summary`); these rows are tagged with their checkpoint. API restarted (nothing was running).
+- 2026-10-11 — Repo cleanup + monorepo layout (D-052): legacy Streamlit app (`app.py`, `ui/`, `.streamlit/`, `streamlit` dep) removed; unused npm deps `cmdk`, `motion` removed; `httpx`, `numpy` declared, `pitch` dependency group; `backend/` (src/bmw_req, src/api, tests, scripts, pyproject, uv.lock), `frontend/` (was `web/`), `docs/pitch/`; root `Makefile`. Tests unchanged (122 pass, same 3 pre-existing `test_api` failures).
+- 2026-10-11 — Run profiles + containers (D-053): `APP_ENV` development/production in `backend/src/api/main.py` (env `API_HOST`/`API_PORT`/`API_RELOAD`), Vite reads `API_URL`/`VITE_HOST`; `Dockerfile` (targets dev/prod), `compose.yaml` (profiles dev/prod, 127.0.0.1 only, `data/` mounted), allowlist `.dockerignore`; Makefile `serve`/`up`/`up-dev`/`down`/`logs`. Verified: image has no raw data/DB/.env; prod healthy, dev reloads on save. Prod container left running (`restart: unless-stopped`).
