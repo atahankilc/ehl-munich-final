@@ -1,0 +1,19 @@
+lets say i want to deploy this to cloud, what should i do? will the ai agent has to run everything all over again? How it will work?
+
+---
+
+this is a hackathon project so deployment shape does not need to be perfect. Maybe since we are using sqlite, can we transfer all the date agent have filled with?
+
+---
+
+where can i deploy it free
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/18841.sock" from-name="ehl-munich-final-60" from-mode="prompting">
+Heads-up from session ehl-munich-final-60: Atahan asked me to write 3-min pitch slides in the repo. I plan to create a NEW folder `pitch/` (pitch/index.html slide deck + pitch/script.md) and touch nothing else except a one-line STATE.md log at the end. (1) Any objection / are you touching pitch files or STATE.md right now? (2) Please reply with 2-4 bullets of what you've implemented that should be mentioned in the pitch (esp. anything not yet in foundation/STATE.md or DECISIONS.md).
+</cross-session-message>
+
+---
+
+şu an ben mesela bu sisteme bir yeni veri eklesem. Nasıl bir flow izler sistem? otomatik olarak agent onu parse eder mi? Ben buna nasıl bir veri yükleme sistemi kurabilirim mesela?
