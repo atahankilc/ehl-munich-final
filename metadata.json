@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4N5ZKGP43PRVF7PJDT4VK3F",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 6,
+  "checkpoints_count": 25,
   "files_touched": [
     ".impeccable/config.json",
     "DESIGN.md",
@@ -11,18 +11,39 @@
     "web/src/components/AuditPanel.tsx",
     "web/src/components/Guide.tsx",
     "web/src/components/PageSwitch.tsx",
+    "web/src/components/Usage.tsx",
     "web/src/components/audit.css",
     "web/src/components/guide.css",
+    "web/src/components/topPanel.ts",
+    "web/src/components/usage.css",
     "web/src/lab/zones.ts",
+    "web/src/lib/definition.ts",
+    "web/src/lib/prioritize.ts",
     "web/src/lib/types.ts",
+    "web/src/screens/definition/DefinitionFunnel.tsx",
+    "web/src/screens/definition/DefinitionHud.tsx",
+    "web/src/screens/definition/DefinitionLayer.tsx",
+    "web/src/screens/definition/Ladder.tsx",
+    "web/src/screens/definition/StageLayer.tsx",
+    "web/src/screens/definition/VolumeSink.tsx",
+    "web/src/screens/definition/data.ts",
+    "web/src/screens/definition/definition.css",
+    "web/src/screens/definition/fixture.ts",
+    "web/src/screens/definition/guide.tsx",
+    "web/src/screens/definition/stages.ts",
+    "web/src/screens/definition/store.ts",
+    "web/src/screens/prioritize/fixture.ts",
+    "web/src/screens/prioritize/store.ts",
     "web/src/screens/scan/Scan.tsx",
     "web/src/screens/scan/Scene.tsx",
+    "web/src/screens/scan/navigate.tsx",
     "web/src/screens/scan/scan.css",
     "web/src/screens/structure/AgentPanel.tsx",
     "web/src/screens/structure/StructureLayer.tsx",
     "web/src/screens/structure/panels.tsx",
     "web/src/screens/structure/structure.css",
     "web/src/styles/tokens.css",
+    "web/src/three/DefinitionCar.tsx",
     "web/tsconfig.tsbuildinfo"
   ],
   "sessions": [
@@ -39,13 +60,20 @@
       "compact_transcript": "/1/transcript.jsonl",
       "content_hash": "/1/content_hash.txt",
       "prompt": "/1/prompt.txt"
+    },
+    {
+      "metadata": "/2/metadata.json",
+      "transcript": "/2/full.jsonl",
+      "compact_transcript": "/2/transcript.jsonl",
+      "content_hash": "/2/content_hash.txt",
+      "prompt": "/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 26,
-    "cache_creation_tokens": 43052,
-    "cache_read_tokens": 594128,
-    "output_tokens": 8061,
-    "api_call_count": 12
+    "input_tokens": 898,
+    "cache_creation_tokens": 807056,
+    "cache_read_tokens": 174459614,
+    "output_tokens": 375164,
+    "api_call_count": 420
   }
 }
