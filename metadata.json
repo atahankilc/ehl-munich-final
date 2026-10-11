@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4N5ZKGP43PRVF7PJDT4VK3F",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 25,
+  "checkpoints_count": 80,
   "files_touched": [
     ".impeccable/config.json",
     "DESIGN.md",
@@ -18,6 +18,7 @@
     "web/src/components/usage.css",
     "web/src/lab/zones.ts",
     "web/src/lib/definition.ts",
+    "web/src/lib/document.ts",
     "web/src/lib/prioritize.ts",
     "web/src/lib/types.ts",
     "web/src/screens/definition/DefinitionFunnel.tsx",
@@ -32,8 +33,23 @@
     "web/src/screens/definition/guide.tsx",
     "web/src/screens/definition/stages.ts",
     "web/src/screens/definition/store.ts",
+    "web/src/screens/document/DocumentPage.tsx",
+    "web/src/screens/document/document.css",
+    "web/src/screens/document/guide.tsx",
+    "web/src/screens/prioritize/PrioritizeHud.tsx",
+    "web/src/screens/prioritize/Skyline.tsx",
+    "web/src/screens/prioritize/Waterfall.tsx",
+    "web/src/screens/prioritize/challenged.tsx",
+    "web/src/screens/prioritize/data.ts",
+    "web/src/screens/prioritize/deciding.tsx",
     "web/src/screens/prioritize/fixture.ts",
+    "web/src/screens/prioritize/guide.tsx",
+    "web/src/screens/prioritize/marks.tsx",
+    "web/src/screens/prioritize/prioritize.css",
+    "web/src/screens/prioritize/rescore.ts",
     "web/src/screens/prioritize/store.ts",
+    "web/src/screens/prioritize/weights.css",
+    "web/src/screens/prioritize/weights.tsx",
     "web/src/screens/scan/Scan.tsx",
     "web/src/screens/scan/Scene.tsx",
     "web/src/screens/scan/navigate.tsx",
@@ -67,13 +83,20 @@
       "compact_transcript": "/2/transcript.jsonl",
       "content_hash": "/2/content_hash.txt",
       "prompt": "/2/prompt.txt"
+    },
+    {
+      "metadata": "/3/metadata.json",
+      "transcript": "/3/full.jsonl",
+      "compact_transcript": "/3/transcript.jsonl",
+      "content_hash": "/3/content_hash.txt",
+      "prompt": "/3/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 898,
-    "cache_creation_tokens": 807056,
-    "cache_read_tokens": 174459614,
-    "output_tokens": 375164,
-    "api_call_count": 420
+    "input_tokens": 1316,
+    "cache_creation_tokens": 1148537,
+    "cache_read_tokens": 215133347,
+    "output_tokens": 524070,
+    "api_call_count": 591
   }
 }
