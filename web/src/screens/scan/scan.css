@@ -129,3 +129,26 @@
   .readout .num { font-size: 22px; }
   .sheet { top: auto; bottom: 140px; }
 }
+
+/* navigation pad, bottom centre between the dock and the checkpoint control: spread slider, hold-to-fly, reset */
+.navpad {
+  position: fixed; left: 50%; bottom: calc(var(--edge) + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 14;
+  display: grid; grid-template-columns: auto auto; align-items: center; justify-items: center; gap: 8px 14px;
+}
+.navpad-spread { display: inline-flex; align-items: center; gap: 10px; font-size: var(--t-label); color: var(--ink-2); }
+.navpad-spread input { width: 160px; accent-color: var(--sweep-hi); }
+.navpad-spread output { min-width: 4ch; font-size: var(--t-label); color: var(--ink); text-align: right; }
+.navpad-fly { display: inline-flex; gap: 6px; }
+.navpad-fly button {
+  width: 32px; height: 32px; display: grid; place-items: center; border-radius: 99px; color: var(--ink-2);
+  background: rgba(0, 0, 0, 0.6); border: 1px solid var(--hair); touch-action: none;
+  transition: color var(--fast), border-color var(--fast), background var(--fast);
+}
+.navpad-fly button:hover { color: var(--ink); border-color: var(--hair-2); background: rgba(255, 255, 255, 0.04); }
+.navpad-fly button:active { color: var(--ink); background: var(--sweep-wash); border-color: var(--sweep); }
+.navpad-hint { grid-column: 1 / -1; font-size: var(--t-micro); color: var(--ink-3); white-space: nowrap; pointer-events: none; }
+@media (max-width: 1100px) { .navpad-hint { display: none; } }
+@media (max-width: 760px) {
+  .navpad { bottom: auto; top: calc(var(--edge) + 48px); grid-template-columns: auto; }
+  .navpad-spread input { width: 120px; }
+}

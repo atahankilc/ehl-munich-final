@@ -11,6 +11,7 @@ import * as THREE from "three";
 import type { AreaNode, ClusterNode, Selection, StructurePayload, ThemeNode, TrackState } from "@/lib/types";
 import type { Hover } from "../scan/Scene";
 import { TYPE_COLOR } from "../scan/colors";
+import { useSpread } from "../scan/navigate";
 
 export const AREA_Y = 1.15;
 const STATE_CODE: Record<TrackState, number> = { held: 0, new: 1, strengthened: 2, weakened: 3, lost: 4 };
@@ -246,8 +247,9 @@ function ThemeHalo({ t, active, hot, label, onHover, onSelect, setCursor }: {
   const r = 0.05 + Math.sqrt(t.comments) * 0.006;
   const lost = t.state === "lost", changed = t.state === "strengthened" || t.state === "new";
   const register = useContext(LabelCtx);
+  const { k } = useSpread();   // the halo keeps its size when the spread opens the universe up
   return (
-    <Billboard position={[t.x, t.y, t.z]}>
+    <Billboard position={[t.x, t.y, t.z]} scale={k}>
       <mesh onPointerMove={(e) => { e.stopPropagation(); setCursor(true); onHover({ title: t.title, sub: `Theme · ${t.comments} comments${t.state ? ` · ${t.state}` : ""}`, x: e.nativeEvent.clientX, y: e.nativeEvent.clientY }, t.key); }}
             onPointerOut={() => { setCursor(false); onHover(null, null); }}
             onClick={(e) => { e.stopPropagation(); onSelect({ kind: "theme", key: t.key }, [t.x, t.y, t.z]); }}>
@@ -274,8 +276,9 @@ function Diamond({ a, at, active, hot, onHover, onSelect, setCursor }: {
   const quality = a.kind === "quality";
   const color = quality ? "#f5a524" : a.kind === "keep" ? "#eef1f5" : a.kind === "emerging" ? "#d95926" : "#3987e5";
   const size = 0.028 + Math.min(0.03, Math.sqrt(a.metrics.comments ?? 1) * 0.0012);
+  const { k } = useSpread();
   return (
-    <group position={at}>
+    <group position={at} scale={k}>
       <mesh ref={ref}
             onPointerMove={(e) => { e.stopPropagation(); setCursor(true); onHover({ title: a.title, sub: quality ? "Quality hand-over" : `Requirement area · ${a.kind} · ${a.metrics.comments ?? 0} comments${a.state ? ` · ${a.state}` : ""}`, x: e.nativeEvent.clientX, y: e.nativeEvent.clientY }, a.key); }}
             onPointerOut={() => { setCursor(false); onHover(null, null); }}

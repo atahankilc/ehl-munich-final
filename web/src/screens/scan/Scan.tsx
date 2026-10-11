@@ -1,5 +1,5 @@
 // Scan: every raw piece of evidence the system holds, at the current checkpoint, as one 3D space.
-import { Suspense, useEffect, useMemo, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Canvas } from "@react-three/fiber";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronsLeft, ChevronsRight, ExternalLink, SlidersHorizontal, X } from "lucide-react";
@@ -12,8 +12,15 @@ import { Dock } from "@/components/Guide";
 import { useCheckpoint } from "@/state/checkpoint";
 import { Scene, TYPE_COLOR, layerOf, studyValue, type Hover } from "./Scene";
 import { CAR_NAME, MARKET_NAME } from "./layout";
+import { HOME, NavPad, SPREAD_MAX, SPREAD_MIN, newNav } from "./navigate";
 import { DIMS, SCOPE_NOTE, commentMask, isActive, keyValues, passOption, passResearch, passSales, passStudy, valueName, type Dim, type Filter, type Scope } from "./filter";
 import "./scan.css";
+
+// the spread is a per-viewer convenience: remembered in this browser, 1× when storage is unavailable
+const SPREAD_KEY = "scan.spread";
+function storedSpread() {
+  try { const v = Number(localStorage.getItem(SPREAD_KEY)); return v >= SPREAD_MIN && v <= SPREAD_MAX ? v : 1; } catch { return 1; }
+}
 
 const fmt = (n: number | undefined | null) => (n == null ? "–" : n.toLocaleString("en-US"));
 
@@ -45,6 +52,9 @@ export function Scan({ mode = "scan" }: { mode?: "scan" | "structure" }) {
   });
   const [hover, setHover] = useState<Hover | null>(null);
   const [selected, setSelected] = useState<{ sel: Selection; at: [number, number, number] } | null>(null);
+  const [spread, setSpread] = useState(storedSpread);
+  useEffect(() => { try { localStorage.setItem(SPREAD_KEY, String(spread)); } catch { /* private mode */ } }, [spread]);
+  const nav = useRef(newNav());
   const fromPosition = checkpoints?.find((c) => c.id === from)?.position ?? position;
 
   // the filters work on page 1 only; page 2 hides them, so nothing stays filtered there unseen
@@ -65,7 +75,7 @@ export function Scan({ mode = "scan" }: { mode?: "scan" | "structure" }) {
     <main className="scan" data-mode={mode} aria-label={mode === "structure" ? "Structure and context at the selected checkpoint" : "Raw evidence at the selected checkpoint"}>
       <div className="scan-canvas">
         {points.data && (
-          <Canvas dpr={[1, 2]} camera={{ position: [0, 2.3, 5.3], fov: 40, near: 0.05, far: 60 }}
+          <Canvas dpr={[1, 2]} camera={{ position: HOME, fov: 40, near: 0.05, far: 60 }}
                   raycaster={{ params: { Points: { threshold: 0.018 }, Line: { threshold: 0 }, Mesh: {}, LOD: {}, Sprite: {} } }}
                   gl={{ antialias: true, alpha: false }} onCreated={({ gl }) => gl.setClearColor("#000000")}
                   onPointerMissed={() => setSelected(null)}>
@@ -74,7 +84,8 @@ export function Scan({ mode = "scan" }: { mode?: "scan" | "structure" }) {
                      sweepId={sweepId} hoverComment={hover?.comment ?? null} locked={selected?.at ?? null} focus={selected ? layerOf(selected.sel) : null}
                      onHover={setHover} onSelect={(sel, at) => { setSelected({ sel, at }); setHover(null); }}
                      mode={mode} structure={structure.data} selected={selected?.sel ?? null} hoverKey={hoverKey}
-                     onStructureHover={(h, k) => { setHover(h); setHoverKey(k ?? null); }} pulse={activity.data?.recent} filter={filter} />
+                     onStructureHover={(h, k) => { setHover(h); setHoverKey(k ?? null); }} pulse={activity.data?.recent} filter={filter}
+                     spread={spread} nav={nav} />
             </Suspense>
           </Canvas>
         )}
@@ -91,6 +102,7 @@ export function Scan({ mode = "scan" }: { mode?: "scan" | "structure" }) {
       ) : <Funnel data={structure.data} />}
       <Dock mode={mode} sel={selected?.sel ?? null} agent={mode === "structure" ? <AgentPanel /> : undefined} running={!!activity.data?.running} />
       <PageSwitch />
+      {points.data && <NavPad spread={spread} onSpread={setSpread} nav={nav} />}
 
       {hover && !selected && <HoverCard hover={hover} points={points.data} />}
       {selected && <Inspector sel={selected.sel} sales={sources.data?.sales ?? []} onClose={() => setSelected(null)} structure={structure.data}

@@ -4,7 +4,7 @@
 // lock reticle turn white; blue is the sweep blade itself.
 // The same rule drives the comments and the dated research on the time ring. Every ring element can be opened.
 // Opening one focuses its layer (the cluster or one ring): that layer rises, the others sink and fade out of the way.
-import { useEffect, useMemo, useRef, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, type MutableRefObject, type ReactNode } from "react";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { Billboard, Html, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
@@ -12,12 +12,13 @@ import type { PointsPayload, ResearchItem, Selection, SourcesPayload, StructureP
 import { StructureLayer } from "../structure/StructureLayer";
 import { ClassifyPulse } from "../structure/ClassifyPulse";
 import { passOption, passResearch, passSales, passStudy, type Filter } from "./filter";
+import { Navigator, SpreadCtx, spreadOf, useSpread, type NavInput } from "./navigate";
 import { CARS, CAR_NAME, LINES, LINE_CODES, MARKET_NAME, R, SWEEP_START, TAU, TIME_START, lineSector, optionLayout, polar, sector, studyLayout, timeAngle } from "./layout";
 
 const VERT = /* glsl */ `
 attribute float aCp; attribute float aSel; attribute float aAz; attribute float aSize; attribute float aIdx;
 attribute vec3 aTarget; attribute float aClustered;
-uniform float uCp, uFrom, uSweep, uStart, uScale, uHover, uDim, uMorph;
+uniform float uCp, uFrom, uSweep, uStart, uScale, uHover, uDim, uMorph, uGrow, uDepth;
 varying float vAlpha; varying float vRing; varying float vFlare; varying float vHov;
 const float TAU = 6.2831853;
 void main() {
@@ -30,10 +31,10 @@ void main() {
   vHov = abs(aIdx - uHover) < 0.5 ? 1.0 : 0.0;
   vec3 pp = mix(position, aTarget, uMorph);            // page 2: comments fly into their cluster
   vec4 mv = modelViewMatrix * vec4(pp, 1.0);
-  float depth = smoothstep(3.2, 7.5, -mv.z);           // far contacts recede
+  float depth = smoothstep(3.2 * uDepth, 7.5 * uDepth, -mv.z);  // far contacts recede (scaled with the spread)
   vAlpha = vis * mix(uDim, 1.0, aSel) * mix(0.95, 0.4, depth) * mix(1.0, mix(0.08, 0.4, aClustered), uMorph);
   gl_Position = projectionMatrix * mv;
-  gl_PointSize = aSize * uScale * (1.0 + vRing * 0.25 + vFlare * 2.0 + vHov * 2.2) / -mv.z;
+  gl_PointSize = aSize * uScale * uGrow * (1.0 + vRing * 0.25 + vFlare * 2.0 + vHov * 2.2) / -mv.z;
 }`;
 const FRAG = /* glsl */ `
 uniform vec3 uColor; uniform float uFade;
@@ -56,7 +57,7 @@ function contactMaterial(scale: number, color: string) {
     vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthWrite: false,
     uniforms: {
       uCp: { value: 2 }, uFrom: { value: 2 }, uSweep: { value: 1 }, uStart: { value: SWEEP_START },
-      uScale: { value: scale }, uHover: { value: -1 }, uDim: { value: 0.06 }, uFade: { value: 1 }, uMorph: { value: 0 },
+      uScale: { value: scale }, uHover: { value: -1 }, uDim: { value: 0.06 }, uFade: { value: 1 }, uMorph: { value: 0 }, uGrow: { value: 1 }, uDepth: { value: 1 },
       uColor: { value: new THREE.Color(color) },
     },
   });
@@ -164,16 +165,23 @@ function useSweep(mats: THREE.ShaderMaterial[], position: number, fromPosition: 
 }
 
 /* ------------------------------------------------------------------------------------------- camera fit */
-function CameraFit() {
+/** Camera distance that frames the whole volume at spread 1. */
+function useFit() {
+  const { camera, size } = useThree();
+  return () => {
+    const aspect = size.width / size.height;
+    const fit = (R.labels + 0.3) / (Math.tan(THREE.MathUtils.degToRad((camera as THREE.PerspectiveCamera).fov / 2)) * aspect);
+    return Math.max(aspect < 1 ? 6 : 5.6, fit);
+  };
+}
+function CameraFit({ fit }: { fit: () => number }) {
   const { camera, size } = useThree();
   useEffect(() => {
     const cam = camera as THREE.PerspectiveCamera;
-    const aspect = size.width / size.height;
-    cam.fov = aspect < 1 ? 58 : 40;
-    const fit = (R.labels + 0.3) / (Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)) * aspect);
-    cam.position.setLength(Math.max(aspect < 1 ? 6 : 5.6, fit));
+    cam.fov = size.width / size.height < 1 ? 58 : 40;
+    cam.position.setLength(fit());
     cam.updateProjectionMatrix();
-  }, [camera, size.width, size.height]);
+  }, [camera, size.width, size.height]); // eslint-disable-line react-hooks/exhaustive-deps
   return null;
 }
 
@@ -200,6 +208,10 @@ interface SceneProps {
   pulse?: number[];
   /** the Key's filter on page 1: what doesn't match dims like a masked comment and can't be picked */
   filter?: Filter | null;
+  /** layout scale of the whole universe (navigate.tsx) */
+  spread?: number;
+  /** the pad's hold-to-fly buttons and reset */
+  nav: MutableRefObject<NavInput>;
 }
 
 export const studyValue = (s: { scale: string; value: number | null }) =>
@@ -212,6 +224,8 @@ export function Scene(p: SceneProps) {
   const researchMat = useMemo(() => contactMaterial(19 * dpr, TYPE_COLOR.research), [dpr]);
   const sweepRef = useRef<THREE.Group>(null);
   const setCursor = (on: boolean) => { gl.domElement.style.cursor = on ? "pointer" : ""; };
+  const spread = useMemo(() => spreadOf(p.spread ?? 1), [p.spread]);
+  const fit = useFit();
 
   /* comments */
   const comments = useMemo(() => {
@@ -333,6 +347,10 @@ export function Scene(p: SceneProps) {
     apply(carRings.study.geom, carRingSel.study); apply(carRings.options.geom, carRingSel.options); apply(carRings.sales.geom, carRingSel.sales);
   }, [research, carRings, researchSel, carRingSel]);
 
+  useEffect(() => {
+    for (const m of [commentMat, researchMat, studyMat, optionMat, salesMat]) { m.uniforms.uGrow.value = spread.grow; m.uniforms.uDepth.value = spread.spread; }
+  }, [spread, commentMat, researchMat, studyMat, optionMat, salesMat]);
+
   useSweep([commentMat, researchMat, studyMat, optionMat, salesMat], p.position, p.fromPosition, p.sweepId, (a) => {
     const g = sweepRef.current;
     if (!g) return;
@@ -447,9 +465,13 @@ export function Scene(p: SceneProps) {
 
   return (
     <>
-      <CameraFit />
-      <OrbitControls makeDefault enablePan={false} minDistance={2.2} maxDistance={14}
+      <CameraFit fit={fit} />
+      {/* zoom goes toward the cursor and may come close, so any spot can be reached; right-drag (or Shift-drag) pans */}
+      <OrbitControls makeDefault enablePan screenSpacePanning zoomToCursor minDistance={0.15} maxDistance={16 * spread.spread}
                      enableDamping dampingFactor={0.08} maxPolarAngle={Math.PI * 0.62} />
+      <Navigator spread={spread.spread} nav={p.nav} fit={fit} />
+      <SpreadCtx.Provider value={spread}>
+      <group scale={spread.spread}>
       <Layer id="comment" focus={p.focus}>
         <points geometry={comments} material={commentMat} {...onComment} />
         {reticle("comment")}
@@ -469,11 +491,13 @@ export function Scene(p: SceneProps) {
       }} />
       <group ref={sweepRef} visible={false}><SweepBlade /></group>
       {p.structure?.ready && (
-        <StructureLayer data={p.structure} morph={morph} dpr={dpr} selected={p.selected ?? null} hoverKey={p.hoverKey ?? null}
+        <StructureLayer data={p.structure} morph={morph} dpr={dpr * spread.grow} selected={p.selected ?? null} hoverKey={p.hoverKey ?? null}
                         ends={ends} onHover={p.onStructureHover ?? (() => {})} onSelect={p.onSelect} setCursor={setCursor} />
       )}
       {p.mode === "structure" && p.locked && p.focus == null && <Reticle at={p.locked} />}
-      <ClassifyPulse ids={p.pulse} posOf={posOf} dpr={dpr} />
+      <ClassifyPulse ids={p.pulse} posOf={posOf} dpr={dpr * spread.grow} />
+      </group>
+      </SpreadCtx.Provider>
     </>
   );
 }
@@ -495,9 +519,10 @@ function SweepBlade() {
 
 function Reticle({ at }: { at: [number, number, number] }) {
   const ref = useRef<THREE.Group>(null);
+  const { k } = useSpread();
   useFrame(({ clock }) => { if (ref.current) ref.current.rotation.z = clock.elapsedTime * 0.8; });
   return (
-    <Billboard position={at}>
+    <Billboard position={at} scale={k}>
       <group ref={ref}>
         {[0, 1, 2, 3].map((k) => (
           <mesh key={k} rotation={[0, 0, (k * Math.PI) / 2]}>
@@ -534,6 +559,7 @@ function Rings({ sources, focus, focusLines, filter, slots, onHover, onSelect, s
   onSelect: (s: Selection, at: [number, number, number]) => void;
   setCursor: (on: boolean) => void;
 }) {
+  const { grow, k } = useSpread();
   // sector guides per ring, each ring with its own material so it can fade on its own
   const lines = useMemo(() => {
     const guides = (r: number) => {
@@ -629,12 +655,12 @@ function Rings({ sources, focus, focusLines, filter, slots, onHover, onSelect, s
         {guides("study")}
         <lineSegments geometry={study.lines}><lineBasicMaterial color={TYPE_COLOR.study} transparent opacity={0.75} /></lineSegments>
         <lineSegments geometry={study.offLines}><lineBasicMaterial color={TYPE_COLOR.study} transparent opacity={OFF} /></lineSegments>
-        <points geometry={study.offTips}><pointsMaterial color={TYPE_COLOR.study} size={0.016} transparent opacity={OFF} /></points>
+        <points geometry={study.offTips}><pointsMaterial color={TYPE_COLOR.study} size={0.016 * grow} transparent opacity={OFF} /></points>
         <points geometry={study.tips}
                 onPointerMove={(e) => { const i = pick(e); if (i != null) { const s = study.items[i]; hover(e, s.item, `Study · ${CAR_NAME[s.car]} · ${MARKET_NAME[s.market]} · ${studyValue(s)}`); } }}
                 onPointerOut={out}
                 onClick={(e) => { const i = pick(e); if (i != null) { e.stopPropagation(); onSelect({ kind: "study", item: study.items[i] }, pos(study.tips, i)); } }}>
-          <pointsMaterial color={TYPE_COLOR.study} size={0.016} transparent opacity={0.9} />
+          <pointsMaterial color={TYPE_COLOR.study} size={0.016 * grow} transparent opacity={0.9} />
         </points>
         {slots.study}
         {ringName("study")}
@@ -645,16 +671,16 @@ function Rings({ sources, focus, focusLines, filter, slots, onHover, onSelect, s
                 onPointerMove={(e) => { const i = pick(e); if (i != null) { const o = options.items[i]; hover(e, o.name ?? o.code ?? "Option", `Option · ${CAR_NAME[o.car]} · ${o.availability ?? ""}`); } }}
                 onPointerOut={out}
                 onClick={(e) => { const i = pick(e); if (i != null) { e.stopPropagation(); onSelect({ kind: "option", item: options.items[i] }, pos(options.geom, i)); } }}>
-          <pointsMaterial color={TYPE_COLOR.option} size={0.014} transparent opacity={0.85} />
+          <pointsMaterial color={TYPE_COLOR.option} size={0.014 * grow} transparent opacity={0.85} />
         </points>
-        <points geometry={options.off}><pointsMaterial color={TYPE_COLOR.option} size={0.014} transparent opacity={OFF} /></points>
+        <points geometry={options.off}><pointsMaterial color={TYPE_COLOR.option} size={0.014 * grow} transparent opacity={OFF} /></points>
         {slots.option}
         {ringName("option")}
       </Layer>
       <Layer id="sales" focus={focus}>
         {guides("sales")}
         {bars.map((b, i) => passSales(filter, b.row) ? (
-          <mesh key={`on${i}`} position={b.pos} rotation={[0, b.rot, 0]}
+          <mesh key={`on${i}`} position={b.pos} rotation={[0, b.rot, 0]} scale={[k, 1, k]}
                 onPointerMove={(e) => hover(e, `${(b.row.units ?? 0).toLocaleString("en-US")} cars`, `Sales · ${CAR_NAME[b.row.car]} · ${MARKET_NAME[b.row.market]} · ${b.row.year}${b.row.is_forecast ? " forecast" : ""}`)}
                 onPointerOut={out}
                 onClick={(e) => { e.stopPropagation(); onSelect({ kind: "sales", item: b.row }, [b.pos[0], b.h, b.pos[2]]); }}>
@@ -662,7 +688,7 @@ function Rings({ sources, focus, focusLines, filter, slots, onHover, onSelect, s
             {b.row.is_forecast ? <meshBasicMaterial color={TYPE_COLOR.sales} wireframe transparent opacity={0.6} /> : <meshBasicMaterial color={TYPE_COLOR.sales} transparent opacity={0.85} />}
           </mesh>
         ) : (
-          <mesh key={`off${i}`} position={b.pos} rotation={[0, b.rot, 0]}>
+          <mesh key={`off${i}`} position={b.pos} rotation={[0, b.rot, 0]} scale={[k, 1, k]}>
             <boxGeometry args={[0.014, b.h, 0.014]} />
             <meshBasicMaterial color={TYPE_COLOR.sales} wireframe={!!b.row.is_forecast} transparent opacity={OFF} />
           </mesh>
