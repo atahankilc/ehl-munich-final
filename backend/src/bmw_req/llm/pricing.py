@@ -1,5 +1,6 @@
 """OpenAI list prices in USD per 1M tokens (D-014, checked 2026-10-10 on
-developers.openai.com/api/docs/pricing). A model missing here is refused by the guard."""
+developers.openai.com/api/docs/pricing). Models added in the app (D-055) carry their own prices; a model missing from
+both is refused by the guard."""
 
 from dataclasses import dataclass
 
@@ -16,6 +17,28 @@ PRICES: dict[str, Price] = {
     "gpt-6.1-sol": Price(input=2.00, cached_input=0.10, output=10.00),
     "text-embedding-3-small": Price(input=0.02, cached_input=0.02, output=0.0),
 }
+
+EMBEDDING_MODELS = {"text-embedding-3-small"}
+
+
+def all_prices() -> dict[str, Price]:
+    """Built-in prices plus models added in the app (built-in wins on a clash)."""
+    from bmw_req import app_settings
+
+    extra = {m: Price(float(s["input"]), float(s["cached_input"]), float(s["output"]))
+             for m, s in app_settings.custom_models().items()}
+    return {**extra, **PRICES}
+
+
+def kind_of(model: str) -> str | None:
+    """'responses' / 'embeddings' for a priced model, None if it has no price."""
+    if model in PRICES:
+        return "embeddings" if model in EMBEDDING_MODELS else "responses"
+    from bmw_req import app_settings
+
+    spec = app_settings.custom_models().get(model)
+    return spec.get("kind") if spec else None
+
 
 FLEX_FACTOR = 0.5            # Flex = Batch = -50%
 CACHE_WRITE_FACTOR = 1.25    # cache writes cost 1.25x input

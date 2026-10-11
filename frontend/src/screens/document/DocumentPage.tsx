@@ -1,6 +1,6 @@
 // Page 5, Document: the deliverable — the final, traceable requirement list per car line × market at the selected
-// checkpoint (challenge brief; BMW process step 5 "Documentation / tracking"). A full-height sheet over page 4's scene,
-// which sinks and dims behind it. Read-only: the PM decides on page 4; exports are logged as audit events.
+// checkpoint (challenge brief; BMW process step 5 "Documentation / tracking"). A full-screen 2D page (no 3D scene, its
+// own checkpoint switch). Read-only: the PM decides on page 4; exports are logged as audit events.
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -21,6 +21,7 @@ import { DocumentGuide } from "./guide";
 import { sampleForced } from "../prioritize/data";
 import { dirOf, type Dir } from "../prioritize/pm";
 import { withSampleDecisions } from "./sample";
+import "@/components/sheet.css";
 import "./document.css";
 
 const BANDS: Band[] = ["Must", "Should", "Could"];
@@ -66,7 +67,7 @@ function evKind(e: DocEvidence): keyof typeof TYPE_COLOR {
 }
 
 export function DocumentPage() {
-  const { cp } = useCheckpoint();
+  const { cp, setCp, checkpoints } = useCheckpoint();
   const line = useView((s) => s.line);
   const storedMarket = useP((s) => s.market[line]);
   // the scene behind is page 4's skyline on the car: land it on its last stage, nothing open
@@ -136,6 +137,11 @@ export function DocumentPage() {
             </div>
           </div>
           <div className="doc-controls">
+            <div className="dseg" role="radiogroup" aria-label="Checkpoint">
+              {(checkpoints ?? []).map((c) => (
+                <button key={c.id} role="radio" aria-checked={c.id === cp} onClick={() => setCp(c.id)}>{c.label}</button>
+              ))}
+            </div>
             <div className="dseg" role="radiogroup" aria-label="Car line">
               {(lineList.data?.lines ?? []).map((l) => (
                 <button key={l} role="radio" aria-checked={l === line} onClick={() => setView({ line: l as LineName })}>{l}</button>

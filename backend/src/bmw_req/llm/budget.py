@@ -16,13 +16,14 @@ from contextlib import contextmanager
 
 from bmw_req import app_settings
 
+from bmw_req.llm import agents
 from bmw_req.llm.pricing import (
     CACHE_WRITE_FACTOR,
     FLEX_FACTOR,
-    PRICES,
     WEB_SEARCH_CONTENT_TOKENS,
     WEB_SEARCH_PER_CALL,
     Price,
+    all_prices,
 )
 
 log = logging.getLogger(__name__)
@@ -40,6 +41,16 @@ class BudgetExceeded(RuntimeError):
 
 class BudgetNeedsConfirmation(BudgetExceeded):
     """Spend would pass the ask-before-spending limit and nobody confirmed this run."""
+
+
+class AgentBlocked(BudgetExceeded):
+    """The agent is switched off or reached its spend cap (D-055). A BudgetExceeded, so pipelines stop the same way."""
+
+
+def agent_committed_usd(conn: sqlite3.Connection, agent: agents.Agent) -> float:
+    rows = conn.execute("""SELECT job, SUM(CASE WHEN status = 'reserved' THEN reserved_usd ELSE cost_usd END)
+                           FROM llm_usage GROUP BY job""").fetchall()
+    return sum(v or 0.0 for job, v in rows if agents.match(job) is agent)
 
 
 @contextmanager
@@ -79,9 +90,9 @@ def _confirm(after: float, limits: app_settings.BudgetLimits, job: str) -> None:
 
 def price_for(model: str) -> Price:
     try:
-        return PRICES[model]
+        return all_prices()[model]
     except KeyError:
-        raise BudgetExceeded(f"No price for model {model!r}; add it to pricing.py before using it") from None
+        raise BudgetExceeded(f"No price for model {model!r}; add it on the AI agents page first") from None
 
 
 def estimate_tokens(text: str) -> int:
@@ -142,6 +153,14 @@ def reserve(conn: sqlite3.Connection, *, job: str, kind: str, model: str, reserv
     # so a prompt never holds the DB lock
     after = committed_usd(conn) + reserved_usd
     stop_if_over(after)
+    agent = agents.match(job)
+    if agent is not None:
+        cfg = app_settings.agent_config(agent.key)
+        if not cfg.enabled:
+            raise AgentBlocked(f"{agent.name} is switched off on the AI agents page ({job}).")
+        if cfg.cap_usd is not None and agent_committed_usd(conn, agent) + reserved_usd > cfg.cap_usd:
+            raise AgentBlocked(f"{agent.name} would pass its ${cfg.cap_usd:.2f} cap ({job}). "
+                               "Raise the cap on the AI agents page to continue.")
     if after > limits.confirm_above_usd:
         _confirm(after, limits, job)
     conn.execute("BEGIN IMMEDIATE")

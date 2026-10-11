@@ -3,7 +3,7 @@ whose SPA catch-all must stay last."""
 
 from fastapi import APIRouter
 
-from api.routers import audit_feed, briefing, cars, definition, document, evidence, markets, meta_state, prioritize, process, queue, requirements, scan, settings, static, structure, usage
+from api.routers import agents, audit_feed, briefing, cars, definition, document, evidence, markets, meta_state, prioritize, process, queue, requirements, scan, settings, static, structure, usage
 
 ROUTERS: list[APIRouter] = [
     meta_state.router,
@@ -22,6 +22,7 @@ ROUTERS: list[APIRouter] = [
     audit_feed.router,
     usage.router,
     settings.router,
+    agents.router,
 ]
 
 # Always included last by create_app(): /models and the SPA catch-all.

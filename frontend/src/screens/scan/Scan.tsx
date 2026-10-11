@@ -20,6 +20,8 @@ import { DefinitionLayer } from "../definition/DefinitionLayer";
 import { DefinitionHud } from "../definition/DefinitionHud";
 import { PrioritizeHud } from "../prioritize/PrioritizeHud";
 import { DocumentPage } from "../document/DocumentPage";
+import { AgentsPage } from "../agents/AgentsPage";
+import { AuditPage } from "../audit/AuditPage";
 import { selectTarget } from "../prioritize/store";
 import { select as selectRequirement } from "../definition/store";
 import { areaLayout } from "../structure/StructureLayer";
@@ -34,9 +36,16 @@ function storedSpread() {
 const fmt = (n: number | undefined | null) => (n == null ? "–" : n.toLocaleString("en-US"));
 
 
-export function Scan({ mode: page = "scan" }: { mode?: "scan" | "structure" | "definition" | "prioritize" | "document" }) {
-  // page 5 (Document) keeps page 4's scene behind its sheet: everything 3D treats it as Prioritize
-  const mode = page === "document" ? "prioritize" : page;
+type Scene3D = "scan" | "structure" | "definition" | "prioritize";
+export function Scan({ mode: page = "scan" }: { mode?: Scene3D | "document" | "agents" | "audit" }) {
+  // Full-screen pages (Document, AI agents, Audit) are plain 2D pages: the canvas stays mounted (no reload when going
+  // back) but is hidden and draws no frames. Document keeps page 4's state, so everything 3D treats it as Prioritize;
+  // AI agents and Audit keep whatever scene was last shown, so nothing rearranges while they are open.
+  const sheet = page === "agents" || page === "audit";
+  const full = sheet || page === "document";
+  const lastScene = useRef<Scene3D>("scan");
+  const mode: Scene3D = page === "document" ? "prioritize" : sheet ? lastScene.current : page;
+  lastScene.current = mode;
   const { cp, from, sweepId, position, checkpoints } = useCheckpoint();
   const structure = useQuery({ queryKey: ["structure", cp], queryFn: () => api.get<StructurePayload>(`/api/structure?cp=${cp}`),
                                staleTime: 30_000, placeholderData: (prev) => prev });
@@ -133,10 +142,10 @@ export function Scan({ mode: page = "scan" }: { mode?: "scan" | "structure" | "d
   }, [mode, search, structure.data]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <main className="scan" data-mode={page} aria-label={page === "document" ? "The requirement document per car line and market at the selected checkpoint" : mode === "structure" ? "Structure and context at the selected checkpoint" : mode === "definition" ? "Requirement definitions on today's car at the selected checkpoint" : mode === "prioritize" ? "Requirement priorities per market around today's car at the selected checkpoint" : "Raw evidence at the selected checkpoint"}>
+    <main className="scan" data-mode={page} data-full={full ? "" : undefined} aria-label={page === "agents" ? "AI agents: models, settings and spend" : page === "audit" ? "The audit trail at the selected checkpoint" : page === "document" ? "The requirement document per car line and market at the selected checkpoint" : mode === "structure" ? "Structure and context at the selected checkpoint" : mode === "definition" ? "Requirement definitions on today's car at the selected checkpoint" : mode === "prioritize" ? "Requirement priorities per market around today's car at the selected checkpoint" : "Raw evidence at the selected checkpoint"}>
       <div className="scan-canvas">
         {points.data && (
-          <Canvas dpr={[1, 2]} camera={{ position: HOME, fov: 40, near: 0.05, far: 60 }}
+          <Canvas dpr={[1, 2]} camera={{ position: HOME, fov: 40, near: 0.05, far: 60 }} frameloop={full ? "never" : "always"}
                   raycaster={{ params: { Points: { threshold: 0.018 }, Line: { threshold: 0 }, Mesh: {}, LOD: {}, Sprite: {} } }}
                   gl={{ antialias: true, alpha: false }} onCreated={({ gl }) => gl.setClearColor("#000000")}
                   onPointerMissed={() => { setSelected(null); if (mode === "definition") selectRequirement(null); if (mode === "prioritize") selectTarget(null); }}>
@@ -155,19 +164,19 @@ export function Scan({ mode: page = "scan" }: { mode?: "scan" | "structure" | "d
         {points.isError && <div className="scan-state error">{(points.error as Error).message}</div>}
       </div>
 
-      {mode === "scan" ? (
+      {sheet ? (page === "agents" ? <AgentsPage /> : <AuditPage />) : mode === "scan" ? (
         <div className="hud-tl">
           <Readout points={points.data} mask={mask} filter={filter} />
           {points.data && <FilterBar points={points.data} sources={sources.data} position={position} filter={chosen.f} order={chosen.order}
                                      onToggle={toggle} onClear={clear} />}
         </div>
       ) : mode === "structure" ? <Funnel data={structure.data} stage={stage} done={done} onStage={setStageView} onStep={step} /> : page === "document" ? <DocumentPage /> : mode === "prioritize" ? <PrioritizeHud /> : <DefinitionHud />}
-      {mode !== "definition" && mode !== "prioritize" && <Dock mode={mode} sel={selected?.sel ?? null} agent={mode === "structure" ? <AgentPanel /> : undefined} running={!!activity.data?.running} />}
+      {!sheet && mode !== "definition" && mode !== "prioritize" && <Dock mode={mode} sel={selected?.sel ?? null} agent={mode === "structure" ? <AgentPanel /> : undefined} running={!!activity.data?.running} />}
       <PageSwitch />
-      {points.data && <NavPad spread={spread} onSpread={setSpread} nav={nav} />}
+      {!full && points.data && <NavPad spread={spread} onSpread={setSpread} nav={nav} />}
 
-      {hover && !selected && <HoverCard hover={hover} points={points.data} />}
-      {selected && mode !== "definition" && mode !== "prioritize" && <Inspector sel={selected.sel} at={selected.at} mode={mode} onOpenStructure={openInStructure}
+      {!full && hover && !selected && <HoverCard hover={hover} points={points.data} />}
+      {!sheet && selected && mode !== "definition" && mode !== "prioritize" && <Inspector sel={selected.sel} at={selected.at} mode={mode} onOpenStructure={openInStructure}
                               sales={sources.data?.sales ?? []} onClose={() => setSelected(null)} structure={structure.data}
                               cpLabel={(id) => checkpoints?.find((c) => c.id === id)?.label ?? id} />}
     </main>

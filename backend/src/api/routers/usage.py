@@ -18,7 +18,7 @@ from fastapi import APIRouter, Query
 from api.deps import db
 from bmw_req.app_settings import budget_limits
 from bmw_req.llm import budget
-from bmw_req.llm.pricing import FLEX_FACTOR, PRICES
+from bmw_req.llm.pricing import FLEX_FACTOR, all_prices
 
 router = APIRouter(prefix="/api/usage", tags=["usage"])
 
@@ -103,7 +103,7 @@ def usage(limit: int = Query(60, ge=1, le=500)) -> dict:
                    "input_tokens": sum(r["input_tokens"] or 0 for r in rows), "cached_tokens": sum(r["cached_tokens"] or 0 for r in rows),
                    "output_tokens": sum(r["output_tokens"] or 0 for r in rows),
                    "first": rows[0]["created_at"] if rows else None, "last": rows[-1]["created_at"] if rows else None},
-        "prices": {m: {"input": p.input, "cached_input": p.cached_input, "output": p.output} for m, p in PRICES.items()},
+        "prices": {m: {"input": p.input, "cached_input": p.cached_input, "output": p.output} for m, p in all_prices().items()},
         "flex_factor": FLEX_FACTOR,
         "pipelines": pipes,
         "recent": recent,

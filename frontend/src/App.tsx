@@ -15,6 +15,8 @@ export default function App() {
         <Route path="/definition" element={<Scan key="volume" mode="definition" />} />
         <Route path="/prioritize" element={<Scan key="volume" mode="prioritize" />} />
         <Route path="/document" element={<Scan key="volume" mode="document" />} />
+        <Route path="/agents" element={<Scan key="volume" mode="agents" />} />
+        <Route path="/audit" element={<Scan key="volume" mode="audit" />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <SweepControl />

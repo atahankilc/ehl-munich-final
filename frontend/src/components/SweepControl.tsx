@@ -1,6 +1,7 @@
 // Bottom-right checkpoint control: one timeline, JUL 25 → JUL 26, a tick per month, each checkpoint a labelled node at
 // its cut-off date. The rail is filled up to the active checkpoint's cut-off ("known up to"); the fill travels there
 // with the same timing as the 3D sweep. The block keeps one size at every checkpoint, so nothing shifts.
+import { useLocation } from "react-router-dom";
 import { useCheckpoint, CHECKPOINT_ORDER } from "@/state/checkpoint";
 import type { Checkpoint, CheckpointId } from "@/lib/types";
 import "./sweep.css";
@@ -13,7 +14,11 @@ const frac = (iso: string) => Math.min(1, Math.max(0, (Date.parse(iso) - T0) / (
 const MONTHS = Array.from({ length: 13 }, (_, i) => frac(new Date(Date.UTC(2025, 6 + i, 1)).toISOString().slice(0, 10)));
 const longDate = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 
+/** Full-screen 2D pages have no scene to sweep; they carry their own checkpoint switch (Document, Audit) or need none. */
+export const FULL_PAGES = ["/document", "/agents", "/audit"];
+
 export function SweepControl() {
+  const { pathname } = useLocation();
   const { cp, setCp, checkpoints } = useCheckpoint();
   const byId = Object.fromEntries((checkpoints ?? []).map((c) => [c.id, c])) as Partial<Record<CheckpointId, Checkpoint>>;
   // Same groups as the readout totals, so held + new = everything visible now. The first checkpoint holds nothing yet.
@@ -26,6 +31,8 @@ export function SweepControl() {
   const label = (id: CheckpointId) => byId[id]?.label ?? (id === "cp1" ? "JAN 26" : "JUL 26");
   const at = CHECKPOINT_ORDER.indexOf(cp);
   const known = frac(cutoff(cp));
+
+  if (FULL_PAGES.includes(pathname)) return null;
 
   return (
     <div className="sweepctl">

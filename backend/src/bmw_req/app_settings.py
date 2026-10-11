@@ -1,4 +1,5 @@
-"""Settings the user changes at run time (D-054): the OpenAI API key and the budget limits.
+"""Settings the user changes at run time: the OpenAI API key and budget limits (D-054); per-agent configuration, model
+tiers and extra models with their prices (D-055, the "AI agents" page).
 
 Stored in `$DATA_DIR/settings.json` (git-ignored, owner-only 0600), outside `app.db` so a snapshot restore never
 touches it. `APP_SETTINGS_FILE` overrides the path (tests point it at a temp file).
@@ -113,3 +114,84 @@ def set_budget_limits(confirm_above_usd: float, stop_at_usd: float) -> BudgetLim
     limits = BudgetLimits(round(confirm_above_usd, 2), round(stop_at_usd, 2))
     _update(budget={"confirm_above_usd": limits.confirm_above_usd, "stop_at_usd": limits.stop_at_usd})
     return limits
+
+
+# ------------------------------------------------------------------------------------------------ agents (D-055)
+@dataclass(frozen=True)
+class AgentConfig:
+    model: str | None = None              # None = the tier's model
+    reasoning_effort: str | None = None   # None = what the code passes
+    enabled: bool = True
+    cap_usd: float | None = None          # total committed spend of this agent; None = no cap
+
+
+def agent_config(key: str) -> AgentConfig:
+    c = (load().get("agents") or {}).get(key) or {}
+    return AgentConfig(c.get("model"), c.get("reasoning_effort"), bool(c.get("enabled", True)),
+                       None if c.get("cap_usd") is None else float(c["cap_usd"]))
+
+
+def set_agent_config(key: str, cfg: AgentConfig) -> None:
+    from bmw_req.llm import agents, pricing
+
+    agent = agents.BY_KEY.get(key)
+    if agent is None:
+        raise ValueError(f"Unknown agent {key!r}.")
+    if cfg.model is not None and pricing.kind_of(cfg.model) != agent.kind:
+        raise ValueError(f"{cfg.model!r} is not a priced {agent.kind} model.")
+    if cfg.reasoning_effort is not None and (agent.kind != "responses" or cfg.reasoning_effort not in agents.EFFORTS):
+        raise ValueError("Reasoning effort must be low, medium or high (text models only).")
+    if cfg.cap_usd is not None and not 0 <= cfg.cap_usd <= MAX_STOP_AT_USD:
+        raise ValueError("The cap must be between $0 and the maximum stop.")
+    with _LOCK:
+        data = load()
+        all_ = data.setdefault("agents", {})
+        entry = {k: v for k, v in {"model": cfg.model, "reasoning_effort": cfg.reasoning_effort,
+                                   "enabled": None if cfg.enabled else False,
+                                   "cap_usd": cfg.cap_usd}.items() if v is not None}
+        if entry:
+            all_[key] = entry
+        else:
+            all_.pop(key, None)   # back to the code's defaults
+        _save(data)
+
+
+TIER_ENV = {"fast": "model_fast", "smart": "model_smart", "embed": "model_embed"}
+
+
+def tier_model(tier: str) -> str:
+    """The model behind a tier: set in the app, else OPENAI_MODEL_* from .env."""
+    return (load().get("tiers") or {}).get(tier) or getattr(get_settings(), TIER_ENV[tier])
+
+
+def set_tier_model(tier: str, model: str | None) -> None:
+    from bmw_req.llm import pricing
+
+    if tier not in TIER_ENV:
+        raise ValueError(f"Unknown tier {tier!r}.")
+    if model is not None and pricing.kind_of(model) != ("embeddings" if tier == "embed" else "responses"):
+        raise ValueError(f"{model!r} is not a priced model for the {tier} tier.")
+    with _LOCK:
+        data = load()
+        tiers = data.setdefault("tiers", {})
+        if model is None:
+            tiers.pop(tier, None)
+        else:
+            tiers[tier] = model
+        _save(data)
+
+
+def custom_models() -> dict[str, dict]:
+    """Models added in the app: {id: {kind, input, cached_input, output}} (USD per 1M tokens)."""
+    return load().get("models") or {}
+
+
+def set_custom_model(model_id: str, spec: dict | None) -> None:
+    with _LOCK:
+        data = load()
+        models = data.setdefault("models", {})
+        if spec is None:
+            models.pop(model_id, None)
+        else:
+            models[model_id] = spec
+        _save(data)

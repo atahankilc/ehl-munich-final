@@ -1,12 +1,10 @@
-// The Audit panel's Usage tab (the panel widens for it): every model call the app made, from `llm_usage`
-// (GET /api/usage). The key and spend limits on top (BudgetSettings, D-054), then three instrument figures (spend against
-// the stop, calls, tokens) with the spend
+// Usage details on the AI agents page (D-055): every model call the app made, from `llm_usage` (GET /api/usage).
+// Three instrument figures (spend against the stop, calls, tokens) with the spend
 // split by model; one bar per pipeline sized by its spend, the open one listing its steps in plain words with model,
 // calls, tokens and cost; the latest single calls and the price table behind a toggle.
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { BudgetSettings } from "./BudgetSettings";
 import "./usage.css";
 
 interface Step {
@@ -36,7 +34,7 @@ const MODEL: Record<string, { name: string; role: string }> = {
   "gpt-6-luna": { name: "GPT-6 Luna", role: "bulk" },
   "text-embedding-3-small": { name: "Embedding 3 small", role: "vectors" },
 };
-const modelName = (m: string) => MODEL[m]?.name ?? m;
+export const modelName = (m: string) => MODEL[m]?.name ?? m;
 const SHORT: Record<string, string> = { "gpt-6.1-sol": "Sol", "gpt-6-luna": "Luna", "text-embedding-3-small": "Embedding" };
 
 const PIPE_NAME: Record<string, { name: string; sub: string }> = {
@@ -81,8 +79,6 @@ export function UsageView() {
 
   return (
     <div className="usage">
-      <BudgetSettings />
-
       {/* ---------------------------------------------------------------- figures */}
       <section className="u-figures">
         <div className="u-fig u-fig-spend">

@@ -80,3 +80,14 @@
   .audit { top: 52px; right: 16px; max-height: calc(100vh - 220px); }
   .audit-head { padding: 18px 18px 6px; } .audit-list { padding: 0 18px 12px; } .audit-day { margin: 0 -18px; padding-left: 41px; } .audit-more { margin: 0 18px 14px; }
 }
+
+/* pills that are links (Agents, Audit on the sheet pages) */
+a.audit-btn { text-decoration: none; }
+a.audit-btn[aria-current="page"] { color: var(--ink); border-color: var(--hair-2); background: rgba(255, 255, 255, 0.06); }
+.audit-full { display: inline-flex; align-items: center; gap: 6px; justify-self: start; font-size: var(--t-label); color: var(--ink-2); text-decoration: none; }
+.audit-full:hover { color: var(--ink); }
+
+/* the trail on the Audit page: no panel, the sheet scrolls */
+.auditpage .audit-list { overflow: visible; padding: 0 0 14px; max-width: 860px; }
+.auditpage .audit-day { margin: 0; padding-left: 18px; top: 128px; }
+.auditpage .audit-more { margin: 0 0 26px; }

@@ -7,10 +7,12 @@ scope=structure  the agent's structure & context runs (classify, cluster, contex
 scope=definition the requirement-definition stages (benchmarks, define, specify, couple) and every AI step, plus the
                  PM's target choices and link reviews (D-048), for the selected checkpoint
 scope=all        everything in the audit trail (page views excluded) plus data loads and checkpoint runs
+Every row carries `area` (evidence / structure / definition / prioritize / settings / other) for the Audit page's filter.
 Every row says who acted (ai / system / human, model for AI), when, a one-line summary and its checkpoint if known.
 
 Separation by checkpoint: with `cp`, the evidence and structure scopes show only that checkpoint's rows; "all" shows
-both, each tagged. The classifier's A/B test ran on neither checkpoint and is tagged "ab" (shown in "all" only).
+both, each tagged — unless `only_cp=true` (the Audit page, D-055): then only that checkpoint's rows, and `cp=none` gives
+the rows tied to no checkpoint (settings, exports, …). The classifier's A/B test ran on neither checkpoint and is tagged "ab" (shown in "all" only).
 History before the checkpoint rebuild (the old wave-based app) stays in the append-only table but is left out unless
 `history=true`; the cutoff is the first checkpoint run.
 """
@@ -31,6 +33,7 @@ STRUCTURE_STAGES = ("classify", "cluster", "contextualize", "areas")
 DEFINITION_STAGES = ("benchmarks", "define", "specify", "couple")
 DEFINITION_ACTIONS = ("def_choice", "def_link_review")
 PRIO_ACTIONS = ("confirm_priority", "proposal_accepted", "proposal_rejected")
+PRIO_STAGES = ("gate", "prioritize")
 STAGE_NAME = {"acquire": "Sweep", "classify": "Classify", "cluster": "Cluster", "contextualize": "Contextualize", "areas": "Requirement areas",
               "benchmarks": "Benchmarks", "define": "Define requirements", "specify": "Specify targets", "couple": "Couple requirements"}
 
@@ -81,9 +84,28 @@ def _summary(action: str, entity_type: str, entity_id: str | None, payload: dict
     return (rationale or action.replace("_", " "))[:160]
 
 
+def _area(actor: str, action: str, entity_type: str | None, evidence: bool, structure: bool, definition: bool) -> str:
+    if entity_type == "setting":
+        return "settings"
+    if actor.startswith(tuple(f"structure.{s}" for s in PRIO_STAGES)) or actor == "prioritize" or action in PRIO_ACTIONS \
+            or action == "change_weights" or (entity_type or "").startswith(("prio_", "weights")):
+        return "prioritize"
+    if definition:
+        return "definition"
+    if structure:
+        return "structure"
+    return "evidence" if evidence else "other"
+
+
+def _run_area(stage: str) -> str:
+    return ("evidence" if stage == "acquire" else "definition" if stage in DEFINITION_STAGES
+            else "prioritize" if stage in PRIO_STAGES else "structure")
+
+
 @router.get("/feed")
 def feed(scope: str = Query("all", pattern="^(evidence|structure|definition|all)$"), cp: str | None = Query(None),
-         limit: int = Query(80, ge=1, le=500), before: str | None = Query(None), history: bool = Query(False)) -> dict:
+         limit: int = Query(80, ge=1, le=500), before: str | None = Query(None), history: bool = Query(False),
+         only_cp: bool = Query(False)) -> dict:
     with db() as conn:
         run_cp = {r[0]: r[1] for r in conn.execute("SELECT id, checkpoint_id FROM checkpoint_run")}
         since = None if history else conn.execute("SELECT MIN(started_at) FROM checkpoint_run").fetchone()[0]
@@ -128,7 +150,8 @@ def feed(scope: str = Query("all", pattern="^(evidence|structure|definition|all)
                                                  or _summary(r["action"], r["entity_type"], r["entity_id"], payload, r["rationale"]))
             items.append({"id": f"a{r['id']}", "ts": r["ts"], "actor_type": r["actor_type"], "actor": actor, "model": r["model"],
                           "kind": "structure" if is_structure else "event", "stage": actor.split(".", 1)[1] if is_structure else None,
-                          "action": r["action"], "payload": payload, "checkpoint": ecp, "summary": summary})
+                          "action": r["action"], "payload": payload, "checkpoint": ecp, "summary": summary,
+                          "area": _area(actor, r["action"], r["entity_type"], is_evidence, is_structure, is_definition)})
 
         # checkpoint runs: one row when a stage started and one when it finished
         for r in conn.execute("SELECT id, checkpoint_id, stage, parent_run_id, status, actor, started_at, finished_at, stats_json FROM checkpoint_run"):
@@ -138,7 +161,7 @@ def feed(scope: str = Query("all", pattern="^(evidence|structure|definition|all)
                 continue
             label = f"{STAGE_NAME.get(r['stage'], r['stage'])} · {BY_ID[r['checkpoint_id']].label}"
             base = {"actor_type": "system" if r["actor"] == "system" else "human", "actor": r["actor"], "model": None,
-                    "kind": "run", "stage": r["stage"], "checkpoint": r["checkpoint_id"], "payload": {}}
+                    "kind": "run", "stage": r["stage"], "checkpoint": r["checkpoint_id"], "payload": {}, "area": _run_area(r["stage"])}
             parent = f", building on run {r['parent_run_id']}" if r["parent_run_id"] else ""
             items.append({**base, "id": f"r{r['id']}s", "ts": r["started_at"], "action": "run_start",
                           "summary": f"{label} started (run {r['id']}{parent})"})
@@ -161,13 +184,15 @@ def feed(scope: str = Query("all", pattern="^(evidence|structure|definition|all)
                 for c, n in split.get(r["id"]) or [(None, None)]:
                     items.append({"id": f"b{r['id']}{c or ''}", "ts": r["ts"], "actor_type": "system", "actor": "ingest",
                                   "model": None, "kind": "load", "stage": None, "action": "load", "payload": {}, "checkpoint": c,
+                                  "area": "evidence",
                                   "summary": (f"Loaded {n:,} items for {BY_ID[c].label} · {what}" if c in BY_ID
                                               else f"Loaded {what}")[:160]})
 
         if since:
             items = [i for i in items if (i["ts"] or "") >= since]
-        if cp and scope != "all":
-            items = [i for i in items if i["checkpoint"] == cp]
+        if cp and (scope != "all" or only_cp):
+            want = None if cp == "none" else cp
+            items = [i for i in items if i["checkpoint"] == want]
         if before:
             items = [i for i in items if i["ts"] < before]
         items.sort(key=lambda i: i["ts"] or "", reverse=True)

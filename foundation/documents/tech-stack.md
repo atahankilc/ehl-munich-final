@@ -6,7 +6,7 @@
 |---|---|---|
 | LLM provider | **OpenAI** for models, embeddings and web search | D-006 |
 | Models | `gpt-6-luna` (bulk) · `gpt-6.1-sol` (reasoning) · `text-embedding-3-small` | D-010 |
-| Budget | Adjustable limits in the app (Usage tab): ask before spending above / stop at, default $45 / $90 (D-054). Prices and cost rules in D-014; running spend in `STATE.md` → Budget | D-010, D-014, D-054 |
+| Budget | Adjustable limits in the app (AI agents page): ask before spending above / stop at, default $45 / $90 (D-054). Prices and cost rules in D-014; running spend in `STATE.md` → Budget | D-010, D-014, D-054 |
 | Config | Model names via env (`OPENAI_MODEL_FAST/SMART/EMBED`), never hardcoded | AGENTS rule 12 |
 | All LLM calls | Go through one budget-guarded wrapper that logs usage | D-014 |
 | Language / runtime | Python 3.12 via `uv`; packages `backend/src/bmw_req/` (pipeline) + `backend/src/api/` (API); `uv run …` from `backend/` | D-020, D-052 |
@@ -48,8 +48,15 @@
 - API/connection errors settle at $0; any other failure after the request (e.g. parse error) keeps the worst case.
 - A crashed process leaves a `reserved` row that keeps counting — settle or delete it by hand.
 - Identical requests (same model, prompt, schema, params) are served from `llm_cache` at $0; pass `use_cache=False` to force a new call.
-- Audit → Usage shows spend and the usage log, and sets the API key and limits (`GET/PUT /api/settings`, `PUT /api/settings/openai-key` checks the key with a free `models.list` call; `DELETE` falls back to `.env`). Every change is an `audit_event` (entity `setting`), the key only masked.
+- The AI agents page (`/agents`) shows spend and the usage log, and sets the API key and limits (`GET/PUT /api/settings`, `PUT /api/settings/openai-key` checks the key with a free `models.list` call; `DELETE` falls back to `.env`). Every change is an `audit_event` (entity `setting`), the key only masked.
 
 ## Local machine notes
 
 System anaconda Python 3.9 has a broken pandas/numpy ABI → use `uv venv --python 3.12`. `openpyxl`, `pdftotext` and `pdftoppm` (homebrew) work.
+
+## AI agents and their settings (D-055)
+
+- `bmw_req.llm.agents`: the agent catalogue (job-name patterns → agent, with the code's tier / effort defaults).
+- `bmw_req.app_settings`: per-agent model / reasoning effort / on-off / spend cap, tier models, extra priced models — in `data/settings.json` next to the key and budget limits (D-054).
+- Applied in `LLM.generate()` / `.embed()` on every call; `budget.reserve()` refuses an agent that is off or over its cap (`AgentBlocked`).
+- UI: `/agents` (configure + usage) and `/audit` (whole trail per checkpoint); API `/api/agents`, `/api/audit/feed?scope=all&cp=…&only_cp=true`.

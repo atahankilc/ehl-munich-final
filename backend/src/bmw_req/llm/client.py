@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from bmw_req.config import get_settings
 from bmw_req.db import connect
 from bmw_req import app_settings
-from bmw_req.llm import budget
+from bmw_req.llm import agents, budget
 
 Tier = Literal["fast", "smart"]
 FLEX_TIMEOUT_S = 900.0
@@ -34,7 +34,7 @@ class LLM:
         self.client = client if client is not None else openai.OpenAI(api_key=app_settings.api_key())   # app key, else .env (D-054)
 
     def model_for(self, tier: Tier) -> str:
-        return {"fast": self.settings.model_fast, "smart": self.settings.model_smart}[tier]
+        return app_settings.tier_model(tier)   # set on the AI agents page, else .env (D-055)
 
     def generate(
         self,
@@ -61,7 +61,10 @@ class LLM:
             raise ValueError("max_output_tokens is required on every call (D-014)")
         if tools and not max_tool_calls:
             raise ValueError("Calls with tools need max_tool_calls (D-014 web-search cap)")
-        model = self.model_for(tier)
+        agent = agents.match(job)   # the agent's settings from the AI agents page (D-055)
+        cfg = app_settings.agent_config(agent.key) if agent else app_settings.AgentConfig()
+        model = cfg.model or self.model_for(tier)
+        reasoning_effort = cfg.reasoning_effort or reasoning_effort
         key = kwargs.pop("_cache_key_override", None) or _cache_key(
             model, instructions, input, schema, reasoning_effort, tools, max_tool_calls, max_output_tokens, kwargs)
         if use_cache:
@@ -143,7 +146,8 @@ class LLM:
         )
 
     def embed(self, texts: list[str], *, job: str, demo: bool = False) -> list[list[float]]:
-        model = self.settings.model_embed
+        agent = agents.match(job)
+        model = (app_settings.agent_config(agent.key).model if agent else None) or app_settings.tier_model("embed")
         reserved = budget.worst_case_usd(model, sum(budget.estimate_tokens(t) for t in texts))
         usage_id = budget.reserve(self.conn, job=job, kind="embeddings", model=model, reserved_usd=reserved, demo=demo)
         try:

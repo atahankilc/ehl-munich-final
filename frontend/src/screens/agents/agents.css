@@ -1,0 +1,55 @@
+/* AI agents page (D-055). Tables on hairlines like the Usage steps; the agent's name leads, numbers right-aligned and
+   tabular. Off agents dim; a cap shows as a thin bar that turns amber when reached (amber = "lost"/attention, never blue). */
+.agentspage .usage { padding: 0; }
+.agentspage .u-settings { border-bottom: 0; padding-bottom: 0; }
+.ag-error { font-size: var(--t-label); color: var(--lost); }
+.ag-h-usd { margin-left: 8px; font-weight: 500; letter-spacing: 0; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+.ag-table { display: grid; }
+.ag-row {
+  display: grid; grid-template-columns: minmax(0, 2.6fr) minmax(150px, 1.15fr) minmax(110px, 0.8fr) minmax(110px, 0.8fr) minmax(110px, 0.9fr) 44px;
+  gap: 14px; align-items: center; padding: 9px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: opacity var(--fast);
+}
+.ag-head { padding: 0 0 6px; font-size: var(--t-micro); color: var(--ink-3); border-bottom-color: var(--hair); }
+.ag-row[data-off] > :not(.ag-switch) { opacity: 0.42; }
+.ag-r { text-align: right; justify-self: end; }
+.ag-name { display: grid; gap: 2px; min-width: 0; }
+.ag-name b { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--ink); }
+.ag-name b svg { color: var(--ink-3); }
+.ag-name em { font-style: normal; font-size: var(--t-micro); line-height: 1.4; color: var(--ink-3); }
+.ag-dim { font-size: var(--t-label); color: var(--ink-3); }
+.ag-select { width: 100%; flex: none; padding-right: 4px; }
+.ag-spent { display: grid; gap: 2px; }
+.ag-spent b { font-size: 13px; font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; }
+.ag-spent em { font-style: normal; font-size: var(--t-micro); color: var(--ink-3); white-space: nowrap; }
+.ag-cap { display: grid; gap: 4px; }
+.ag-cap .u-money { width: 100%; }
+.ag-capbar { display: block; height: 2px; border-radius: 1px; background: var(--hair); overflow: hidden; }
+.ag-capbar b { display: block; height: 100%; background: var(--ink-2); }
+.ag-capbar b[data-full] { background: var(--lost); }
+
+/* on/off: a 28×16 switch, ink when on */
+.ag-switch { position: relative; width: 28px; height: 16px; justify-self: end; cursor: pointer; }
+.ag-switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.ag-switch i { position: absolute; inset: 0; border-radius: 99px; background: var(--hair-2); transition: background var(--fast); }
+.ag-switch i::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--ink-3); transition: transform var(--fast) var(--ease), background var(--fast); }
+.ag-switch input:checked + i { background: var(--ink-2); }
+.ag-switch input:checked + i::after { transform: translateX(12px); background: var(--void); }
+.ag-switch input:focus-visible + i { outline: 1px solid var(--sweep-hi); outline-offset: 2px; }
+
+.ag-tiers { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: end; }
+.ag-tiers .u-field { min-width: 220px; }
+
+.ag-models { display: grid; }
+.ag-mrow { display: grid; grid-template-columns: minmax(0, 1.6fr) 0.6fr 1fr 1.6fr 32px; gap: 14px; align-items: center; padding: 8px 0; font-size: var(--t-label); color: var(--ink-2); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+.ag-icon { width: 28px; padding: 0; display: grid; place-items: center; }
+.ag-add { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ag-add .ag-select { width: auto; }
+
+@media (max-width: 900px) {
+  .ag-row { grid-template-columns: minmax(0, 1fr) 44px; }
+  .ag-row > :nth-child(2), .ag-row > :nth-child(3), .ag-row > :nth-child(4) { grid-column: 1 / -1; }
+  .ag-head { display: none; }
+  .ag-mrow { grid-template-columns: minmax(0, 1fr) 32px; } .ag-mrow > :nth-child(2), .ag-mrow > :nth-child(3), .ag-mrow > :nth-child(4) { grid-column: 1; }
+}

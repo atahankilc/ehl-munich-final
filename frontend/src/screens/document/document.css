@@ -1,26 +1,15 @@
-/* Page 5, Document: a full-height reading sheet over page 4's scene, which sinks and dims behind it. Same world:
-   true black field, Mona Sans, numerals lead, hairlines, no cards or shadows; sweep blue only for the PM's marks. */
+/* Page 5, Document: a full-screen reading page (no 3D behind it). Same world: true black field, Mona Sans, numerals
+   lead, hairlines, no cards or shadows; sweep blue only for the PM's marks. */
 
-/* the scene steps back: sink + dim over ~300 ms, no pointer on the canvas while the sheet is up */
-.scan .scan-canvas { transition: opacity 300ms var(--ease), transform 300ms var(--ease); }
-.scan[data-mode="document"] .scan-canvas { opacity: 0.3; transform: translateY(5vh) scale(0.97); pointer-events: none; }
-.scan[data-mode="document"] :is(.ring-name, .ring-sub, .time-label, .ring-label, .theme-label, .area-label) { opacity: 0 !important; pointer-events: none; }
-.scan[data-mode="document"] .navpad { display: none; }
-
+/* full screen (D-056): the 3D scene is hidden and paused (Scan, data-full); the sheet is the page */
 .docsheet {
-  position: fixed; z-index: 10; top: calc(var(--edge) + 48px); bottom: calc(var(--edge) + 128px + env(safe-area-inset-bottom, 0px));
-  left: 50%; transform: translateX(-50%); width: min(1120px, calc(100vw - 2 * var(--edge)));
-  overflow-y: auto; padding: 0 28px 40px; background: var(--field); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  --feather: linear-gradient(to right, transparent, #000 18px, #000 calc(100% - 18px), transparent), linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
-  -webkit-mask-image: var(--feather); mask-image: var(--feather); -webkit-mask-composite: source-in; mask-composite: intersect;
-  animation: doc-in 300ms var(--ease); scrollbar-width: thin; scrollbar-color: var(--hair-2) transparent;
+  position: fixed; z-index: 10; inset: calc(var(--edge) + 48px) 0 0 0; overflow-y: auto;
+  padding: 0 max(var(--edge), calc((100vw - 1320px) / 2)) 48px; background: var(--void);
+  animation: page-in 200ms var(--ease); scrollbar-width: thin; scrollbar-color: var(--hair-2) transparent;
 }
-@keyframes doc-in { from { opacity: 0; transform: translate(-50%, 14px); } }
-@media (prefers-reduced-motion: reduce) {
-  .docsheet { animation: none; }
-  .scan .scan-canvas { transition: none; }
-}
-@media (max-width: 760px) { .docsheet { width: calc(100vw - 32px); padding: 0 12px 40px; } }
+@keyframes page-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .docsheet { animation: none; } }
+@media (max-width: 760px) { .docsheet { padding: 0 16px 40px; } }
 
 .docsheet .num { font-variation-settings: "wdth" 118; font-weight: 300; font-feature-settings: "tnum" 1; }
 .doc-small { font-size: var(--t-micro); color: var(--ink-3); line-height: 1.45; }

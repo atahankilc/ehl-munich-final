@@ -4,6 +4,12 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
 
 ## Open
 
+### Q-027 — Continuous data intake instead of fixed checkpoints (future)
+- Owner: Atahan · not blocking · raised 2026-10-11
+- Atahan: the two fixed checkpoints (D-040) will eventually go; new data should be digested automatically — e.g. a background agent that searches the web from time to time, and the user uploading new data into the knowledge base.
+- Open: how evidence is versioned without checkpoints (rolling snapshots? event time?), what a "run" is then, how the audit trail and the PM's decisions stay comparable over time, upload formats + validation + confidentiality (rule 1), and the cost cap for a background agent (D-054/D-055 limits apply).
+- Until then the Audit page and every screen keep the per-checkpoint separation (D-055).
+
 ### Q-026 — Gaps in the checkpoint research (D-040)
 - The agents' web-search quota ran out mid-run. Missing: China model-level sales (5 Series LWB / E-Class L / A6L; Gasgoo/CPCA rankings blocked), Japan & Korea market totals, UK/EU-wide model rankings (Dataforce/JATO), Genesis/Lincoln H1 2026, BMW 1/7 Series volumes in EU/CN, Chinese vs foreign brand share in China, China subsidy pauses, Germany EV-subsidy uptake, UK ZEV mandate, charging-cost vs fuel, in-car AI adoption data, OTA/subscriptions. Full list: `gaps` in `research/checkpoints/checkpoints.json`.
 - **China round 2 done (2026-10-11):** +207 items (china_models, china_market, china_context): FY2025/H1 2026 retail for A6L / E-Class / 5 Series, luxury registrations 7 Series / S-Class / S800 / Maybach S, domestic-brand share 64→69 %, luxury retail −30 % in H1, CPCA forecast cut, trade-in fund, L2/NOA standard, McKinsey 2026. Many China model figures are Yiche sums (T3, unverified). Still open: i7 China, BBA combined share, rear-screen/massage penetration, Roland Berger/Bain, Gasgoo (blocked).

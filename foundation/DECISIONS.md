@@ -60,6 +60,8 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-052 | Repo cleanup + monorepo layout: Streamlit app removed (completes D-039); `backend/` (Python) + `frontend/` (was `web/`) + `docs/pitch/`; root Makefile | accepted |
 | D-053 | Run profiles `APP_ENV` development/production; Docker image (targets dev/prod) + compose profiles, 127.0.0.1 only, no confidential data in images | accepted |
 | D-054 | Adjustable budget + API key in the app: ask-before-spending and stop limits, terminal/app confirmation, key in `data/settings.json` (amends D-014, rule 12/16) | accepted |
+| D-055 | AI agents page = source of truth for AI config (per-agent model / effort / on-off / spend cap, model tiers, priced models) + usage; Audit page (whole trail, one checkpoint at a time); audit panel slimmed | accepted |
+| D-056 | Document, AI agents and Audit are full-screen 2D pages: no 3D rendered behind them, own checkpoint switch, timeline hidden (supersedes D-051's sheet-over-scene) | accepted |
 
 Keep this index in sync when adding a decision.
 
@@ -603,3 +605,25 @@ Template:
   4. UI: Audit → Usage gets "OpenAI API key" and "Spend limits" above the figures; the budget bar is scaled to the stop with a mark at ask-before-spending.
 - Alternatives considered: key in `.env` written by the app (not persistent in containers, where `.env` is only an env_file); settings in `app.db` (snapshot restore would roll them back); a per-run estimate gate (no reliable per-run estimates yet).
 - Consequences: the app has no login (D-053 note) — anyone who can reach 127.0.0.1:8600 can change the key and limits; fine on localhost, must change before any shared deployment. Agents must not confirm spend or raise limits on their own (rule 16). The old wave/challenge API jobs don't take a confirm flag — they are unused by the frontend and slated for removal.
+
+## D-055 — AI agents page and Audit page
+- Date: 2026-10-11
+- Decided by: Atahan ("take the agents page out of the audit panel … configure which agents are used where and how much, with the usage data … a real source of truth"; "for auditing … its own page with all the audit logs together, checkpoints separated"); details by the agent
+- Status: accepted
+- Decision:
+  1. **Agent registry** `bmw_req.llm.agents`: 22 agents of the checkpoint pipeline (sources, structure, definition, prioritization), each matched to its `llm_usage.job` names, with the code's defaults (tier, reasoning effort, web search). Jobs of the earlier wave pipeline match no agent — history only, not configurable.
+  2. **Per-agent settings** in `data/settings.json` (`app_settings`, beside D-054's key and limits): model (else the tier's), reasoning effort (else the code's), on/off, spend cap (total committed spend of the agent). `LLM.generate()` / `.embed()` apply them on every call; the guard refuses an agent that is off or would pass its cap (`AgentBlocked`, a `BudgetExceeded`, so pipelines stop as on a budget stop). A changed model/effort is a new cache key.
+  3. **Model tiers** (fast / smart / embed) settable in the app (else `OPENAI_MODEL_*`), and **priced models**: built-in prices stay in code (D-014); new OpenAI models can be added with their list prices (`pricing.all_prices()`), removable only when unused.
+  4. API `/api/agents` (GET; PUT `/{key}`, PUT `/tiers`, POST/DELETE `/models`), every change an `audit_event` (entity `setting`).
+  5. **Pages**: "AI agents" (`/agents`) — key + limits, tiers, one table per pipeline (model, effort, cap with fill bar, on/off, spend, calls, last run), models & prices, usage details (the former Usage tab). "Audit" (`/audit`) — the whole trail for ONE checkpoint at a time (JAN 26 / JUL 26 follow the app's checkpoint; "No checkpoint" for settings, exports, checkpoint-agnostic steps), filter by area (evidence / structure / definition / prioritize / settings / other, new `area` on every feed row) and by who acted, history before the rebuild on request. Both are full-height sheets over the dimmed scene like Document; reached from top-right pills "Agents" and "Audit".
+  6. The top-right **Audit panel** stays as the quick look (current page, current checkpoint only — Prioritize no longer mixes both checkpoints) with a link to the Audit page; its "Everything" and "Usage" tabs are gone. Trail rendering shared in `components/auditTrail.tsx`.
+- Alternatives considered: agent config in code or `.env` (not a source of truth the PM can change); separate routes outside the 3D scene (would remount the canvas on every switch).
+- Consequences: agents must never change agent settings, tiers or prices on their own (rule 16). The bottom-left Agent activity box is unchanged. Continuous intake replacing checkpoints is future work (Q-027).
+
+## D-056 — Full-screen 2D pages, nothing rendered behind them
+- Date: 2026-10-11
+- Decided by: Atahan ("make documents and other non-3D UIs full screen. Do not render them in front of the model")
+- Status: accepted (replaces the sheet-over-dimmed-scene presentation of D-051 page 5 and D-055)
+- Decision: Document, AI agents and Audit fill the screen under the top band on an opaque black page (content ≤ 1320px, centred). The 3D canvas stays mounted but is hidden and paused (`frameloop="never"`), so it costs no GPU time and going back is instant; the 3D-only HUD (nav pad, hover card, inspector, checkpoint timeline) is not shown. Document gets its own JAN 26 / JUL 26 switch in its head (the Audit page already has one; AI agents needs none).
+- Alternatives considered: unmount the canvas (reload of the scene and 3D models on every return); keep the dimmed scene (Atahan: no).
+- Consequences: DESIGN.md "Document (page 5)" and the new "Full-screen 2D pages" section updated.
