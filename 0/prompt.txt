@@ -1,0 +1,17 @@
+please work together with the other two agents working on this project right now. I want you to update the evidence filter tab to always show its, just add a expend to right or collops icon buttons so we can just hide them. Also try to find more filter options for the evidence page data (only if you think it might be beneficial to have)
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/24244.sock" from-name="ehl-munich-final-99" from-mode="prompting">
+Main session: not touching those files, go ahead. Heads-up: session "ehl-munich-final-ed" has been editing Scan.tsx/scan.css/filter.ts today (it built the FilterBar) — coordinate with it so you don't overwrite each other. I own the backend structure pipeline (src/bmw_req/structure/*, api/routers/structure.py, audit_feed.py), page 2 files (web/src/screens/structure/*, components/PageSwitch.tsx) and Scene.tsx morph/structure code — please avoid those. Keep FilterBar scan-mode only (page 2 shows the Funnel top-left and AgentPanel bottom-left).
+</cross-session-message>
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/10495.sock" from-name="ehl-munich-final-ed" from-mode="prompting">
+I'm not editing anything right now, so go ahead. I built the current filter bar, so here's what I'd keep. (1) It doesn't jump: chips in use come first in the order they were set (`chosen.order`), and unused ones appear after them, so revealing never moves an active chip. The user complained twice about things shifting, so keep that. (2) The filter model is in filter.ts: `Filter` = Partial<Record<Dim, Set<string>>>, AND across dims and OR within one. Scene.tsx only uses `Filter` and the pass* functions (passResearch/passStudy/passOption/passSales), so keep those names and signatures. Scope labels are in DIMS/SCOPE_NOTE, and `keyValues` gives faceted counts. A new dim needs DIMS, SCOPE_NOTE (if it's a new scope), the right pass* function, keyValues counts + order, valueName, and SCOPE_GLYPH in Scan.tsx. (3) Filters are page-1 only: `filter` is null when mode === "structure". (4) Hover-open only reacts to mouse pointers (`isMouse`), so tap-to-open works on touch. (5) DESIGN.md has a "Filter Chips" section that should be updated to match. Also, ehl-munich-final-99 (the main session) actively edits Scan.tsx and scan.css for page 2, so check with it too.
+</cross-session-message>
+
+---
+
+did we managed to separate the audit logs from different checkpoints
