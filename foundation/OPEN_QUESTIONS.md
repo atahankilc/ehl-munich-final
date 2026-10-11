@@ -30,13 +30,6 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
   - **Neither sheet has sample sizes** — ask for n per model/market.
 - Needed to compare/normalize, and to judge whether differences are meaningful.
 
-### Q-007 — Team roles & who is the "PM" in the demo?
-- Owner: team
-
-### Q-008 — Hackathon logistics
-- Owner: team
-- Questions: submission deadline, demo length, required format (video/live/slides), judging criteria.
-
 ### Q-011 — How detailed can plant/platform reference data be?
 - Owner: team
 - Context: public sources give plant ↔ model/platform mapping and NK timing, rarely capacity or flexibility. Decide what granularity we claim, and mark the rest as assumptions.
@@ -82,6 +75,12 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
 - Options: (a) leave both as they are and show them in the text only; (b) proposals for decided requirements plus a confidence cut when contradicting web evidence exists. Recommendation: (b), if there's time before the demo.
 
 ## Resolved
+
+### Q-007 — Team roles & who is the "PM" in the demo? → **Atahan, solo**
+- Atahan 2026-10-11: the hackathon is over; Atahan continues the project alone and is the PM in the app.
+
+### Q-008 — Hackathon logistics → **moot, hackathon over**
+- Atahan 2026-10-11: no more deadline, demo format or judging; the project continues as Atahan's own improvement work.
 
 ### Q-021 — Linker over-linking → **same need, not same theme (option c, prompt part)** (D-038)
 - Atahan 2026-10-11: closed. The linker prompt now links only evidence about the same need and says that every web link raises the score. Still open: evidence on approved requirements becomes a proposal instead of a direct change (option b) → Q-024.

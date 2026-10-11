@@ -22,6 +22,7 @@ from api.deps import DB
 from api.routers import ROUTERS, STATIC_ROUTER
 from api.routers.static import WEB_DIST
 from bmw_req.config import ROOT
+from bmw_req.llm import budget
 
 PROFILES = ("development", "production")
 PROFILE = os.getenv("APP_ENV", "development")
@@ -30,6 +31,7 @@ if PROFILE not in PROFILES:
 HOST = os.getenv("API_HOST", "127.0.0.1")   # never 0.0.0.0 outside a container: BMW-confidential data (AGENTS rule 1)
 PORT = int(os.getenv("API_PORT", "8600"))
 RELOAD = os.getenv("API_RELOAD", "1" if PROFILE == "development" else "0") == "1"
+budget.INTERACTIVE = False   # API jobs confirm spend in the app, never on the server's terminal (D-054)
 
 log = logging.getLogger("api")
 

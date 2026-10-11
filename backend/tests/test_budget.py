@@ -7,7 +7,8 @@ import openai
 import pytest
 
 from bmw_req.db import connect
-from bmw_req.llm import LLM, BudgetExceeded, budget
+from bmw_req import app_settings
+from bmw_req.llm import LLM, BudgetExceeded, BudgetNeedsConfirmation, budget
 
 
 def fake_response(input_tokens=1000, cached=0, cache_write=0, output=200, reasoning=50, tier="default", searches=0):
@@ -97,12 +98,61 @@ def test_tools_need_max_tool_calls(conn):
         make_llm(conn).generate(job="t", tier="fast", input="x", max_output_tokens=10, tools=[{"type": "web_search"}])
 
 
-def test_non_demo_blocked_above_70_demo_allowed(conn):
-    preload(conn, 69.999)
+def test_past_confirm_limit_needs_confirmation(conn):
+    preload(conn, 45.5)   # default ask-before-spending limit is $45
     llm = make_llm(conn)
-    with pytest.raises(BudgetExceeded, match="Non-demo"):
-        llm.generate(job="t", tier="smart", input="x" * 1000, max_output_tokens=1000)
-    llm.generate(job="t", tier="smart", input="x" * 1000, max_output_tokens=1000, demo=True)
+    with pytest.raises(BudgetNeedsConfirmation, match="ask-before-spending"):
+        llm.generate(job="t", tier="smart", input="x", max_output_tokens=100, use_cache=False)
+    assert conn.execute("SELECT COUNT(*) FROM llm_usage").fetchone()[0] == 1   # nothing reserved
+    with budget.approved():   # an API job the user confirmed in the app
+        llm.generate(job="t", tier="smart", input="x", max_output_tokens=100, use_cache=False)
+
+
+def test_budget_confirm_env_confirms_up_front(conn, monkeypatch):
+    preload(conn, 45.5)
+    monkeypatch.setenv("BUDGET_CONFIRM", "1")
+    make_llm(conn).generate(job="t", tier="smart", input="x", max_output_tokens=100)
+
+
+@pytest.mark.parametrize("answer, ok", [("y", True), ("", False), ("n", False)])
+def test_terminal_asks_once_per_run(conn, monkeypatch, answer, ok):
+    preload(conn, 45.5)
+    asked = []
+    monkeypatch.setattr(budget, "INTERACTIVE", True)
+    monkeypatch.setattr(budget.sys, "stdin", NS(isatty=lambda: True))
+    monkeypatch.setattr("builtins.input", lambda prompt: asked.append(prompt) or answer)
+    llm = make_llm(conn)
+    if ok:
+        llm.generate(job="t", tier="smart", input="a", max_output_tokens=100, use_cache=False)
+        llm.generate(job="t", tier="smart", input="b", max_output_tokens=100, use_cache=False)
+        assert len(asked) == 1   # the yes covers the rest of the run
+    else:
+        with pytest.raises(BudgetNeedsConfirmation, match="Not confirmed"):
+            llm.generate(job="t", tier="smart", input="a", max_output_tokens=100, use_cache=False)
+
+
+def test_limits_come_from_settings(conn):
+    app_settings.set_budget_limits(5, 10)
+    preload(conn, 9.999)
+    with pytest.raises(BudgetExceeded, match="Budget stop"):   # stop wins: no question for a call that can't run
+        make_llm(conn).generate(job="t", tier="smart", input="x", max_output_tokens=1000)
+
+
+def test_invalid_limits_refused():
+    with pytest.raises(ValueError):
+        app_settings.set_budget_limits(20, 10)
+    with pytest.raises(ValueError):
+        app_settings.set_budget_limits(5, 0)
+
+
+def test_app_key_wins_over_env_and_is_masked(monkeypatch):
+    monkeypatch.setattr(app_settings, "get_settings", lambda: NS(openai_api_key="sk-env-0000000000000000000", data_dir=None))
+    assert app_settings.key_source() == "env"
+    app_settings.set_api_key("sk-app-1111111111111111abcd")
+    assert app_settings.api_key() == "sk-app-1111111111111111abcd" and app_settings.key_source() == "app"
+    assert app_settings.mask(app_settings.api_key()) == "sk-…abcd"
+    app_settings.set_api_key(None)
+    assert app_settings.api_key() == "sk-env-0000000000000000000"
 
 
 def test_identical_request_served_from_cache(conn):
@@ -114,9 +164,9 @@ def test_identical_request_served_from_cache(conn):
     assert conn.execute("SELECT COUNT(*) FROM llm_usage").fetchone()[0] == 1
 
 
-def test_hard_stop_applies_to_demo(conn):
+def test_stop_applies_even_when_confirmed(conn):
     preload(conn, 89.999)
-    with pytest.raises(BudgetExceeded, match="Hard stop"):
+    with budget.approved(), pytest.raises(BudgetExceeded, match="Budget stop"):
         make_llm(conn).generate(job="t", tier="smart", input="x", max_output_tokens=1000, demo=True)
 
 

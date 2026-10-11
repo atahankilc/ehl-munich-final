@@ -6,7 +6,7 @@
 |---|---|---|
 | LLM provider | **OpenAI** for models, embeddings and web search | D-006 |
 | Models | `gpt-6-luna` (bulk) · `gpt-6.1-sol` (reasoning) · `text-embedding-3-small` | D-010 |
-| Budget | $100 total. Plan, prices, thresholds and cost rules live in **D-014 only** (not repeated here); running spend in `STATE.md` → Budget | D-010, D-014 |
+| Budget | Adjustable limits in the app (Usage tab): ask before spending above / stop at, default $45 / $90 (D-054). Prices and cost rules in D-014; running spend in `STATE.md` → Budget | D-010, D-014, D-054 |
 | Config | Model names via env (`OPENAI_MODEL_FAST/SMART/EMBED`), never hardcoded | AGENTS rule 12 |
 | All LLM calls | Go through one budget-guarded wrapper that logs usage | D-014 |
 | Language / runtime | Python 3.12 via `uv`; packages `backend/src/bmw_req/` (pipeline) + `backend/src/api/` (API); `uv run …` from `backend/` | D-020, D-052 |
@@ -37,17 +37,18 @@
 
 ## Env & secrets
 
-`.env` (git-ignored) holds `OPENAI_API_KEY` (provided by Atahan), `OPENAI_MODEL_FAST/SMART/EMBED`, `RAW_DATA_DIR` and `DATA_DIR`; template in `.env.example`. Budget thresholds are constants in `bmw_req/llm/budget.py` (D-014), not env vars.
+`.env` (git-ignored) holds `OPENAI_API_KEY` (provided by Atahan), `OPENAI_MODEL_FAST/SMART/EMBED`, `RAW_DATA_DIR` and `DATA_DIR`; template in `.env.example`. The app can save its own API key and the budget limits in `data/settings.json` (`bmw_req.app_settings`, D-054); a key saved there wins over `.env`.
 
 ## Budget guard (as built)
 
 - `bmw_req.llm.LLM.generate()` / `.embed()` are the only way to call OpenAI.
-- Each call reserves its worst case in `llm_usage` first (input ≈ UTF-8 bytes ÷ 2, + `max_output_tokens`, + `max_tool_calls` × ($0.01 + 20k content tokens)), at list price. Thresholds apply to settled cost + open reservations.
+- Each call reserves its worst case in `llm_usage` first (input ≈ UTF-8 bytes ÷ 2, + `max_output_tokens`, + `max_tool_calls` × ($0.01 + 20k content tokens)), at list price. Limits apply to settled cost + open reservations.
+- Limits (D-054), read on every call from `app_settings`: above **stop at** no call is made; above **ask before spending** a run must be confirmed once — a `[y/N]` prompt in a terminal, `BUDGET_CONFIRM=1` up front, or `budget.approved()` for an API job the user confirmed. The API never prompts on its own terminal (`budget.INTERACTIVE = False`). Otherwise the call fails with `BudgetNeedsConfirmation`.
 - After the call, the row is settled with actual tokens (cached, cache-write, reasoning), search calls and cost. Flex is discounted only if the response confirms `service_tier == "flex"`.
 - API/connection errors settle at $0; any other failure after the request (e.g. parse error) keeps the worst case.
 - A crashed process leaves a `reserved` row that keeps counting — settle or delete it by hand.
 - Identical requests (same model, prompt, schema, params) are served from `llm_cache` at $0; pass `use_cache=False` to force a new call.
-- The Process → System screen (and `GET /api/budget`) shows spend, committed and the usage log.
+- Audit → Usage shows spend and the usage log, and sets the API key and limits (`GET/PUT /api/settings`, `PUT /api/settings/openai-key` checks the key with a free `models.list` call; `DELETE` falls back to `.env`). Every change is an `audit_event` (entity `setting`), the key only masked.
 
 ## Local machine notes
 

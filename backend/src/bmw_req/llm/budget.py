@@ -1,10 +1,20 @@
-"""Budget guard (D-014): reserve worst-case cost before a call, settle with actual usage after.
+"""Budget guard (D-014, limits adjustable D-054): reserve worst-case cost before a call, settle with actual usage after.
 
-Thresholds are on total committed spend = settled cost + open reservations.
+Limits are on total committed spend = settled cost + open reservations, read from `app_settings` on every call:
+- above `stop_at_usd` no call is made (BudgetExceeded);
+- above `confirm_above_usd` a run must be confirmed once before it spends. In a terminal the run asks (y/N);
+  `BUDGET_CONFIRM=1` confirms up front; the API confirms a job with `approved()` when the user said yes in the app.
+  Otherwise the call is refused with BudgetNeedsConfirmation.
 """
 
 import logging
+import os
 import sqlite3
+import sys
+import threading
+from contextlib import contextmanager
+
+from bmw_req import app_settings
 
 from bmw_req.llm.pricing import (
     CACHE_WRITE_FACTOR,
@@ -17,13 +27,54 @@ from bmw_req.llm.pricing import (
 
 log = logging.getLogger(__name__)
 
-WARN_USD = 45.0
-BLOCK_NON_DEMO_USD = 70.0
-HARD_STOP_USD = 90.0
+# Terminal prompts only where a person is watching the terminal: the API sets this False (its jobs confirm in the app).
+INTERACTIVE = True
+
+_CONFIRM_LOCK = threading.Lock()   # pipeline workers share one prompt
+_confirmed = False                 # this process may spend past confirm_above (until stop_at)
 
 
 class BudgetExceeded(RuntimeError):
     pass
+
+
+class BudgetNeedsConfirmation(BudgetExceeded):
+    """Spend would pass the ask-before-spending limit and nobody confirmed this run."""
+
+
+@contextmanager
+def approved():
+    """Spend past the ask-before-spending limit is confirmed for the duration (an API job the user confirmed)."""
+    global _confirmed
+    prev, _confirmed = _confirmed, True
+    try:
+        yield
+    finally:
+        _confirmed = prev
+
+
+def needs_confirmation(conn: sqlite3.Connection) -> bool:
+    """True when the next call would need a confirmation (committed spend is already past the limit)."""
+    return committed_usd(conn) > app_settings.budget_limits().confirm_above_usd and not _confirmed
+
+
+def _confirm(after: float, limits: app_settings.BudgetLimits, job: str) -> None:
+    global _confirmed
+    with _CONFIRM_LOCK:
+        if _confirmed:
+            return
+        if os.getenv("BUDGET_CONFIRM", "").lower() in ("1", "yes", "true"):
+            _confirmed = True
+            return
+        msg = (f"Committed OpenAI spend would reach ${after:.2f}, past your ask-before-spending limit "
+               f"${limits.confirm_above_usd:.2f} (hard stop ${limits.stop_at_usd:.2f}). Job: {job}.")
+        if INTERACTIVE and sys.stdin is not None and sys.stdin.isatty():
+            answer = input(f"{msg}\nContinue this run? [y/N] ").strip().lower()
+            if answer in ("y", "yes"):
+                _confirmed = True
+                return
+            raise BudgetNeedsConfirmation(f"Not confirmed: {msg}")
+        raise BudgetNeedsConfirmation(f"{msg} Confirm the run (in the app, or BUDGET_CONFIRM=1 in a terminal).")
 
 
 def price_for(model: str) -> Price:
@@ -79,14 +130,24 @@ def committed_usd(conn: sqlite3.Connection) -> float:
 
 
 def reserve(conn: sqlite3.Connection, *, job: str, kind: str, model: str, reserved_usd: float, demo: bool) -> int:
-    """Insert a reservation row, or raise BudgetExceeded if it would cross a threshold."""
+    """Insert a reservation row, or raise BudgetExceeded / BudgetNeedsConfirmation if it would cross a limit."""
+    limits = app_settings.budget_limits()
+
+    def stop_if_over(after: float) -> None:
+        if after > limits.stop_at_usd:
+            raise BudgetExceeded(f"Budget stop: ${after:.2f} would exceed ${limits.stop_at_usd:.2f} ({job}). "
+                                 "Raise the stop in the app's Usage tab to continue.")
+
+    # stop first (never ask about a call that can't run), then ask — outside the write transaction,
+    # so a prompt never holds the DB lock
+    after = committed_usd(conn) + reserved_usd
+    stop_if_over(after)
+    if after > limits.confirm_above_usd:
+        _confirm(after, limits, job)
     conn.execute("BEGIN IMMEDIATE")
     try:
         after = committed_usd(conn) + reserved_usd
-        if after > HARD_STOP_USD:
-            raise BudgetExceeded(f"Hard stop: ${after:.2f} would exceed ${HARD_STOP_USD:.0f} ({job})")
-        if not demo and after > BLOCK_NON_DEMO_USD:
-            raise BudgetExceeded(f"Non-demo jobs blocked: ${after:.2f} would exceed ${BLOCK_NON_DEMO_USD:.0f} ({job})")
+        stop_if_over(after)
         cur = conn.execute(
             "INSERT INTO llm_usage (job, demo, kind, model, status, reserved_usd) VALUES (?, ?, ?, ?, 'reserved', ?)",
             (job, int(demo), kind, model, reserved_usd),
@@ -95,8 +156,6 @@ def reserve(conn: sqlite3.Connection, *, job: str, kind: str, model: str, reserv
     except BaseException:
         conn.execute("ROLLBACK")
         raise
-    if after > WARN_USD:
-        log.warning("LLM spend warning: committed $%.2f > $%.0f — re-estimate the plan (D-014)", after, WARN_USD)
     return cur.lastrowid
 
 

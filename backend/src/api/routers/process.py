@@ -21,6 +21,7 @@ from api.deps import DB, LOCK, conflict, db, get_actor, need_rationale, not_foun
 from api.queries import current_wave, latest_extractor, loads, parse_key, run_waves, spend_by_prefix, tkey
 from bmw_req import service
 from bmw_req.config import ROOT, get_settings
+from bmw_req.app_settings import budget_limits
 from bmw_req.llm import budget
 from bmw_req.pipeline import scoring
 from bmw_req.pipeline.requirements import audit
@@ -389,8 +390,7 @@ def budget_view() -> dict:
         by_status = [dict(r) for r in conn.execute(
             "SELECT status, COUNT(*) calls, COALESCE(SUM(cost_usd), 0) usd FROM llm_usage GROUP BY 1")]
     return {"spent": round(spent, 4), "committed": round(committed, 4), "total": 100.0,
-            "thresholds": {"warn": budget.WARN_USD, "block_non_demo": budget.BLOCK_NON_DEMO_USD,
-                           "hard_stop": budget.HARD_STOP_USD},
+            "thresholds": {"confirm_above": budget_limits().confirm_above_usd, "hard_stop": budget_limits().stop_at_usd},
             "calls": calls, "cache_entries": cache, "by_job": by_job, "by_group": by_group, "by_model": by_model,
             "by_status": by_status}
 

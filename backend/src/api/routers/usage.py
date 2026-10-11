@@ -16,6 +16,7 @@ from collections import defaultdict
 from fastapi import APIRouter, Query
 
 from api.deps import db
+from bmw_req.app_settings import budget_limits
 from bmw_req.llm import budget
 from bmw_req.llm.pricing import FLEX_FACTOR, PRICES
 
@@ -94,8 +95,8 @@ def usage(limit: int = Query(60, ge=1, le=500)) -> dict:
               for r in reversed(rows[-limit:])]
 
     return {
-        "budget": {"cap": 100.0, "spent": round(spent, 4), "committed": round(committed, 4),
-                   "warn": budget.WARN_USD, "block_non_demo": budget.BLOCK_NON_DEMO_USD, "hard_stop": budget.HARD_STOP_USD},
+        "budget": {"spent": round(spent, 4), "committed": round(committed, 4),
+                   "confirm_above": budget_limits().confirm_above_usd, "stop_at": budget_limits().stop_at_usd},
         "by_model": {m: round(sum(g["usd"] for g in groups.values() if g["model"] == m), 4)
                      for m in sorted({g["model"] for g in groups.values()})},
         "totals": {"calls": len(rows), "failed": sum(r["status"] == "failed" for r in rows),

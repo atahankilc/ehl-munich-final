@@ -1,10 +1,12 @@
 // The Audit panel's Usage tab (the panel widens for it): every model call the app made, from `llm_usage`
-// (GET /api/usage). Three instrument figures on top (spend against the $100 budget, calls, tokens) with the spend
+// (GET /api/usage). The key and spend limits on top (BudgetSettings, D-054), then three instrument figures (spend against
+// the stop, calls, tokens) with the spend
 // split by model; one bar per pipeline sized by its spend, the open one listing its steps in plain words with model,
 // calls, tokens and cost; the latest single calls and the price table behind a toggle.
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { BudgetSettings } from "./BudgetSettings";
 import "./usage.css";
 
 interface Step {
@@ -18,7 +20,7 @@ interface Call {
   input_tokens: number | null; output_tokens: number | null; response_id: string | null; error: string | null;
 }
 interface Usage {
-  budget: { cap: number; spent: number; committed: number; warn: number; block_non_demo: number; hard_stop: number };
+  budget: { spent: number; committed: number; confirm_above: number; stop_at: number };
   by_model: Record<string, number>;
   totals: { calls: number; failed: number; input_tokens: number; cached_tokens: number; output_tokens: number; first: string | null; last: string | null };
   prices: Record<string, { input: number; cached_input: number; output: number }>;
@@ -79,16 +81,18 @@ export function UsageView() {
 
   return (
     <div className="usage">
+      <BudgetSettings />
+
       {/* ---------------------------------------------------------------- figures */}
       <section className="u-figures">
         <div className="u-fig u-fig-spend">
           <span className="label">Spent</span>
           <span className="num">{usd(b.spent)}</span>
-          <div className="u-budget" role="img" aria-label={`${usd(b.spent)} of $${b.cap}`}>
-            <i style={{ width: pct(b.spent, b.cap) }} />
-            {[b.warn, b.block_non_demo, b.hard_stop].map((v) => <span key={v} style={{ left: pct(v, b.cap) }} />)}
+          <div className="u-budget" role="img" aria-label={`${usd(b.spent)} of the $${b.stop_at} stop`}>
+            <i style={{ width: pct(b.spent, b.stop_at) }} />
+            <span style={{ left: pct(b.confirm_above, b.stop_at) }} />
           </div>
-          <span className="u-sub">of ${b.cap.toFixed(0)} · guard warns at ${b.warn}, stops at ${b.hard_stop}</span>
+          <span className="u-sub">stops at ${b.stop_at.toFixed(0)} · asks before spending above ${b.confirm_above.toFixed(0)}</span>
         </div>
         <div className="u-fig">
           <span className="label">Calls</span>

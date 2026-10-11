@@ -4,22 +4,22 @@ _Last updated: 2026-10-11_
 
 ## Current phase
 
-**Phase 2 — End-to-end demo built (2026-10-10).** Atahan delegated the whole challenge to the agent ("full power, sole competitor").
+**Phase 3 — Post-hackathon (from 2026-10-11).** The hackathon is over; Atahan continues the project solo to improve it. No submission deadline or judges any more — demo-first shortcuts (AGENTS rule 18) are no longer the main constraint. Rules on confidential BMW data (rule 1) still apply.
+
+_Earlier:_ **Phase 2 — End-to-end demo built (2026-10-10).** Atahan delegated the whole challenge to the agent ("full power, sole competitor").
 - Evidence layer complete: 10,128 verbatims (extract-v3, D-024), customer study (391 items), sales, option lists (458 items), reference layer (96 cited sources), web research (219 cited items, 152 web findings).
 - Findings: verbatim clusters G60 243 · F70 166 · G70 242 (D-025), 391 study findings (D-026).
 - Requirements pipeline: derivation (sol, derive-v6) → portfolio consolidation → dedup vs backlog (D-035) → evidence linker → fit checks → scoring v3 → change proposals, orchestrated per simulated wave (LangGraph, D-027–D-029). D-038: defects go to a Quality hand-over page instead of becoming requirements, strict merging, markets without comments can't outrank evidenced ones, one priority for Expected needs.
 - PM app (Streamlit, D-032, restructured D-036, D-037: Home → How it works → Review → Priorities by market → AI suggestions, plus detail pages, Quality hand-over (D-038) and a demo tour) with approve/reject/defer/edit/challenge/override/priority/inbox, audit trail, export.
 - Demo states via `backend/scripts/demo_state.py` + `backend/scripts/demo_build.py` (snapshots `evidence`, `wave1`, `demo`).
 
-## Team & logistics (fill in — Q-007, Q-008)
+## Team & logistics (Q-007, Q-008 resolved 2026-10-11)
 
 | Item | Value |
 |---|---|
-| Team members & roles | _TODO_ |
-| Who plays the PM in the demo | _TODO_ |
-| Submission deadline | _TODO_ |
-| Demo format / length | _TODO_ |
-| Judging criteria (beyond the brief) | _TODO_ |
+| Team | Atahan, solo (post-hackathon) |
+| PM in the app | Atahan |
+| Deadline / judging | none — hackathon over |
 
 ## Minimal demo path (decided, D-021)
 
@@ -77,14 +77,13 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 3. Quality levers (benchmarks in `data/eval/`): judge "measurable" (3.5) and "evidence-grounded" (3.6) are the weakest dimensions; top-20 pain coverage 65–75% after wave 1 (rest picked up in waves 2/3).
 4. Optional: async/background wave runs in the UI (currently blocking), wave-3 derivation cap (it still adds ~11 requirements).
 
-## Budget (OpenAI, $100 total — plan in D-014)
+## Budget (OpenAI — limits adjustable in the app, D-054; was $100 total, D-014)
 
 | Item | Value |
 |---|---|
 | Spent to date | **$10.95** (2026-10-11 10:05: +$2.67 requirement definition D-048 so far — define cp1 $0.90 incl. failed reservations, specify cp1 runs 22/23/25 ≈ $1.0, benchmarks extraction $0.02 + gap research $0.39, couple cp1; +$0.12 D-047 relink cp1+cp2 + embeddings; failed calls hold ≈ $0.35 worst-case reservations, not billed tokens) — was **$8.22** (+$0.84 structure & context pipeline D-043: classify $0.57 incl. A/B + both checkpoints + source mapping, areas $0.19, contextualize $0.08, embeddings $0.01; +$0.009 comment galaxy D-041) — was $7.37 (2026-10-10; +$0.06 validation, +$0.45 dedup demo rebuild D-035): derivation $2.38 (incl. prompt iterations v2–v6, 4 wave-1 runs, waves 2–3 ×2), web research $1.69, fit checks $0.55, extraction $0.52, linker $0.23, recheck $0.13, benchmarks $0.09, challenge $0.08, consolidation $0.08, other $0.12, **plus a $1.00 reconciliation row** (usage rows lost in a failed demo restore, upper-bound estimate; bug fixed). Source of truth: `llm_usage` / Budget page |
 | Planned build spend | ≈ $60 (≈ $48 + 25% contingency) |
-| Warn / block non-demo / app hard stop | $45 / $70 / $90 |
-| Demo-day reserve | $20 ($70 → $90) |
+| Ask before spending / stop (app settings, D-054) | $45 / $90 (defaults; Atahan changes them in Audit → Usage) |
 | OpenAI project hard limit | $95 (to set by Atahan, + $45 alert) |
 
 ## Pilot results (2026-10-10, `scripts/pilot.py`, outputs in `data/pilot/`)
@@ -191,3 +190,4 @@ Update the budget table after every paid run. Once the app exists, the source of
 - 2026-10-11 — Audit: page-4 rows now say what the PM decided — `confirm_priority` → "PM set Must for <requirement> (1 Series · EU), AI had Should — “reason”", proposal accept/reject name the band move and target, weight changes name the version (`api/routers/audit_feed.py` `_prio_summary`); these rows are tagged with their checkpoint. API restarted (nothing was running).
 - 2026-10-11 — Repo cleanup + monorepo layout (D-052): legacy Streamlit app (`app.py`, `ui/`, `.streamlit/`, `streamlit` dep) removed; unused npm deps `cmdk`, `motion` removed; `httpx`, `numpy` declared, `pitch` dependency group; `backend/` (src/bmw_req, src/api, tests, scripts, pyproject, uv.lock), `frontend/` (was `web/`), `docs/pitch/`; root `Makefile`. Tests unchanged (122 pass, same 3 pre-existing `test_api` failures).
 - 2026-10-11 — Run profiles + containers (D-053): `APP_ENV` development/production in `backend/src/api/main.py` (env `API_HOST`/`API_PORT`/`API_RELOAD`), Vite reads `API_URL`/`VITE_HOST`; `Dockerfile` (targets dev/prod), `compose.yaml` (profiles dev/prod, 127.0.0.1 only, `data/` mounted), allowlist `.dockerignore`; Makefile `serve`/`up`/`up-dev`/`down`/`logs`. Verified: image has no raw data/DB/.env; prod healthy, dev reloads on save. Prod container left running (`restart: unless-stopped`).
+- 2026-10-11 — Post-hackathon (Phase 3, Q-007/Q-008 closed). Adjustable budget + API key in the app (D-054): `bmw_req.app_settings` (`data/settings.json`, 0600), guard asks before spending above a limit (terminal y/N, `BUDGET_CONFIRM=1`, `budget.approved()` for API jobs) and stops at a limit; `/api/settings`; Audit → Usage "OpenAI API key" + "Spend limits"; block-non-demo threshold dropped. 135 tests (+10), same 3 old `test_api` failures. Old-pipeline dependency map done (agent) — basis for retiring waves (next).

@@ -10,6 +10,22 @@
 .u-num { font-variant-numeric: tabular-nums; }
 .u-dim { color: var(--ink-3); font-variant-numeric: tabular-nums; }
 
+/* budget and API key (D-054) */
+.u-settings { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; padding-bottom: 18px; border-bottom: 1px solid var(--hair); }
+.u-set { display: grid; gap: 8px; align-content: start; }
+.u-set-state { font-size: 13px; line-height: 1.45; color: var(--ink-2); }
+.u-set-state b { font-weight: 500; color: var(--ink); }
+.u-set-row { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
+.u-field { display: grid; gap: 4px; font-size: var(--t-micro); color: var(--ink-3); }
+.u-input { height: 28px; min-width: 0; flex: 1 1 160px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--hair); background: var(--field); color: var(--ink); font: inherit; font-size: var(--t-label); }
+.u-input:focus-visible { outline: none; border-color: var(--sweep-hi); }
+.u-money { width: 10ch; flex: none; font-variant-numeric: tabular-nums; }
+.u-btn { height: 28px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--hair); background: rgba(0, 0, 0, 0.6); font-size: var(--t-label); color: var(--ink-2); transition: color var(--fast), border-color var(--fast), background var(--fast); }
+.u-btn:hover:not(:disabled) { color: var(--ink); border-color: var(--hair-2); }
+.u-btn.primary { color: var(--ink); border-color: var(--hair-2); background: rgba(255, 255, 255, 0.07); }
+.u-btn:disabled { opacity: 0.4; cursor: default; }
+.u-sub[data-error] { color: var(--lost); }
+
 /* figures */
 .u-figures { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 28px; }
 .u-fig { display: grid; gap: 6px; align-content: start; }
@@ -69,6 +85,7 @@
 .u-prices b { font-weight: 500; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 
 @media (max-width: 760px) {
+  .u-settings { grid-template-columns: 1fr; }
   .u-figures { grid-template-columns: 1fr 1fr; } .u-fig-spend { grid-column: 1 / -1; }
   .u-pipes { grid-template-columns: 1fr 1fr; }
   .u-row { grid-template-columns: minmax(0, 2fr) 0.8fr 1fr; } .u-row > :nth-child(3), .u-row > :nth-child(4) { display: none; }

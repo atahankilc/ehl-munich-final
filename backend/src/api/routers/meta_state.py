@@ -6,6 +6,7 @@ from api import jobs, labels as L
 from api.deps import db
 from api.queries import current_wave, target_obj, tkey
 from bmw_req.car_zones import ZONES
+from bmw_req.app_settings import budget_limits
 from bmw_req.llm import budget
 from bmw_req.pipeline import scoring
 from bmw_req.pipeline.waves import WAVES
@@ -58,8 +59,7 @@ def state() -> dict:
     return {
         "current_wave": w, "wave": WAVES.get(w), "next_wave": nxt, "waves_opened": opened,
         "spend_usd": round(float(spend), 4),
-        "budget": {"warn": budget.WARN_USD, "block_non_demo": budget.BLOCK_NON_DEMO_USD,
-                   "hard_stop": budget.HARD_STOP_USD, "total": 100.0},
+        "budget": {"confirm_above": budget_limits().confirm_above_usd, "hard_stop": budget_limits().stop_at_usd},
         "running_job": jobs.running(),
         "counts": {"to_review": sum(st.get(s, 0) for s in L.REVIEW_STATUSES),
                    "open_proposals": sum(by_kind.values()), "open_by_kind": by_kind,

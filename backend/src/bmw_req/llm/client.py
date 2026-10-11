@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 from bmw_req.config import get_settings
 from bmw_req.db import connect
+from bmw_req import app_settings
 from bmw_req.llm import budget
 
 Tier = Literal["fast", "smart"]
@@ -30,7 +31,7 @@ class LLM:
     def __init__(self, conn=None, client=None):
         self.settings = get_settings()
         self.conn = conn if conn is not None else connect()
-        self.client = client if client is not None else openai.OpenAI(api_key=self.settings.openai_api_key)
+        self.client = client if client is not None else openai.OpenAI(api_key=app_settings.api_key())   # app key, else .env (D-054)
 
     def model_for(self, tier: Tier) -> str:
         return {"fast": self.settings.model_fast, "smart": self.settings.model_smart}[tier]

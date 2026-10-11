@@ -59,6 +59,7 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-051 | Page 5 "Document" = BMW step 5 deliverable per line × market (all brief fields, JAN→JUL changes, MD/CSV export, logged); PM-editable weights + bands with preview; auto re-score after PM actions; challenged-decision alerts | accepted |
 | D-052 | Repo cleanup + monorepo layout: Streamlit app removed (completes D-039); `backend/` (Python) + `frontend/` (was `web/`) + `docs/pitch/`; root Makefile | accepted |
 | D-053 | Run profiles `APP_ENV` development/production; Docker image (targets dev/prod) + compose profiles, 127.0.0.1 only, no confidential data in images | accepted |
+| D-054 | Adjustable budget + API key in the app: ask-before-spending and stop limits, terminal/app confirmation, key in `data/settings.json` (amends D-014, rule 12/16) | accepted |
 
 Keep this index in sync when adding a decision.
 
@@ -589,3 +590,16 @@ Template:
   4. Makefile: `api`/`dev` (native dev), `serve` (native prod), `up`/`up-dev`/`down`/`logs` (containers).
 - Alternatives considered: native only; separate frontend server (nginx) in prod — unnecessary, the API already serves the build from the same origin.
 - Consequences: native and container runs must not overlap (same port, same SQLite file). In development a code save restarts the API and ends any job running in it. Images are local only — nothing is pushed to a registry.
+
+## D-054 — Adjustable budget limits and API key in the app
+- Date: 2026-10-11
+- Decided by: Atahan (post-hackathon: "make it adjustable … a setting to put the API key and then determine when it stops or gives a prompt to the user so the user is more careful"); details by the agent
+- Status: accepted (amends D-014 thresholds; AGENTS rules 12 and 16 updated)
+- Context: the hackathon's fixed $100 plan (warn $45 / block non-demo $70 / hard stop $90, constants in code) no longer fits; Atahan continues solo and wants to control the budget directly.
+- Decision:
+  1. `bmw_req.app_settings`: API key + two limits in `$DATA_DIR/settings.json` (0600, outside `app.db` so snapshot restores never touch it; `APP_SETTINGS_FILE` overrides the path). A key saved in the app wins over `.env`; removing it falls back to `.env`.
+  2. Guard (`llm.budget.reserve`): **stop at** (default $90) — no call crosses it; **ask before spending above** (default $45) — a run must be confirmed once: terminal `[y/N]`, `BUDGET_CONFIRM=1`, or `budget.approved()` for an API job the user confirmed in the app; else `BudgetNeedsConfirmation`. Stop is checked before asking; the prompt never holds the DB write lock. The API never prompts on its terminal. The hackathon "block non-demo" threshold is dropped.
+  3. API `/api/settings` (GET; PUT `/openai-key` checks the key with a free `models.list` call first; DELETE `/openai-key`; PUT `/budget`). The key is never returned (masked `sk-…abcd`); every change is an `audit_event` (entity `setting`) with the masked key only.
+  4. UI: Audit → Usage gets "OpenAI API key" and "Spend limits" above the figures; the budget bar is scaled to the stop with a mark at ask-before-spending.
+- Alternatives considered: key in `.env` written by the app (not persistent in containers, where `.env` is only an env_file); settings in `app.db` (snapshot restore would roll them back); a per-run estimate gate (no reliable per-run estimates yet).
+- Consequences: the app has no login (D-053 note) — anyone who can reach 127.0.0.1:8600 can change the key and limits; fine on localhost, must change before any shared deployment. Agents must not confirm spend or raise limits on their own (rule 16). The old wave/challenge API jobs don't take a confirm flag — they are unused by the frontend and slated for removal.
