@@ -86,22 +86,31 @@ def reference_context(conn: sqlite3.Connection, req: dict, targets: list[dict]) 
     }
 
 
-def check(llm: LLM, conn: sqlite3.Connection, req: dict, targets: list[dict]) -> tuple[FitResult, list]:
-    ctx = reference_context(conn, req, targets)
+def luna_then_sol(llm: LLM, *, job: str, instructions: str, ctx: dict, schema: type[BaseModel], flagged,
+                  generate=None, sol_effort: str = "medium") -> tuple[BaseModel, list]:
+    """luna checks; if `flagged(result)` (any warn/fail that matters) sol re-checks with the first pass in view and its
+    verdict is final (D-010). `generate` may wrap `llm.generate` (e.g. waiting for Flex capacity). Shared with the
+    prioritization gate (`prioritize/gate.py`)."""
+    gen = generate or (lambda **kw: llm.generate(**kw))
     usage = []
-    first = llm.generate(job="fit:luna", tier="fast", instructions=INSTRUCTIONS, input=json.dumps(ctx, ensure_ascii=False, default=str),
-                         schema=FitResult, reasoning_effort="low", max_output_tokens=6000, flex=True)
+    first = gen(job=f"{job}:luna", tier="fast", instructions=instructions, input=json.dumps(ctx, ensure_ascii=False, default=str),
+                schema=schema, reasoning_effort="low", max_output_tokens=6000, flex=True)
     usage.append((first.usage_id, llm.model_for("fast")))
     res = first.parsed
-    # feasibility is non-blocking context (D-030): its warnings don't trigger the sol re-check
-    flagged = [res.brand, res.segment] + [t.market for t in res.targets]
-    if any(r != "pass" for r in flagged):
-        second = llm.generate(job="fit:sol", tier="smart", instructions=INSTRUCTIONS + RECHECK,
-                              input=json.dumps({**ctx, "first_pass": res.model_dump()}, ensure_ascii=False, default=str),
-                              schema=FitResult, reasoning_effort="medium", max_output_tokens=8000, flex=True)
+    if flagged(res):
+        second = gen(job=f"{job}:sol", tier="smart", instructions=instructions + RECHECK,
+                     input=json.dumps({**ctx, "first_pass": res.model_dump()}, ensure_ascii=False, default=str),
+                     schema=schema, reasoning_effort=sol_effort, max_output_tokens=8000, flex=True)
         usage.append((second.usage_id, llm.model_for("smart")))
         res = second.parsed
     return res, usage
+
+
+def check(llm: LLM, conn: sqlite3.Connection, req: dict, targets: list[dict]) -> tuple[FitResult, list]:
+    ctx = reference_context(conn, req, targets)
+    # feasibility is non-blocking context (D-030): its warnings don't trigger the sol re-check
+    return luna_then_sol(llm, job="fit", instructions=INSTRUCTIONS, ctx=ctx, schema=FitResult,
+                         flagged=lambda r: any(x != "pass" for x in [r.brand, r.segment] + [t.market for t in r.targets]))
 
 
 def store(conn: sqlite3.Connection, req_id: str, res: FitResult, model: str, targets: list[dict]) -> None:

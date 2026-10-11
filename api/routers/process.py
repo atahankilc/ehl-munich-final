@@ -163,7 +163,8 @@ def runs_diff(older: int | None = None, newer: int | None = None,
 
 
 def _current_weights(conn) -> dict:
-    r = conn.execute("SELECT id, weights_json, created_by, created_at, rationale FROM weights_version ORDER BY id DESC LIMIT 1").fetchone()
+    r = conn.execute("SELECT id, weights_json, created_by, created_at, rationale FROM weights_version "
+                     "WHERE json_extract(weights_json, '$.scheme') IS NULL ORDER BY id DESC LIMIT 1").fetchone()   # prio-v1 rows have a scheme
     if r is None:
         return {"id": None, "weights": dict(scoring.DEFAULT_WEIGHTS), "created_by": None, "created_at": None,
                 "rationale": "Default weights (D-029) — no weight version stored yet"}

@@ -59,6 +59,57 @@ def priority_for(score: float) -> str:
     return "Could"
 
 
+# ---------------------------------------------------------------------------------------------- shared helpers
+# (also used by prio-v1, `prioritize/score.py` — keep them free of score-v3 table access)
+def voice_curve(pct: float) -> float:
+    """Share of a market's comments (in %, severity-adjusted where available) → 0–1 on a log curve (~10 % saturates)."""
+    return min(1.0, math.log1p(pct * 4) / math.log1p(40))
+
+
+def shrink(n: float, base: float, prior: float, k: float = SHRINK_K) -> float:
+    """Empirical-Bayes share: a small base is pulled toward the wider (prior) share by k pseudo-observations."""
+    return (n + k * prior) / (base + k)
+
+
+def renormalised(factors: dict[str, tuple], weights: dict) -> tuple[float, float]:
+    """(base 0–1, weight sum) over the factors with data — missing factors drop out and the weights renormalize."""
+    avail = {k: v for k, v in factors.items() if v[0] is not None}
+    wsum = sum(weights[k] for k in avail) or 1
+    return sum(weights[k] * v[0] for k, v in avail.items()) / wsum, wsum
+
+
+def cap_unobserved(bs: list[dict], own: tuple[str, str] = ("satisfaction_gap", "competitive_pressure")) -> None:
+    """D-038 rule 1 on breakdowns of one requirement: a market without its own comments (`voice_observed` False) may
+    not outrank the requirement's comment-backed markets unless both `own` factors are ≥ OWN_EVIDENCE_MIN there."""
+    observed = [b["score"] for b in bs if b.get("voice_observed")]
+    cap = max(observed) if observed else None
+    for b in bs:
+        if cap is None or b.get("voice_observed") or b["score"] <= cap:
+            continue
+        fs = b["factors"]
+        if all((fs[k]["value"] or 0) >= OWN_EVIDENCE_MIN for k in own):
+            b["cap_note"] = (f"ranks above the markets with customer comments (best {cap:.0f}) on its own study gap and "
+                             f"competitor evidence")
+            continue
+        b["modifiers"]["no_comment_cap"] = round(cap - b["score"], 1)
+        b["cap_note"] = (f"capped at {cap:.0f}, the best market with customer comments — no comments of its own and no "
+                         f"study gap plus competitor evidence to justify ranking higher")
+        b["score"] = round(cap, 1)
+
+
+def align_basic(kano: str | None, items: list[tuple[str, dict]]) -> None:
+    """D-038 rule 2: an 'Expected' (Kano basic) need gets one priority everywhere. `items` = (target label, breakdown)."""
+    if (kano or "") != "basic" or not items:
+        return
+    top = max(items, key=lambda x: x[1]["score"])
+    prio = top[1]["priority"]
+    for _, b in items:
+        if b["priority"] != prio:
+            b["priority_note"] = (f"Expected (basic) need: same priority in every market — set by the strongest market "
+                                  f"{top[0]} ({top[1]['score']:.0f}); this market alone would score {b['priority']}")
+        b["priority"] = prio
+
+
 # ---------------------------------------------------------------------------------------------- evidence
 def market_base(conn, derivative: str, market: str, wave: int) -> int:
     return conn.execute(
@@ -147,7 +198,7 @@ def score_target(conn, req: dict, target: dict, wave: int, weights: dict, n_targ
         lb = sum(market_base(conn, dd, mk, wave) for dd, mk in pairs)
         lsw = sum(verbatim_evidence(conn, req["id"], dd, mk, wave)["severity_weighted"] for dd, mk in pairs)
         if lb >= MIN_MARKET_VERBATIMS:
-            val = BORROW_DISCOUNT * min(1.0, math.log1p(100 * lsw / lb / 3 * 4) / math.log1p(40))
+            val = BORROW_DISCOUNT * voice_curve(100 * lsw / lb / 3)
             factors["customer_voice"] = (val, f"no comments of its own ({base} in {m} for {d}) — borrowed the "
                                               f"{line_of(d)} rate from other markets at ×{BORROW_DISCOUNT}")
         else:
@@ -157,9 +208,9 @@ def score_target(conn, req: dict, target: dict, wave: int, weights: dict, n_targ
         all_base = sum(market_base(conn, d, mk, wave) for mk in ("US", "EU", "CN", "RoW"))
         all_sw = sum(verbatim_evidence(conn, req["id"], d, mk, wave)["severity_weighted"] for mk in ("US", "EU", "CN", "RoW"))
         prior = all_sw / all_base if all_base else 0.0
-        shrunk = (verb["severity_weighted"] + SHRINK_K * prior) / (base + SHRINK_K)
+        shrunk = shrink(verb["severity_weighted"], base, prior)
         pct = 100 * shrunk / 3
-        val = min(1.0, math.log1p(pct * 4) / math.log1p(40))
+        val = voice_curve(pct)
         factors["customer_voice"] = (val, f"{verb['verbatims']} of {base} in-scope verbatims "
                                           f"({100 * verb['verbatims'] / base:.1f}%), channels {', '.join(verb['channels']) or '–'}"
                                           + (f"; small base, pulled toward {d}-wide rate" if base < 2 * SHRINK_K else ""))
@@ -218,9 +269,7 @@ def score_target(conn, req: dict, target: dict, wave: int, weights: dict, n_targ
     lev = min(1.0, (n_targets - 1) / 7 + (0.15 if target["realization"] == "platform_wide" else 0))
     factors["portfolio_leverage"] = (lev, f"{n_targets} derivative × market target(s), realization {target['realization']}")
 
-    avail = {k: v for k, v in factors.items() if v[0] is not None}
-    wsum = sum(weights[k] for k in avail) or 1
-    base_score = sum(weights[k] * v[0] for k, v in avail.items()) / wsum
+    base_score, wsum = renormalised(factors, weights)
 
     has_study = bool(factors["satisfaction_gap"][0] is not None and factors["satisfaction_gap"][0] > 0.2)
     web_any = [f for f in links if f["source_kind"] == "web" and f["market_code"] in (None, m) and f["relation"] == "supports"]
@@ -263,33 +312,10 @@ def apply_requirement_rules(req: dict, items: list[tuple[dict, dict]]) -> None:
     2. An 'Expected' (Kano basic) requirement gets one priority in every market — a basic expectation can't be a Must
        in one market and optional in another. Scores stay per market and visible.
     """
-    observed = [b["score"] for _, b in items if b.get("voice_observed")]
-    cap = max(observed) if observed else None
-    for t, b in items:
-        if cap is None or b.get("voice_observed") or b["score"] <= cap:
-            continue
-        fs = b["factors"]
-        own = (fs["satisfaction_gap"]["value"] or 0) >= OWN_EVIDENCE_MIN and \
-              (fs["competitive_pressure"]["value"] or 0) >= OWN_EVIDENCE_MIN
-        if own:
-            b["cap_note"] = (f"ranks above the markets with customer comments (best {cap:.0f}) on its own study gap and "
-                             f"competitor evidence")
-            continue
-        b["modifiers"]["no_comment_cap"] = round(cap - b["score"], 1)
-        b["cap_note"] = (f"capped at {cap:.0f}, the best market with customer comments — no comments of its own and no "
-                         f"study gap plus competitor evidence to justify ranking higher")
-        b["score"] = round(cap, 1)
+    cap_unobserved([b for _, b in items])
     for _, b in items:
         b["priority"] = priority_for(b["score"])
-    if (req.get("kano_class") or "") == "basic" and items:
-        top = max(items, key=lambda x: x[1]["score"])
-        prio = top[1]["priority"]
-        for t, b in items:
-            if b["priority"] != prio:
-                b["priority_note"] = (f"Expected (basic) need: same priority in every market — set by the strongest market "
-                                      f"{top[0]['vehicle_model_id']} × {top[0]['market_code']} ({top[1]['score']:.0f}); "
-                                      f"this market alone would score {b['priority']}")
-            b["priority"] = prio
+    align_basic(req.get("kano_class"), [(f"{t['vehicle_model_id']} × {t['market_code']}", b) for t, b in items])
     for t, b in items:
         b["rationale"] = rationale(b, t["vehicle_model_id"], t["market_code"])
 
@@ -322,7 +348,9 @@ def rationale(b: dict, d: str, m: str) -> str:
 
 # ---------------------------------------------------------------------------------------------- runs
 def current_weights(conn) -> tuple[int, dict]:
-    r = conn.execute("SELECT id, weights_json FROM weights_version ORDER BY id DESC LIMIT 1").fetchone()
+    # rows with a `scheme` key belong to other scoring schemes (prio-v1 stores {"scheme": "prio-v1", "weights": …})
+    r = conn.execute("SELECT id, weights_json FROM weights_version WHERE json_extract(weights_json, '$.scheme') IS NULL "
+                     "ORDER BY id DESC LIMIT 1").fetchone()
     if r:
         return r["id"], json.loads(r["weights_json"])
     wid = conn.execute(

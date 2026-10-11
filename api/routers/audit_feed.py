@@ -4,8 +4,15 @@ scope=evidence   what entered the data and when: data loads (ingest batches), re
                  imports, the checkpoint sweeps (acquire runs), snapshot restores
 scope=structure  the agent's structure & context runs (classify, cluster, contextualize, areas) and every AI step,
                  for the selected checkpoint
+scope=definition the requirement-definition stages (benchmarks, define, specify, couple) and every AI step, plus the
+                 PM's target choices and link reviews (D-048), for the selected checkpoint
 scope=all        everything in the audit trail (page views excluded) plus data loads and checkpoint runs
 Every row says who acted (ai / system / human, model for AI), when, a one-line summary and its checkpoint if known.
+
+Separation by checkpoint: with `cp`, the evidence and structure scopes show only that checkpoint's rows; "all" shows
+both, each tagged. The classifier's A/B test ran on neither checkpoint and is tagged "ab" (shown in "all" only).
+History before the checkpoint rebuild (the old wave-based app) stays in the append-only table but is left out unless
+`history=true`; the cutoff is the first checkpoint run.
 """
 
 from __future__ import annotations
@@ -21,7 +28,10 @@ router = APIRouter(prefix="/api/audit", tags=["audit"])
 
 EVIDENCE_ACTORS = ("ingest.", "agent:", "research.", "pipeline.waves", "demo_state", "checkpoint")
 STRUCTURE_STAGES = ("classify", "cluster", "contextualize", "areas")
-STAGE_NAME = {"acquire": "Sweep", "classify": "Classify", "cluster": "Cluster", "contextualize": "Contextualize", "areas": "Requirement areas"}
+DEFINITION_STAGES = ("benchmarks", "define", "specify", "couple")
+DEFINITION_ACTIONS = ("def_choice", "def_link_review")
+STAGE_NAME = {"acquire": "Sweep", "classify": "Classify", "cluster": "Cluster", "contextualize": "Contextualize", "areas": "Requirement areas",
+              "benchmarks": "Benchmarks", "define": "Define requirements", "specify": "Specify targets", "couple": "Couple requirements"}
 
 
 def _summary(action: str, entity_type: str, entity_id: str | None, payload: dict, rationale: str | None) -> str:
@@ -29,6 +39,11 @@ def _summary(action: str, entity_type: str, entity_id: str | None, payload: dict
         return f"Web research agent collected {payload.get('items', payload.get('kept', ''))} cited items".strip()
     if action == "ingest":
         return f"Loaded {entity_id or entity_type}"
+    if action == "def_choice" and payload.get("level"):
+        where = " · ".join(str(payload[k]) for k in ("line", "market") if payload.get(k))
+        return f"PM chose the {payload['level']} rung for {payload.get('key') or entity_id}{f' ({where})' if where else ''}"[:160]
+    if action == "def_link_review" and payload.get("verdict"):
+        return f"PM {payload['verdict']} the link {payload.get('a', '')} ↔ {payload.get('b', '')}".strip()[:160]
     if action == "restore_snapshot":
         return f"Restored snapshot {entity_id}"
     if action == "extract_signals":
@@ -37,18 +52,23 @@ def _summary(action: str, entity_type: str, entity_id: str | None, payload: dict
 
 
 @router.get("/feed")
-def feed(scope: str = Query("all", pattern="^(evidence|structure|all)$"), cp: str | None = Query(None),
-         limit: int = Query(80, ge=1, le=500), before: str | None = Query(None)) -> dict:
+def feed(scope: str = Query("all", pattern="^(evidence|structure|definition|all)$"), cp: str | None = Query(None),
+         limit: int = Query(80, ge=1, le=500), before: str | None = Query(None), history: bool = Query(False)) -> dict:
     with db() as conn:
         run_cp = {r[0]: r[1] for r in conn.execute("SELECT id, checkpoint_id FROM checkpoint_run")}
+        since = None if history else conn.execute("SELECT MIN(started_at) FROM checkpoint_run").fetchone()[0]
         usage_cp = {}
         for r in conn.execute("SELECT id, job FROM llm_usage WHERE job LIKE 'classify:%' OR job LIKE 'areas:%'"):
-            usage_cp[str(r[0])] = "cp2" if r[1].endswith("cp2") else "cp1" if r[1].endswith("cp1") else None
+            usage_cp[str(r[0])] = ("cp2" if r[1].endswith("cp2") else "cp1" if r[1].endswith("cp1")
+                                   else "ab" if r[1].endswith(":ab") else None)
         items: list[dict] = []
 
         # audit events
         q = "SELECT id, ts, actor_type, actor_id, action, entity_type, entity_id, new_value, rationale, model, run_id FROM audit_event WHERE action != 'view'"
         args: list = []
+        if since:
+            q += " AND ts >= ?"
+            args.append(since)
         if before:
             q += " AND ts < ?"
             args.append(before)
@@ -56,7 +76,11 @@ def feed(scope: str = Query("all", pattern="^(evidence|structure|all)$"), cp: st
             actor = r["actor_id"] or ""
             is_structure = actor.startswith("structure.")
             is_evidence = actor.startswith(EVIDENCE_ACTORS) or r["action"] in ("restore_snapshot", "ingest", "web_research")
-            if scope == "structure" and not is_structure:
+            is_definition = (actor.startswith(tuple(f"structure.{s}" for s in DEFINITION_STAGES))
+                             or r["action"] in DEFINITION_ACTIONS or (r["entity_type"] or "").startswith("def_"))
+            if scope == "structure" and (not is_structure or is_definition):
+                continue
+            if scope == "definition" and not is_definition:
                 continue
             if scope == "evidence" and not is_evidence:
                 continue
@@ -65,6 +89,8 @@ def feed(scope: str = Query("all", pattern="^(evidence|structure|all)$"), cp: st
             except ValueError:
                 payload = {}
             ecp = run_cp.get(r["run_id"]) or (usage_cp.get(r["entity_id"]) if r["entity_type"] == "llm_usage" else None)
+            if is_definition and not ecp:   # PM choices / link reviews carry their checkpoint in the payload, not a run
+                ecp = payload.get("checkpoint_id") or payload.get("checkpoint") or payload.get("cp")
             items.append({"id": f"a{r['id']}", "ts": r["ts"], "actor_type": r["actor_type"], "actor": actor, "model": r["model"],
                           "kind": "structure" if is_structure else "event", "stage": actor.split(".", 1)[1] if is_structure else None,
                           "action": r["action"], "payload": payload, "checkpoint": ecp,
@@ -73,7 +99,8 @@ def feed(scope: str = Query("all", pattern="^(evidence|structure|all)$"), cp: st
         # checkpoint runs: one row when a stage started and one when it finished
         for r in conn.execute("SELECT id, checkpoint_id, stage, parent_run_id, status, actor, started_at, finished_at, stats_json FROM checkpoint_run"):
             evidence_run = r["stage"] == "acquire"
-            if (scope == "structure" and (evidence_run or r["stage"] not in STRUCTURE_STAGES)) or (scope == "evidence" and not evidence_run):
+            if (scope == "structure" and (evidence_run or r["stage"] not in STRUCTURE_STAGES)) or (scope == "evidence" and not evidence_run) \
+                    or (scope == "definition" and r["stage"] not in DEFINITION_STAGES):
                 continue
             label = f"{STAGE_NAME.get(r['stage'], r['stage'])} · {BY_ID[r['checkpoint_id']].label}"
             base = {"actor_type": "system" if r["actor"] == "system" else "human", "actor": r["actor"], "model": None,
@@ -88,15 +115,25 @@ def feed(scope: str = Query("all", pattern="^(evidence|structure|all)$"), cp: st
                 items.append({**base, "id": f"r{r['id']}f", "ts": r["finished_at"], "action": f"run_{r['status']}",
                               "summary": f"{label} {r['status']}{extra}"})
 
-        # data loads
+        # data loads: a batch that fed both checkpoints becomes one row per checkpoint with its own item count
         if scope in ("evidence", "all"):
-            for r in conn.execute("SELECT id, ts, kind, description, file FROM ingest_batch"):
-                items.append({"id": f"b{r['id']}", "ts": r["ts"], "actor_type": "system", "actor": "ingest", "model": None,
-                              "kind": "load", "stage": None, "action": "load", "payload": {}, "checkpoint": None,
-                              "summary": f"Loaded {r['kind'].replace('_', ' ')}: {r['description'] or r['file'] or ''}".strip()[:160]})
+            split: dict[int, list] = {}
+            for r in conn.execute("""SELECT ingest_batch_id b, checkpoint, COUNT(*) n FROM source_item
+                                     WHERE ingest_batch_id IS NOT NULL AND checkpoint IS NOT NULL GROUP BY 1, 2"""):
+                split.setdefault(r["b"], []).append((r["checkpoint"], r["n"]))
+            for r in conn.execute("SELECT id, ts, kind, description, file FROM ingest_batch" + (" WHERE ts >= ?" if since else ""),
+                                  (since,) if since else ()):
+                what = f"{r['kind'].replace('_', ' ')}: {r['description'] or r['file'] or ''}".strip()
+                for c, n in split.get(r["id"]) or [(None, None)]:
+                    items.append({"id": f"b{r['id']}{c or ''}", "ts": r["ts"], "actor_type": "system", "actor": "ingest",
+                                  "model": None, "kind": "load", "stage": None, "action": "load", "payload": {}, "checkpoint": c,
+                                  "summary": (f"Loaded {n:,} items for {BY_ID[c].label} · {what}" if c in BY_ID
+                                              else f"Loaded {what}")[:160]})
 
-        if cp and scope == "structure":
-            items = [i for i in items if i["checkpoint"] in (cp, None)]
+        if since:
+            items = [i for i in items if (i["ts"] or "") >= since]
+        if cp and scope != "all":
+            items = [i for i in items if i["checkpoint"] == cp]
         if before:
             items = [i for i in items if i["ts"] < before]
         items.sort(key=lambda i: i["ts"] or "", reverse=True)

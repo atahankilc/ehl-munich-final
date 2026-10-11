@@ -193,20 +193,50 @@ def signals_of(source_id: int) -> dict:
                                 FROM signal WHERE source_item_id = ? AND extractor_version = 'extract-v4' ORDER BY id""", (source_id,))
         ext = conn.execute("SELECT in_scope, out_of_scope_reason FROM verbatim_extraction WHERE source_item_id = ? "
                            "AND extractor_version = 'extract-v4'", (source_id,)).fetchone()
-        return {"source_id": source_id, "classified": ext is not None or bool(rows),
+        # research / study / options are read by classify_context: every item gets an aspect, but only customer-relevant
+        # ones become signals (metrics, policy and sales stay context). Mapped counts as classified.
+        try:
+            aspects = [dict(r) for r in db_rows(conn, "SELECT key, aspect, category FROM source_aspect WHERE source_item_id = ?",
+                                                (source_id,))]
+        except Exception:  # table appears with the first classify_context run
+            aspects = []
+        return {"source_id": source_id, "classified": ext is not None or bool(rows) or bool(aspects),
                 "in_scope": bool(ext["in_scope"]) if ext else None, "reason": ext["out_of_scope_reason"] if ext else None,
-                "signals": [dict(r) for r in rows]}
+                "signals": [dict(r) for r in rows], "aspects": aspects}
+
+
+DEF_STAGES = ["define", "specify", "couple"]
+PRIO_STAGES = ["gate", "prioritize"]   # page 4 (D-050); gate progress = requirements checked, if its events report it
+# definition stages (D-048): progress = the running run's start total vs. the units its batch events report done
+DEF_PROGRESS = {"define": ("to_draft", "draft", "areas", "areas"), "specify": ("to_specify", "spec", "requirements", "requirements"),
+                "couple": ("to_judge", "judge", "pairs", "pairs"),
+                # page 4: the gate reports requirements checked if its start / check events carry the counts
+                "gate": ("to_check", "check", "requirements", "requirements")}
+
+
+def _def_progress(conn, stage: str, run_id: int) -> dict | None:
+    total_key, action, done_key, unit = DEF_PROGRESS[stage]
+    total, done = None, 0
+    for r in conn.execute("SELECT action, new_value FROM audit_event WHERE actor_id = ? AND run_id = ?", (f"structure.{stage}", run_id)):
+        p = json.loads(r["new_value"] or "{}")
+        if r["action"] == "start":
+            total = p.get(total_key)
+        elif r["action"] == action:
+            done += p.get(done_key) or 0
+    return {"done": min(done, total), "total": total, "unit": unit} if total else None
 
 
 @router.get("/activity")
-def activity(cp: str = Query("cp2"), since: int = Query(0, description="return events with id > since")) -> dict:
+def activity(cp: str = Query("cp2"), since: int = Query(0, description="return events with id > since"),
+             layer: str = Query("structure", description="structure (page 2) | definition (page 3, D-048) | prioritize (page 4, D-050)")) -> dict:
     """What the agent is doing right now: stage status + progress, the latest AI steps, and the comments classified in
     the last few seconds (the 3D view lights them up)."""
     with db() as conn:
         if cp not in BY_ID:
             raise not_found(f"No checkpoint {cp!r}")
         stages = []
-        for s in STAGES:
+        layer_stages = DEF_STAGES if layer == "definition" else PRIO_STAGES if layer == "prioritize" else STAGES
+        for s in layer_stages:
             r = conn.execute("SELECT id, status, started_at, finished_at, stats_json FROM checkpoint_run WHERE checkpoint_id = ? "
                              "AND stage = ? AND status != 'superseded' ORDER BY id DESC LIMIT 1", (cp, s)).fetchone()
             st = {"stage": s, "status": r["status"] if r else "pending", "run_id": r["id"] if r else None,
@@ -216,10 +246,16 @@ def activity(cp: str = Query("cp2"), since: int = Query(0, description="return e
                 done = conn.execute("""SELECT COUNT(*) FROM verbatim_extraction e JOIN source_item s ON s.id = e.source_item_id
                                        WHERE e.extractor_version = 'extract-v4' AND s.checkpoint = ?""", (cp,)).fetchone()[0]
                 st["progress"] = {"done": done, "total": total, "unit": "comments"}
+            elif s in DEF_PROGRESS and r and r["status"] == "running":
+                st["progress"] = _def_progress(conn, s, r["id"])
             stages.append(st)
+        own = DEF_STAGES + ["benchmarks"] if layer == "definition" else PRIO_STAGES if layer == "prioritize" else None
+        actors = own or DEF_STAGES + ["benchmarks"] + PRIO_STAGES   # structure: everything but pages 3–4
+        actors = [f"structure.{s}" for s in actors]
         events = [dict(r) for r in conn.execute(
-            """SELECT id, ts, actor_id, action, new_value, model, run_id, entity_id FROM audit_event
-               WHERE actor_id LIKE 'structure.%' AND id > ? ORDER BY id DESC LIMIT 120""", (since,))]
+            f"""SELECT id, ts, actor_id, action, new_value, model, run_id, entity_id FROM audit_event
+               WHERE actor_id LIKE 'structure.%' AND actor_id {'IN' if own else 'NOT IN'} ({','.join('?' * len(actors))})
+               AND id > ? ORDER BY id DESC LIMIT 120""", (*actors, since))]
         run_cp = {r[0]: r[1] for r in conn.execute("SELECT id, checkpoint_id FROM checkpoint_run")}
         usage_cp = {str(r[0]): ("cp2" if r[1].endswith("cp2") else "cp1" if r[1].endswith("cp1") else None)
                     for r in conn.execute("SELECT id, job FROM llm_usage WHERE job LIKE 'classify:%'")}
