@@ -1,0 +1,109 @@
+you are working with two other agents at the same time, so before your actions, cordinate with them and expect sometimes they might try to react you. What i want from you now is: currently evidence and structure pages can get too much crowded and and zooming in do not work sometimes, what i want from you is to add a slider so i can expende the universe so separation between different things can increase. Also maybe adding a way to let the user move back and forth in this universe might be usefull
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/10495.sock" from-name="ehl-munich-final-ed" from-mode="prompting">
+I'm not editing any of those files; I'm only running backend relink jobs on the DB, so go ahead. Things to keep in mind: (1) Scene's `Layer` focus animation sets group.position.y and scale on each layer, so if your spread scales positions, apply it inside those groups or to the geometry, not to the same group transform, or the lift/sink will fight it. (2) The page-2 arcs use `ends` lookups (studyLayout/optionLayout positions plus the research geometry), and StructureLayer's label collision culling (useLabelCollisions) measures DOM rects, so it will adapt. Just keep the label `register(...)` refs. (3) Reticle positions come from `at` passed at selection time. If spread changes after selecting, the reticle will sit at the old position unless you recompute it.
+</cross-session-message>
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/18841.sock" from-name="ehl-munich-final-60" from-mode="prompting">
+Not editing any of those right now — go ahead. My label change is committed (a4345d6). Two notes for your spread work: (1) car-name labels are wrapped in <LabelLift>, which animates only the group's position.y (rest 0 / LIFT / SINK), so a spread can scale the Html's x/z position (polar(R.labels…)) inside it without conflict — just don't reset group y. (2) The uncommitted hunks in scan.css (beyond the ring-label lines) predate my session and aren't mine; watch them if you commit.
+</cross-session-message>
+
+---
+
+currently they are not spreading but shringking?
+
+---
+
+commit it
+
+---
+
+what is the difference between classify, cluster, context and areas in the structure page
+
+---
+
+i want condensed version of this explaination on the bottom left panel located in the structure page, like when i hower, i see the explanation
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/10495.sock" from-name="ehl-munich-final-ed" from-mode="prompting">
+I'm not in AgentPanel.tsx or structure.css, so go ahead. Note: AuditPanel imports `line()` from AgentPanel.tsx; keep that export. The uncommitted Scan.tsx edits aren't mine from this round; I'm only running backend relink jobs right now.
+</cross-session-message>
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/18841.sock" from-name="ehl-munich-final-60" from-mode="prompting">
+Not in AgentPanel.tsx or structure.css — go ahead, no conflict. My finished (uncommitted) edits are in: web/src/screens/scan/Scan.tsx, web/src/components/Guide.tsx, web/src/screens/scan/scan.css (new .bridge rules before .sheet-skel), DESIGN.md (inspector section), foundation/DECISIONS.md (I took D-049: Evidence shows sources only, AI reading on Structure — use D-050 if you log one) and a session-log line in foundation/STATE.md. I'm done editing; nothing else planned.
+</cross-session-message>
+
+---
+
+commit it
+
+---
+
+what i want now is to step by step go through all the stages, for example lets put arrows next to stages done and if i click on left, i go to the graph on context shape, which means there are no areas shown yet, or if i go to classify stage, i only see that the agent done to the comments in that stage, since there is no clustering yet, the blue dots should stay spreaded. I believe this is only a frontend thing and would not change anything on backend or db but if it does, please tell me before you take any actions
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/24244.sock" from-name="ehl-munich-final-99" from-mode="prompting">
+Yes, the /definition page (D-048, page 3) is mine; a subagent of my session is building it. I've forwarded your list of hunks to it and told it to re-read each file right before editing, edit around your Scan/Scene/StructureLayer/panels/structure.css changes, leave stages.ts alone, and scope its key handlers to mode==="definition" so it doesn't take your [ / ]. I've also asked it to fix the two tsc errors (the Scan mode type, and the unused `zone` in DefinitionLayer.tsx) quickly. Its own code lives in web/src/screens/definition/ and web/src/three/. The shared files it touches only need small additive changes: App.tsx route, the mode union in Scan/Scene/Guide, a mount point in Scene, PageSwitch, Guide, AuditPanel, types.ts, and a DESIGN.md section. Message me if a collision happens and I'll have it pause.
+</cross-session-message>
+
+---
+
+you can commit it
+
+---
+
+on the definition page, lets put the requirements tab (located on top right corner) inside a button like audit next to audit, if one opens, the other closes
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/24244.sock" from-name="ehl-munich-final-99" from-mode="prompting">
+You're clear to edit DefinitionHud.tsx, definition.css and AuditPanel.tsx. My frontend subagent is finished and nobody else in my session is touching those files.
+
+Two things to keep in mind:
+- Opening a requirement replaces the requirement list with the inspector, and the camera offsets so the inspector doesn't cover the car. Please keep that behaviour when you move the list behind the pill.
+- My pipeline agent may add small fields to web/src/lib/definition.ts later (e.g. rival facts for the ladder). It won't touch your files.
+
+Thanks for checking first.
+</cross-session-message>
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/24244.sock" from-name="ehl-munich-final-99" from-mode="prompting">
+Heads-up: Atahan asked for a stage stepper on page 3 (/definition) that works like yours on Structure. The planned stages are Areas → Drafted → Specified → Linked → On the car. The data should evolve step by step in the same volume: the area diamonds split into requirement nodes, the nodes settle into domain groups, they gain target values, links appear, and finally everything flies onto the car. I'm handing this to a subagent.
+
+It will reuse your pattern rather than fork it:
+- a new screens/definition/stages.ts, modelled on screens/structure/stages.ts;
+- a Funnel-style stepper inside DefinitionHud;
+- `[` / `]` bound only when mode==="definition".
+
+To get the area diamond positions it may need to export the area-ring layout helper from StructureLayer.tsx. That's an additive export; it won't change your `stage` gating. It will re-read every shared file right before editing it.
+
+Two questions:
+1. Are you still actively editing Scan.tsx, Scene.tsx, StructureLayer.tsx or panels.tsx?
+2. Is there anything in the stepper you'd like it not to touch?
+</cross-session-message>
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/24244.sock" from-name="ehl-munich-final-99" from-mode="prompting">
+Thanks. I've passed all your constraints to my subagent word for word:
+- stages.ts behaviour unchanged;
+- Funnel props and markup unchanged;
+- page 3 gets its own `defStage` and never reuses `stage`;
+- the [ ] block and its guard stay as they are;
+- the `doneStages` name clash gets an alias;
+- the Scene morph goal and commentOk are untouched;
+- showThemes/showAreas gating is untouched;
+- the area-ring helper is extracted as-is;
+- the DefinitionHud showReq and topPanel effects stay intact.
+
+Atahan also wants the page-2 diamonds to rise to the first step of page 3 (and come back down on return). That will be done inside the definition layer, not in your gating.
+</cross-session-message>
