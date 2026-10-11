@@ -124,6 +124,27 @@ function Layer({ id, focus, children }: { id: LayerId; focus: LayerId | null; ch
   return <group ref={ref}>{children}</group>;
 }
 
+// A car name moves with the focus too: the selected item's car line rises with its layer, the other names sink and
+// (via data-dim) fade. Items without a car (most research) sink every name.
+type LabelState = "rest" | "up" | "down";
+function LabelLift({ state, children }: { state: LabelState; children: ReactNode }) {
+  const ref = useRef<THREE.Group>(null);
+  const st = useRef({ fy: 0, t0: -1, state: "rest" as LabelState });
+  const reduced = useMemo(() => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false, []);
+  useFrame(({ clock }) => {
+    const g = ref.current;
+    if (!g) return;
+    const s = st.current, now = clock.elapsedTime;
+    if (s.state !== state) { s.state = state; s.fy = g.position.y; s.t0 = now; }
+    if (s.t0 < 0) return;
+    const up = state === "up", ty = state === "rest" ? 0 : up ? LIFT : SINK;
+    const p = Math.min(1, (now - s.t0) / (up ? RISE : FALL));
+    g.position.y = s.fy + (ty - s.fy) * (up && !reduced ? easeOutBack(p) : easeInOut(p));
+    if (p >= 1) { g.position.y = ty; s.t0 = -1; }
+  });
+  return <group ref={ref}>{children}</group>;
+}
+
 /* ------------------------------------------------------------------------------------------- sweep clock */
 function useSweep(mats: THREE.ShaderMaterial[], position: number, fromPosition: number, sweepId: number, onAngle: (a: number | null) => void) {
   const start = useRef<number | null>(null);
@@ -411,6 +432,19 @@ export function Scene(p: SceneProps) {
   // the lock reticle rides with the focused layer, so it stays on the item as the layer rises
   const reticle = (id: LayerId) => (p.locked && p.focus === id ? <Reticle at={p.locked} /> : null);
 
+  // car lines of the focused item, for the car names (G68 sits in the 5 Series sector)
+  const focusLines = useMemo(() => {
+    const s = p.selected;
+    if (!s || p.focus == null) return null;
+    let cars: string[] = [];
+    if (s.kind === "comment") {
+      const i = p.points.cols.id.indexOf(s.id);
+      if (i >= 0) cars = [p.points.dict.car[p.points.cols.car[i]]];
+    } else if (s.kind === "research") cars = s.item.cars;
+    else if (s.kind === "study" || s.kind === "option" || s.kind === "sales") cars = [s.item.car];
+    return new Set(cars.map((c) => (c === "G68" ? "G60" : c)));
+  }, [p.selected, p.focus, p.points]);
+
   return (
     <>
       <CameraFit />
@@ -420,7 +454,7 @@ export function Scene(p: SceneProps) {
         <points geometry={comments} material={commentMat} {...onComment} />
         {reticle("comment")}
       </Layer>
-      <Rings sources={p.sources} focus={p.focus} filter={filter} onHover={p.onHover} onSelect={p.onSelect} setCursor={setCursor} slots={{
+      <Rings sources={p.sources} focus={p.focus} focusLines={focusLines} filter={filter} onHover={p.onHover} onSelect={p.onSelect} setCursor={setCursor} slots={{
         research: <><points geometry={research.geom} material={researchMat} {...onResearch} />{reticle("research")}</>,
         study: <><points geometry={carRings.study.geom} material={studyMat} {...carRingHandlers(carRings.study, carRingSel.study, "Public rating")} />{reticle("study")}</>,
         option: <><points geometry={carRings.options.geom} material={optionMat} {...carRingHandlers(carRings.options, carRingSel.options, "Product news")} />{reticle("option")}</>,
@@ -490,9 +524,10 @@ const RINGS: Record<Exclude<LayerId, "comment">, { r: number; name: string; colo
   option: { r: R.options, name: "Options", color: TYPE_COLOR.option }, sales: { r: R.sales, name: "Sales", color: TYPE_COLOR.sales },
 };
 
-function Rings({ sources, focus, filter, slots, onHover, onSelect, setCursor }: {
+function Rings({ sources, focus, focusLines, filter, slots, onHover, onSelect, setCursor }: {
   sources: SourcesPayload | undefined;
   focus: LayerId | null;
+  focusLines: Set<string> | null;
   filter: Filter | null;
   slots: Record<Exclude<LayerId, "comment">, ReactNode>;
   onHover: (h: Hover | null) => void;
@@ -641,10 +676,13 @@ function Rings({ sources, focus, filter, slots, onHover, onSelect, setCursor }: 
       </Layer>
       {LINES.map((line) => {
         const [a0, a1] = lineSector(line);
+        const state: LabelState = focusLines == null ? "rest" : focusLines.has(line) ? "up" : "down";
         return (
-          <Html key={line} position={polar(R.labels, (a0 + a1) / 2, 0.18)} center zIndexRange={[10, 0]}>
-            <div className="ring-label"><b>{CAR_NAME[line]}</b><span>{LINE_CODES[line]}</span></div>
-          </Html>
+          <LabelLift key={line} state={state}>
+            <Html position={polar(R.labels, (a0 + a1) / 2, 0.18)} center zIndexRange={[10, 0]}>
+              <div className="ring-label" data-dim={state === "down" ? "" : undefined}><b>{CAR_NAME[line]}</b><span>{LINE_CODES[line]}</span></div>
+            </Html>
+          </LabelLift>
         );
       })}
     </>
