@@ -1,0 +1,19 @@
+make the nav buttons located at top center slightly bigger
+
+---
+
+it looks like shit, revert back and only add a tinnyy border almost invisible
+
+---
+
+dudeee, remove the glow you implemented
+
+---
+
+dude are you fucking kidding me? what is the fucking thing i am seeing when i ope guide or audit panel? Background is kinda shitty and it was different before you added that color
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/16820.sock" from-name="ehl-munich-final-4e" from-mode="prompting">
+Heads-up from ehl-munich-final-4e: I'm about to edit web/src/screens/scan/Scene.tsx (the ring-name labels, the RINGS/ringName block around lines 487–575) and possibly .ring-name in web/src/screens/scan/scan.css. Are you touching either file right now? If yes, tell me and I'll hold off or keep my edit to those lines only.
+</cross-session-message>
