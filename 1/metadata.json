@@ -1,0 +1,56 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4NHHR4WEPCD1455E0RVQWNM",
+  "session_id": "8415dbd8-0b82-4d21-a8f1-7a32208a6af8",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-11T13:13:40.12984Z",
+  "branch": "main",
+  "checkpoints_count": 4,
+  "save_step_count": 1,
+  "files_touched": [
+    "DESIGN.md",
+    "foundation/STATE.md",
+    "foundation/documents/prioritization.md",
+    "web/src/screens/document/DocumentPage.tsx",
+    "web/src/screens/document/guide.tsx",
+    "web/src/screens/document/sample.ts",
+    "web/src/screens/prioritize/PrioritizeHud.tsx",
+    "web/src/screens/prioritize/Skyline.tsx",
+    "web/src/screens/prioritize/challenged.tsx",
+    "web/src/screens/prioritize/data.ts",
+    "web/src/screens/prioritize/fixture.ts",
+    "web/src/screens/prioritize/guide.tsx",
+    "web/src/screens/prioritize/marks.tsx",
+    "web/src/screens/prioritize/pm.ts",
+    "web/src/screens/prioritize/risefall.css",
+    "web/src/screens/prioritize/risefall.tsx",
+    "web/src/styles/tokens.css",
+    "web/tsconfig.tsbuildinfo"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "turn_id": "d22c182232c2",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 450,
+    "cache_creation_tokens": 732138,
+    "cache_read_tokens": 45992562,
+    "output_tokens": 159740,
+    "api_call_count": 186
+  },
+  "session_metrics": {
+    "turn_count": 66
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-11T13:13:39.333794Z",
+    "agent_lines": 515,
+    "agent_removed": 83,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 515,
+    "total_lines_changed": 598,
+    "agent_percentage": 100,
+    "metric_version": 2
+  }
+}
