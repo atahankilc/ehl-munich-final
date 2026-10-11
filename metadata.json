@@ -3,8 +3,9 @@
   "checkpoint_id": "01M4N5YNYSATQRAJQ5R5HHQKT2",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 13,
+  "checkpoints_count": 32,
   "files_touched": [
+    "research/sales-verification.md",
     "src/bmw_req/structure/areas.py",
     "src/bmw_req/structure/classify_context.py",
     "src/bmw_req/structure/contextualize.py",
@@ -40,13 +41,27 @@
       "compact_transcript": "/3/transcript.jsonl",
       "content_hash": "/3/content_hash.txt",
       "prompt": "/3/prompt.txt"
+    },
+    {
+      "metadata": "/4/metadata.json",
+      "transcript": "/4/full.jsonl",
+      "compact_transcript": "/4/transcript.jsonl",
+      "content_hash": "/4/content_hash.txt",
+      "prompt": "/4/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 410,
-    "cache_creation_tokens": 623354,
-    "cache_read_tokens": 21020836,
-    "output_tokens": 106120,
-    "api_call_count": 202
+    "input_tokens": 1282,
+    "cache_creation_tokens": 1387358,
+    "cache_read_tokens": 194886322,
+    "output_tokens": 473223,
+    "api_call_count": 610,
+    "subagent_tokens": {
+      "input_tokens": 0,
+      "cache_creation_tokens": 0,
+      "cache_read_tokens": 0,
+      "output_tokens": 0,
+      "api_call_count": 0
+    }
   }
 }
