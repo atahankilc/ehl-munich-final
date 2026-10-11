@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01AWe1LYNGi6mU3LkQQRWwBV",
+  "agent_id": "aa62ba302ec2bf9d6",
+  "subagent_type": "general-purpose",
+  "task_description": "Inventory app features and API",
+  "token_usage": {
+    "input_tokens": 50,
+    "cache_creation_tokens": 236942,
+    "cache_read_tokens": 3696975,
+    "output_tokens": 654,
+    "api_call_count": 25
+  },
+  "started_at": "2026-10-11T01:26:20.66718+02:00",
+  "completed_at": "2026-10-11T02:47:43.912962+02:00"
+}

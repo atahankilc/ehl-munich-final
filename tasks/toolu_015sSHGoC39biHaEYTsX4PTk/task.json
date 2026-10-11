@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_015sSHGoC39biHaEYTsX4PTk",
+  "agent_id": "a62dba8f812598ffe",
+  "subagent_type": "general-purpose",
+  "task_description": "Build Evidence screen",
+  "token_usage": {
+    "input_tokens": 72,
+    "cache_creation_tokens": 157107,
+    "cache_read_tokens": 4266397,
+    "output_tokens": 30339,
+    "api_call_count": 36
+  },
+  "started_at": "2026-10-11T01:50:20.898261+02:00",
+  "completed_at": "2026-10-11T02:47:44.106598+02:00"
+}
