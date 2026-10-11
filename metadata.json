@@ -1,0 +1,44 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4N5ZKGP43PRVF7PJDT4VK3F",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 4,
+  "files_touched": [
+    ".impeccable/config.json",
+    "DESIGN.md",
+    "web/src/App.tsx",
+    "web/src/components/AuditPanel.tsx",
+    "web/src/components/Guide.tsx",
+    "web/src/components/PageSwitch.tsx",
+    "web/src/components/audit.css",
+    "web/src/components/guide.css",
+    "web/src/lab/zones.ts",
+    "web/src/lib/types.ts",
+    "web/src/screens/scan/Scan.tsx",
+    "web/src/screens/scan/Scene.tsx",
+    "web/src/screens/scan/scan.css",
+    "web/src/screens/structure/AgentPanel.tsx",
+    "web/src/screens/structure/StructureLayer.tsx",
+    "web/src/screens/structure/panels.tsx",
+    "web/src/screens/structure/structure.css",
+    "web/src/styles/tokens.css",
+    "web/tsconfig.tsbuildinfo"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 26,
+    "cache_creation_tokens": 43052,
+    "cache_read_tokens": 594128,
+    "output_tokens": 8061,
+    "api_call_count": 12
+  }
+}
