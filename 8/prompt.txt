@@ -39,3 +39,7 @@ I'm not in AgentPanel.tsx or structure.css, so go ahead. Note: AuditPanel import
 <cross-session-message from="uds:/tmp/cc-socks/18841.sock" from-name="ehl-munich-final-60" from-mode="prompting">
 Not in AgentPanel.tsx or structure.css — go ahead, no conflict. My finished (uncommitted) edits are in: web/src/screens/scan/Scan.tsx, web/src/components/Guide.tsx, web/src/screens/scan/scan.css (new .bridge rules before .sheet-skel), DESIGN.md (inspector section), foundation/DECISIONS.md (I took D-049: Evidence shows sources only, AI reading on Structure — use D-050 if you log one) and a session-log line in foundation/STATE.md. I'm done editing; nothing else planned.
 </cross-session-message>
+
+---
+
+commit it
