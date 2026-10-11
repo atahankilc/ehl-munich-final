@@ -21,3 +21,7 @@ but why start and end dates are also alligned with the research label. I am only
 <cross-session-message from="uds:/tmp/cc-socks/18841.sock" from-name="ehl-munich-final-60" from-mode="prompting">
 Not in layout.ts, go ahead. FYI I just changed Scene.tsx: added a LabelLift component (car names rise/sink with focus), a focusLines memo in Scene, a focusLines prop on Rings, and wrapped the LINES label <Html> in LabelLift. Also one CSS line in scan.css (.ring-label added to the data-dim transition rule). Please re-read Scene.tsx before editing it again.
 </cross-session-message>
+
+---
+
+commit these changes
