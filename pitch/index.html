@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SharkSight Pitch</title>
+<link rel="icon" href="../web/public/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mona+Sans:wdth,wght@75..125,200..800&display=swap" rel="stylesheet">
+<style>
+  /* Tokens mirror web/src/styles/tokens.css (DESIGN.md "Track-While-Scan") */
+  :root {
+    --void: #000; --hair: rgba(255,255,255,.09); --hair-2: rgba(255,255,255,.16);
+    --ink: #f2f4f7; --ink-2: #b4bac4; --ink-3: #868d99;
+    --sweep: #1c69d4; --sweep-hi: #4d94ff; --sweep-wash: rgba(28,105,212,.18); --lost: #f5a524;
+    --font: "Mona Sans", "Mona Sans Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; background: var(--void); color: var(--ink); font-family: var(--font); font-variant-numeric: tabular-nums; }
+  body { overflow: hidden; }
+  .deck { position: relative; width: 100vw; height: 100vh; }
+  .slide {
+    position: absolute; inset: 0; padding: 7vh 8vw; display: flex; flex-direction: column; justify-content: center; gap: 4.5vh;
+    opacity: 0; pointer-events: none; transition: opacity 400ms cubic-bezier(.16,1,.3,1);
+  }
+  .slide.on { opacity: 1; pointer-events: auto; }
+  .kicker { font-size: clamp(11px, 1.1vw, 15px); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--sweep-hi); }
+  h1 { font-size: clamp(40px, 7vw, 104px); font-weight: 300; font-stretch: 118%; letter-spacing: -.02em; line-height: 1; }
+  h2 { font-size: clamp(28px, 3.6vw, 54px); font-weight: 400; line-height: 1.12; letter-spacing: -.01em; max-width: 22ch; text-wrap: balance; }
+  .sub { font-size: clamp(16px, 1.7vw, 24px); color: var(--ink-2); line-height: 1.45; max-width: 52ch; }
+  .nums { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 3vh 3vw; border-top: 1px solid var(--hair-2); padding-top: 3.5vh; }
+  .num b { display: block; font-size: clamp(30px, 4.2vw, 62px); font-weight: 300; font-stretch: 118%; line-height: 1; }
+  .num span { display: block; margin-top: 1vh; font-size: clamp(12px, 1.1vw, 15px); color: var(--ink-3); line-height: 1.35; }
+  ul.pts { list-style: none; padding: 0; display: grid; gap: 1.8vh; max-width: 64ch; }
+  ul.pts li { font-size: clamp(15px, 1.55vw, 22px); color: var(--ink-2); line-height: 1.4; padding-left: 1.4em; position: relative; }
+  ul.pts li::before { content: ""; position: absolute; left: 0; top: .55em; width: .45em; height: .45em; border-radius: 50%; border: 1.5px solid var(--sweep-hi); }
+  ul.pts li strong { color: var(--ink); font-weight: 500; }
+  .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 1vw; font-size: clamp(13px, 1.3vw, 18px); color: var(--ink-2); }
+  .flow i { font-style: normal; padding: .5em .9em; border: 1px solid var(--hair-2); border-radius: 999px; }
+  .flow i.cur { border-color: var(--sweep-hi); color: var(--ink); }
+  .flow em { font-style: normal; color: var(--ink-3); }
+  .ladder { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--hair-2); max-width: 900px; }
+  .ladder div { padding: 2vh 1vw 0 0; font-size: clamp(12px, 1.15vw, 16px); color: var(--ink-3); line-height: 1.4; }
+  .ladder div b { display: block; color: var(--ink); font-weight: 500; font-size: clamp(14px, 1.4vw, 20px); margin-bottom: .4vh; }
+  .ladder div.pick b { color: var(--sweep-hi); }
+  .team { display: grid; grid-template-columns: repeat(3, 1fr); align-items: end; gap: clamp(12px, 3vw, 48px); width: 100%; max-width: 1100px; margin: 0 auto; padding-top: 2vh; }
+  .member { display: flex; flex-direction: column; align-items: center; gap: 1.6vh; text-align: center; }
+  .avatar { width: clamp(140px, 17vw, 250px); aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--hair-2); color: var(--ink-3); font-size: clamp(40px, 5vw, 72px); font-weight: 300; font-stretch: 118%; }
+  .member.me .avatar { border: 2px solid var(--sweep-hi); box-shadow: 0 0 0 8px var(--sweep-wash); }
+  .member .who { font-size: clamp(16px, 1.8vw, 26px); font-weight: 500; }
+  .member .tag { color: var(--lost); font-size: clamp(13px, 1.3vw, 18px); font-weight: 600; letter-spacing: .08em; }
+  .avatar { overflow: hidden; }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.08); display: block; }
+  .member.lost .avatar { border: 2px dashed var(--lost); opacity: .7; }
+  .member.lost .who { color: var(--ink-3); font-weight: 400; }
+  .note { font-size: clamp(11px, 1vw, 14px); color: var(--ink-3); }
+  .amber { color: var(--lost); }
+  .brand { display: flex; align-items: center; gap: 1.4vw; }
+  .brand svg { width: clamp(56px, 7vw, 110px); height: auto; }
+  footer { position: fixed; left: 8vw; right: 8vw; bottom: 3.5vh; display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-3); letter-spacing: .04em; z-index: 2; }
+  .bar { position: fixed; left: 0; bottom: 0; width: 100%; height: 2px; background: var(--sweep-hi); transform-origin: left; transform: scaleX(0); transition: transform 400ms cubic-bezier(.16,1,.3,1); }
+  @media (max-width: 760px) { .slide { padding: 6vh 16px; } footer { left: 16px; right: 16px; } .ladder { grid-template-columns: 1fr 1fr; } }
+  @media print {
+    body { overflow: visible; } .deck { height: auto; } footer, .bar { display: none; }
+    .slide { position: relative; opacity: 1; height: 100vh; page-break-after: always; }
+  }
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <!-- 1 · Title -->
+  <section class="slide">
+    <div class="brand">
+      <svg viewBox="0 -10 100 100" fill="none" aria-hidden="true"><g transform="translate(9 2) scale(0.84)"><path d="M6 18C40 18 72 26 94 46L36 52L66 60L10 72" stroke="#f2f4f7" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g></svg>
+      <h1>SharkSight</h1>
+    </div>
+    <h2>Solid evidence.<br>Sound decisions.</h2>
+    <p class="sub">A broad knowledge base built from thousands of raw data points. The AI structures it. The PM decides what the next BMW must deliver.</p>
+  </section>
+
+  <!-- 2 · Team -->
+  <section class="slide">
+    <div class="kicker">The team</div>
+    <h2>Zimbabwe</h2>
+    <div class="team">
+      <div class="member lost"><span class="tag">✕ Missing</span><div class="avatar">?</div><span class="who">Musa Berkay Kocabaşoğlu</span></div>
+      <div class="member me"><span class="tag">&nbsp;</span><div class="avatar"><img src="assets/atahan.png" alt="Atahan Kılıç"></div><span class="who">Atahan Kılıç</span></div>
+      <div class="member lost"><span class="tag">✕ Missing</span><div class="avatar">?</div><span class="who">Utku Kalkanlı</span></div>
+    </div>
+  </section>
+
+  <!-- 3 · Problem -->
+  <section class="slide">
+    <div class="kicker">The problem</div>
+    <h2>Thousands of customer voices. Many markets. One question: what must the successor do?</h2>
+    <ul class="pts">
+      <li><strong>Evidence is scattered:</strong> verbatims, customer studies, sales and option lists, plus a fast-moving market.</li>
+      <li><strong>Markets are different customers:</strong> the US, Europe and China must not be averaged away.</li>
+      <li><strong>Decisions live for years:</strong> new evidence keeps arriving, and every decision has to stay traceable.</li>
+    </ul>
+    <div class="flow"><i class="cur">Evidence</i><em>→</em><i>Structure</i><em>→</em><i>Definition</i><em>→</em><i>PM decision</i></div>
+  </section>
+
+  <!-- 4 · Evidence -->
+  <section class="slide">
+    <div class="kicker">Evidence</div>
+    <h2>Every source in one space, always live.</h2>
+    <div class="nums">
+      <div class="num"><b>Voice</b><span>what customers say,<br>across car lines</span></div>
+      <div class="num"><b>Data</b><span>BMW studies, options<br>and sales</span></div>
+      <div class="num"><b>World</b><span>cited web research with<br>source, date and trust</span></div>
+      <div class="num"><b>Live</b><span>new data keeps flowing in;<br>every update builds on the last</span></div>
+    </div>
+    <ul class="pts">
+      <li><strong>Honest data:</strong> internal figures are checked against public ones, and conflicts are shown, never blended silently.</li>
+    </ul>
+  </section>
+
+  <!-- 5 · Structure -->
+  <section class="slide">
+    <div class="kicker">Structure</div>
+    <h2>The AI reads everything and builds an evidence graph.</h2>
+    <div class="flow"><i>Classify</i><em>→</em><i>Cluster</i><em>→</em><i>Contextualize</i><em>→</em><i class="cur">Requirement areas</i></div>
+    <ul class="pts">
+      <li><strong>One shared language</strong> for comments, studies and research, across the whole portfolio.</li>
+      <li><strong>Needs are linked to the world:</strong> what supports them, what contradicts them, and where rivals compete.</li>
+      <li><strong>Change is tested statistically,</strong> so new data can't fake a trend. Defects go to Quality, not into requirements.</li>
+    </ul>
+  </section>
+
+  <!-- 6 · Definition -->
+  <section class="slide">
+    <div class="kicker">Definition</div>
+    <h2>From need to a measurable requirement, placed on the car.</h2>
+    <div class="ladder">
+      <div><b>Baseline</b>today's BMW</div>
+      <div><b>Threshold</b>rival parity</div>
+      <div class="pick"><b>Target</b>projected to launch</div>
+      <div><b>Stretch</b>delighter</div>
+    </div>
+    <ul class="pts">
+      <li><strong>One metric the customer feels,</strong> with a target ladder per car and market. The AI recommends a rung; the PM picks.</li>
+      <li><strong>Every number has a basis:</strong> cited, projected, assumption or gap. The AI never invents a number to fill a gap.</li>
+      <li><strong>Requirements are linked,</strong> like the roof of a House of Quality. Example: range vs. agility, via mass.</li>
+    </ul>
+  </section>
+
+  <!-- 7 · Trust -->
+  <section class="slide">
+    <div class="kicker">Built for trust</div>
+    <h2>The AI proposes. The PM decides. Everything is on record.</h2>
+    <ul class="pts">
+      <li><strong>Every requirement traces back</strong> to the evidence behind it.</li>
+      <li><strong>Every decision is audited,</strong> append-only, with who decided and why.</li>
+      <li><strong>Nothing is overwritten:</strong> each run is a new version, linked to the one before.</li>
+      <li><strong>Every model call is logged</strong> by step and cost.</li>
+    </ul>
+  </section>
+
+  <!-- 8 · Close -->
+  <section class="slide">
+    <div class="kicker">The vision</div>
+    <h2>A product brain that keeps learning, across every car line and market.</h2>
+    <p class="sub">Next: prioritization per market, where linked requirements are bundled and conflicts are decided together.</p>
+    <div class="brand" style="margin-top:2vh">
+      <svg viewBox="0 -10 100 100" fill="none" aria-hidden="true" style="width:clamp(40px,4vw,64px)"><g transform="translate(9 2) scale(0.84)"><path d="M6 18C40 18 72 26 94 46L36 52L66 60L10 72" stroke="#f2f4f7" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g></svg>
+      <div style="font-size:clamp(18px,2vw,28px);font-weight:300;font-stretch:118%">SharkSight · Live demo →</div>
+    </div>
+  </section>
+
+</div>
+<footer><span>SharkSight · BMW AI for Product Decision Making · EHL – Grand Finale</span><span id="count"></span></footer>
+<div class="bar" id="bar"></div>
+<script>
+  const slides = [...document.querySelectorAll(".slide")];
+  let i = Math.max(0, Math.min(slides.length - 1, (parseInt(location.hash.slice(1), 10) || 1) - 1));
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle("on", k === i));
+    document.getElementById("count").textContent = `${i + 1} / ${slides.length}`;
+    document.getElementById("bar").style.transform = `scaleX(${(i + 1) / slides.length})`;
+    history.replaceState(null, "", `#${i + 1}`);
+  }
+  addEventListener("keydown", e => {
+    if (["ArrowRight", "ArrowDown", " ", "PageDown", "]"].includes(e.key)) { e.preventDefault(); show(i + 1); }
+    if (["ArrowLeft", "ArrowUp", "PageUp", "["].includes(e.key)) { e.preventDefault(); show(i - 1); }
+    if (e.key === "Home") show(0);
+    if (e.key === "End") show(slides.length - 1);
+    if (e.key === "f") document.documentElement.requestFullscreen?.();
+  });
+  addEventListener("click", e => show(e.clientX > innerWidth / 3 ? i + 1 : i - 1));
+  show(i);
+</script>
+</body>
+</html>
