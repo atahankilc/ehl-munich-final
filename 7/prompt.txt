@@ -1,0 +1,17 @@
+you are working with two other agents at the same time, so before your actions, cordinate with them and expect sometimes they might try to react you. What i want from you now is: currently evidence and structure pages can get too much crowded and and zooming in do not work sometimes, what i want from you is to add a slider so i can expende the universe so separation between different things can increase. Also maybe adding a way to let the user move back and forth in this universe might be usefull
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/10495.sock" from-name="ehl-munich-final-ed" from-mode="prompting">
+I'm not editing any of those files; I'm only running backend relink jobs on the DB, so go ahead. Things to keep in mind: (1) Scene's `Layer` focus animation sets group.position.y and scale on each layer, so if your spread scales positions, apply it inside those groups or to the geometry, not to the same group transform, or the lift/sink will fight it. (2) The page-2 arcs use `ends` lookups (studyLayout/optionLayout positions plus the research geometry), and StructureLayer's label collision culling (useLabelCollisions) measures DOM rects, so it will adapt. Just keep the label `register(...)` refs. (3) Reticle positions come from `at` passed at selection time. If spread changes after selecting, the reticle will sit at the old position unless you recompute it.
+</cross-session-message>
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/18841.sock" from-name="ehl-munich-final-60" from-mode="prompting">
+Not editing any of those right now — go ahead. My label change is committed (a4345d6). Two notes for your spread work: (1) car-name labels are wrapped in <LabelLift>, which animates only the group's position.y (rest 0 / LIFT / SINK), so a spread can scale the Html's x/z position (polar(R.labels…)) inside it without conflict — just don't reset group y. (2) The uncommitted hunks in scan.css (beyond the ring-label lines) predate my session and aren't mine; watch them if you commit.
+</cross-session-message>
+
+---
+
+currently they are not spreading but shringking?

@@ -1,0 +1,128 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4MRDA1576Q73ZXKEHSAN8CP",
+  "session_id": "e0594a85-f25c-47fd-b039-e90da8869858",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-11T05:54:22.869356Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "save_step_count": 2,
+  "files_touched": [
+    "foundation/STATE.md",
+    "web/src/screens/scan/Scan.tsx",
+    "web/src/screens/scan/Scene.tsx",
+    "web/src/screens/scan/navigate.tsx",
+    "web/src/screens/scan/scan.css",
+    "web/src/screens/structure/StructureLayer.tsx"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "turn_id": "e83cf855eb1a",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 92,
+    "cache_creation_tokens": 209338,
+    "cache_read_tokens": 5100056,
+    "output_tokens": 33481,
+    "api_call_count": 46
+  },
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-11T05:54:22.792492Z",
+    "agent_lines": 150,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 24,
+    "human_removed": 60,
+    "total_committed": 150,
+    "total_lines_changed": 234,
+    "agent_percentage": 64.1025641025641,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 789,
+      "user_lines_removed": 115,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/scheduled_tasks.lock": 1,
+        ".impeccable/hook.cache.json": 1,
+        "DESIGN.md": 15,
+        "api/routers/audit_feed.py": 29,
+        "api/routers/structure.py": 9,
+        "foundation/DECISIONS.md": 28,
+        "foundation/OPEN_QUESTIONS.md": 9,
+        "foundation/STATE.md": 5,
+        "foundation/documents/architecture.md": 1,
+        "research/sales-verification.md": 128,
+        "src/bmw_req/structure/areas.py": 14,
+        "src/bmw_req/structure/classify_context.py": 8,
+        "src/bmw_req/structure/contextualize.py": 125,
+        "src/bmw_req/structure/events.py": 1,
+        "src/bmw_req/structure/market.py": 207,
+        "tests/test_market.py": 49,
+        "web/.impeccable/hook.cache.json": 1,
+        "web/src/components/AuditPanel.tsx": 16,
+        "web/src/components/Guide.tsx": 31,
+        "web/src/components/audit.css": 1,
+        "web/src/components/guide.css": 19,
+        "web/src/lib/types.ts": 9,
+        "web/src/screens/scan/scan.css": 30,
+        "web/src/screens/structure/panels.tsx": 33,
+        "web/src/screens/structure/structure.css": 16,
+        "web/src/styles/tokens.css": 3
+      },
+      "user_removed_per_file": {
+        "DESIGN.md": 14,
+        "api/routers/audit_feed.py": 9,
+        "api/routers/structure.py": 2,
+        "foundation/STATE.md": 1,
+        "src/bmw_req/structure/areas.py": 3,
+        "src/bmw_req/structure/contextualize.py": 25,
+        "src/bmw_req/structure/events.py": 1,
+        "web/src/components/AuditPanel.tsx": 8,
+        "web/src/components/Guide.tsx": 21,
+        "web/src/components/audit.css": 1,
+        "web/src/components/guide.css": 17,
+        "web/src/lib/types.ts": 1,
+        "web/src/screens/scan/scan.css": 9,
+        "web/src/screens/structure/panels.tsx": 3
+      }
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 3,
+      "user_lines_removed": 0,
+      "agent_lines_added": 1004,
+      "agent_lines_removed": 143,
+      "user_added_per_file": {
+        ".claude/scheduled_tasks.lock": 1,
+        ".impeccable/hook.cache.json": 1,
+        "web/.impeccable/hook.cache.json": 1
+      }
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 232,
+      "user_lines_removed": 18,
+      "agent_lines_added": 1004,
+      "agent_lines_removed": 143,
+      "user_added_per_file": {
+        ".claude/scheduled_tasks.lock": 1,
+        ".impeccable/hook.cache.json": 1,
+        "foundation/documents/requirement-definition.md": 101,
+        "src/bmw_req/car_zones.py": 1,
+        "src/bmw_req/definition/domains.py": 120,
+        "web/.impeccable/hook.cache.json": 1,
+        "web/src/screens/scan/navigate.tsx": 7
+      },
+      "user_removed_per_file": {
+        "web/src/screens/scan/navigate.tsx": 18
+      }
+    }
+  ]
+}
