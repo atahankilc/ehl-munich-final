@@ -128,3 +128,13 @@
 @media (max-width: 760px) { .agent { left: 16px; right: 16px; width: auto; bottom: 200px; } .agent-feed li:nth-child(n + 3) { display: none; } }
 .area-label { font-size: var(--t-label); font-weight: 600; color: var(--ink); white-space: nowrap; pointer-events: none; user-select: none; padding: 2px 7px; border-radius: 5px; background: rgba(0, 0, 0, 0.65); }
 .area-label:not([data-active]) { font-weight: 500; color: var(--ink-2); font-size: var(--t-micro); }
+
+/* hovering or focusing a stage: its explanation takes the feed's place */
+.agent-stages li { cursor: help; outline: none; }
+.agent-stages li[data-hot] .agent-name { color: var(--ink); }
+.agent-stages li:focus-visible .agent-name { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.agent-swap { display: grid; }
+.agent-swap > * { grid-area: 1 / 1; }
+.agent-feed[data-hidden] { visibility: hidden; }
+.agent-explain { margin: 2px 0 0; align-self: start; font-size: var(--t-label); line-height: 1.45; color: var(--ink-2); animation: dock-in var(--fast) var(--ease); }
+.agent-explain b { color: var(--ink); font-weight: 600; }

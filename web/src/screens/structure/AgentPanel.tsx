@@ -1,7 +1,8 @@
 // The agent at work, bottom-left on page 2, frameless like the checkpoint timeline opposite it: a status line with the
 // running stage's count as an instrument numeral, the four stages as one segmented bar (done segments filled, the running
 // one filling with its progress), and the agent's latest steps in plain words (one line per AI call, from the audit
-// trail), older lines fading. Polls every 2 s while something runs.
+// trail), older lines fading. Polls every 2 s while something runs. Hovering (or focusing) a stage swaps the feed for a
+// two-line explanation of what that stage does.
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -56,7 +57,16 @@ export function useActivity() {
 const SHORT: Record<string, string> = { classify: "Classify", cluster: "Cluster", contextualize: "Context", areas: "Areas" };
 const DOING: Record<string, string> = { classify: "classified", cluster: "Clustering signals", contextualize: "Adding context", areas: "Finding requirement areas" };
 
+// what each stage does, condensed (D-043); the visible mark it makes in the volume is named in the second sentence
+const EXPLAIN: Record<string, string> = {
+  classify: "Reads every comment and splits it into signals: one point about one topic, tagged with one of ~45 shared aspects, gap, like or wish, a strength 1–3 and a quote. Study, research and options get the same aspects.",
+  cluster: "Groups signals that say nearly the same thing, across all car lines; likes and complaints never mix. No AI here, just text similarity. Each cluster is a dot: blue to improve, white to keep.",
+  contextualize: "Writes one clean need per cluster, merges look-alikes and groups them into themes (the halos). Then links each theme to the research, study and option items that support or contradict it (the arcs).",
+  areas: "Groups themes into requirement areas a PM would recognise (the diamonds): the need, improve, keep or emerging, why now, open questions. Pure quality defects go to a separate list. Not requirements yet.",
+};
+
 export function AgentPanel() {
+  const [hot, setHot] = useState<string | null>(null);
   const q = useActivity();
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const t = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(t); }, []);
@@ -90,7 +100,9 @@ export function AgentPanel() {
           // a running stage without a count shows a short travelling segment instead of a fill
           const f = s.status === "completed" ? 1 : s.status === "running" ? (p?.total ? p.done / p.total : 0.3) : 0;
           return (
-            <li key={s.stage} data-status={s.status} title={STAGE_NAME[s.stage] ?? s.stage}>
+            <li key={s.stage} data-status={s.status} data-hot={hot === s.stage ? "" : undefined} tabIndex={0}
+                aria-describedby={hot === s.stage ? "agent-explain" : undefined}
+                onPointerEnter={() => setHot(s.stage)} onPointerLeave={() => setHot(null)} onFocus={() => setHot(s.stage)} onBlur={() => setHot(null)}>
               <span className="agent-seg" data-indeterminate={s.status === "running" && !p ? "" : undefined}><i style={{ transform: `scaleX(${f})` }} /></span>
               <span className="agent-name">{SHORT[s.stage] ?? s.stage}</span>
             </li>
@@ -98,13 +110,17 @@ export function AgentPanel() {
         })}
       </ol>
 
-      {!idle && (
-        <ul className="agent-feed">
-          {a.events.slice(0, 4).map((e) => (
-            <li key={e.id}><span>{line(e)}</span><span className="agent-ago">{ago(e.ts, now)}</span></li>
-          ))}
-        </ul>
-      )}
+      {/* feed and explanation share one grid cell, so the panel keeps its height and the bar stays under the pointer */}
+      <div className="agent-swap">
+        {!idle && (
+          <ul className="agent-feed" aria-hidden={hot ? true : undefined} data-hidden={hot ? "" : undefined}>
+            {a.events.slice(0, 4).map((e) => (
+              <li key={e.id}><span>{line(e)}</span><span className="agent-ago">{ago(e.ts, now)}</span></li>
+            ))}
+          </ul>
+        )}
+        {hot && <p className="agent-explain" id="agent-explain"><b>{STAGE_NAME[hot] ?? hot}</b> {EXPLAIN[hot] ?? ""}</p>}
+      </div>
     </section>
   );
 }
