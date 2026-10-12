@@ -64,6 +64,7 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-056 | Document, AI agents and Audit are full-screen 2D pages: no 3D rendered behind them, own checkpoint switch, timeline hidden (supersedes D-051's sheet-over-scene) | accepted |
 | D-057 | Wave pipeline retired: old API routes, `pipeline/`, `service.py`, `research/findings.py`, their tests and scripts removed; shared helpers moved; LangGraph dropped (supersedes D-015); old-only DB tables kept for now | accepted |
 | D-058 | Old wave-pipeline tables dropped (11 tables) after a verified backup; schema no longer creates them | accepted |
+| D-059 | Move to PostgreSQL 17 + pgvector (one DB for relational, vectors, full-text, job queue); no graph DB; plan in `documents/postgres-migration.md` | proposed |
 
 Keep this index in sync when adding a decision.
 
@@ -650,3 +651,12 @@ Template:
 - Kept: `signal`, `verbatim_extraction`, `signal_embedding`, `source_embedding` (used by the checkpoint pipeline), `source_item.wave` (harmless history column), `weights_version` (shared), and every audit row.
 - Backup: `data/backups/app-before-D058-20261012T024059Z.db` (373 MB, git-ignored). Restoring it (`scripts/demo_state.py` or a file copy, API stopped) brings the old tables back; the code no longer reads them.
 - Consequences: old snapshots in `data/snapshots/` still contain the tables (harmless leftovers if restored).
+
+## D-059 — PostgreSQL + pgvector instead of SQLite (proposed)
+- Date: 2026-10-12
+- Decided by: Atahan chose Postgres + pgvector and "plan first, then build"; plan by the agent, awaiting Atahan's approval
+- Status: proposed (would supersede D-016 SQLite and D-018 sqlite-vec; D-017 "no graph DB" stands)
+- Context: post-hackathon the project heads to continuous intake by background agents, uploads to the knowledge base, RAG and several users (Q-027); SQLite allows one writer and has no vector index. Atahan asked whether SQL alone is enough and whether a graph DB is needed.
+- Decision (proposed): PostgreSQL 17 + pgvector in Docker (127.0.0.1 only), psycopg 3, Alembic; uploaded files outside the DB; no graph DB (evidence graph = edge tables + recursive SQL; Apache AGE inside Postgres if a real knowledge graph ever needs it). Lift and shift first (same query behaviour, TEXT timestamps/JSON), then Postgres features. Four phases P0–P3 with exit criteria — `foundation/documents/postgres-migration.md`.
+- Alternatives considered: stay on SQLite (fine for one local user, blocks background agents); Postgres without vectors first (keeps numpy brute-force search); add a graph DB (Neo4j) — rejected: small, fixed-depth graph queried relationally, two sources of truth would split traceability and the audit trail.
+- Consequences: Docker required for app and tests; budget guard needs an explicit lock; `demo_state.py` / `drop_wave_tables.py` replaced by `pg_dump`-based backups.

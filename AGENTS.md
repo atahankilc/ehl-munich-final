@@ -22,6 +22,7 @@ Then read only what your task needs:
 | Requirement fields, evidence levels, scoring | `documents/requirement-model.md` |
 | Requirement definition: metrics, target ladders, links, page 3 (D-048) | `documents/requirement-definition.md` |
 | Prioritization: prio-v1 factors, bundles, gate, page 4 (D-050) | `documents/prioritization.md` |
+| Database, the PostgreSQL migration (D-059) | `documents/postgres-migration.md` |
 | Research agents, trust tiers, brand/feasibility checks | `documents/knowledge-base.md` |
 | Platforms, plants, BMW sales (cited) | `documents/portfolio-reference.md` (long — search it) |
 | Competitors, trends, brand guardrails (cited) | `documents/competitor-landscape.md` (long — search it) |
