@@ -1,0 +1,1 @@
+sence bu uygulamayı genericleştirmek istediğim zaman, microservislere bölmem mantıklı olur mu? Mesela evidence kısmı? sadece feedback market search olmaz, bi noktadan sonra farklı connectorlar ve her türlü datayaizin veren ayrıca arkada hep çalışıan ve evidence base i genişleten bir agent falan olcak
