@@ -1,4 +1,4 @@
-# BMW Requirements Studio
+# SharkSight
 
 AI-assisted, evidence-linked **customer requirements for BMW successor vehicles** — built for the BMW
 "AI for Product Decision Making" hackathon challenge. The AI ingests BMW customer feedback, customer studies,

@@ -1,7 +1,7 @@
 [project]
-name = "bmw-req"
+name = "sharksight"
 version = "0.1.0"
-description = "AI-assisted, evidence-linked customer requirements for BMW successor vehicles (hackathon)"
+description = "AI-assisted, evidence-linked customer requirements for BMW successor vehicles"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "openai",
@@ -19,7 +19,7 @@ dependencies = [
 ]
 
 [project.scripts]
-successor = "api.main:run"
+sharksight = "api.main:run"
 
 [dependency-groups]
 dev = ["pytest"]

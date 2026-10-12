@@ -1,7 +1,7 @@
 """FastAPI app for the rebuilt PM frontend (replaces the Streamlit app's read/write paths, inventory §1–§4).
 
 Localhost only (127.0.0.1:8600), no CORS: the frontend is served from the same origin (frontend/dist) or proxied by the
-Vite dev server. Run with `uv run python -m api` or `uv run successor`.
+Vite dev server. Run with `uv run python -m api` or `uv run sharksight`.
 
 Profiles (D-053), from the environment:
 - `APP_ENV=development` (default): auto-reload on code changes in backend/src; the PM app comes from the Vite dev server.
