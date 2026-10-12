@@ -25,8 +25,7 @@ const CheckpointCtx = createContext<Ctx | null>(null);
 export function CheckpointProvider({ children }: { children: ReactNode }) {
   const [params, setParams] = useSearchParams();
   const urlCp = params.get("cp");
-  // No checkpoint in the URL: open at the first one and play the sweep to the latest once (the signature moment).
-  const arrival = useRef(!isCp(urlCp));
+  // No checkpoint in the URL: open at the first one (JAN 26) and stay there; the PM sweeps to JUL 26 when ready.
   const cp: CheckpointId = isCp(urlCp) ? urlCp : "cp1";
   const prev = useRef<CheckpointId>(cp);
   const [from, setFrom] = useState<CheckpointId>(cp);
@@ -47,13 +46,6 @@ export function CheckpointProvider({ children }: { children: ReactNode }) {
     },
     [setParams],
   );
-
-  useEffect(() => {
-    if (!arrival.current || !checkpoints) return;
-    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    const t = window.setTimeout(() => { arrival.current = false; setCp(ORDER[ORDER.length - 1]); }, reduced ? 0 : 1200);
-    return () => window.clearTimeout(t);
-  }, [checkpoints, setCp]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

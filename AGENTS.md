@@ -2,7 +2,7 @@
 
 **SharkSight** (repo `shark-sight`), started for the **BMW "AI for Product Decision Making"** hackathon challenge: an AI app that turns customer feedback, BMW product/sales data and web research into **prioritized, evidence-linked customer requirements** for successor BMW vehicles, with a **product manager (PM) in the loop** and a **full audit trail**.
 
-**Portfolio-level by design:** multiple models, markets, shared platforms (CLAR, FAAR → Neue Klasse) and plants from day one. The 5 Series (G60 + China LWB G68) is the deepest example; F70 and G70 use the same pipeline. **LLM provider: OpenAI.** Stack: Python 3.12/uv, PostgreSQL 17 + pgvector in Docker (D-059; no graph DB, D-017), Alembic migrations; LangGraph retired with the wave pipeline (D-057), FastAPI + React/three.js PM app (D-039). Layout (D-052): `backend/` (Python: `src/bmw_req`, `src/api`, `tests`, `scripts` — run `uv run …` from there), `frontend/` (PM app), `research/`, `docs/`, `foundation/`; root `Makefile` for common commands.
+**Portfolio-level by design:** multiple models, markets, shared platforms (CLAR, FAAR → Neue Klasse) and plants from day one. The 5 Series (G60 + China LWB G68) is the deepest example; F70 and G70 use the same pipeline. **LLM provider: OpenAI.** Stack: Python 3.12/uv, PostgreSQL 17 + pgvector in Docker (D-059; no graph DB, D-017), Alembic migrations; LangGraph retired with the wave pipeline (D-057), FastAPI + React/three.js PM app (D-039). Layout (D-052): `backend/` (Python: `src/bmw_req`, `src/api`, `tests`, `scripts` — run `uv run …` from there), `frontend/` (PM app), `research/`, `docs/screenshots/` (README images), `assets/models/` (CC BY car models), `deploy/` + `render.yaml`, `foundation/`; root `Makefile` for common commands.
 
 ## Session start — mandatory
 
@@ -65,6 +65,16 @@ Then read only what your task needs:
 - No China verbatims exist; US verbatims dominate G60/G70 (90–95%); F70 has no US data but ~⅓ Japan; almost no EU verbatims for G70. No dates in feedback.
 - BMW sales volumes look stylized and conflict with public data (Q-015) — never blend them silently.
 - Local anaconda Python is broken for pandas — use the `uv` venv in `backend/` (Python 3.12).
+
+## Running, testing, deploying
+
+The README is for visitors (what the app is, page by page) — keep commands and setup here, not there.
+- **Setup:** `cp .env.example .env` (OpenAI key + the two database passwords), `make db` (PostgreSQL 17 + pgvector in Docker, 127.0.0.1:5433), `make migrate` (Alembic). `make install` for native runs.
+- **Run (one at a time — same port 8600, same database):** production `make serve` (native) or `make up` (container; `make down`, `make logs`) → http://127.0.0.1:8600; development `make api` + `make dev` or `make up-dev` → http://127.0.0.1:5173 (`APP_ENV`, D-053). The app opens at JAN 26.
+- **Test:** `make test` (pytest on throwaway PostgreSQL databases, no paid calls, + frontend typecheck). `make testdata` refreshes the real-data copy the API tests clone.
+- **Data:** `make backup` (`pg_dump` → `data/backups/`). Pipeline stages and their commands: `foundation/STATE.md` → How to run.
+- **Images:** `.dockerignore` is an allowlist — never the raw BMW data, `data/` or `.env`; compose mounts `data/` and publishes on 127.0.0.1 only. The compressed CC BY car models (`assets/models/`) are baked in.
+- **Cloud:** Render (`render.yaml`, free Docker web service) + Neon (Postgres); open to read, changes need `ACCESS_KEY` (D-063, D-064). Guide: `deploy/README.md`. `main` auto-deploys.
 
 ## Commits
 

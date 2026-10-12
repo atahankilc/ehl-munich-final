@@ -1,92 +1,104 @@
 # SharkSight
 
-AI-assisted, evidence-linked **customer requirements for BMW successor vehicles** — built for the BMW
-"AI for Product Decision Making" hackathon challenge. The AI ingests BMW customer feedback, customer studies,
-sales and option lists, enriches them with cited web research, extracts signals, clusters findings, derives and
-scores requirements per derivative × market — and the **product manager decides**, with every step in an
-append-only audit trail.
+SharkSight turns what customers say into **prioritized, evidence-linked requirements for the next generation of a
+car**: what the successor of the BMW 1, 5 and 7 Series should offer its customers, market by market. The AI reads,
+groups, drafts, checks and scores; the **product manager decides**; every step is traceable to the customers' own
+words and recorded in an append-only audit trail.
 
-Portfolio-level from day one: 1 Series (F70), 5 Series (G60 + China LWB G68), 7 Series (G70) × EU / US / CN / RoW.
+## What it does
 
-## Quick start
+SharkSight is a solution to the BMW hackathon challenge **"AI for Product Decision Making"**.
 
-```bash
-cp .env.example .env      # add OPENAI_API_KEY and the two database passwords (LLM provider: OpenAI)
-make db                   # PostgreSQL 17 + pgvector in Docker, 127.0.0.1:5433 (D-059)
-make migrate              # build the schema (Alembic)
-```
+- **One evidence base:** 10,128 customer comments, a customer study, sales figures, option price lists, and about 900
+  cited web sources on competitors, trends and markets.
+- **Two real-date checkpoints:** JAN 26 and JUL 26. The second builds on the first, so you can see which needs are
+  new, which held and which got stronger or weaker.
+- **An AI pipeline from evidence to decisions:** comments become signals, signals become clusters and themes, and
+  themes become requirement areas. Each area becomes a requirement with a measurable target, linked to related
+  requirements, then checked for brand and market fit. Finally it gets a transparent score for every car line and
+  market.
+- **The PM in the loop:** the AI only proposes. Priorities, targets and approvals are human decisions, each with a
+  reason.
+- **Built for a real process, not a one-off list:** every score explains itself, markets are treated as different
+  customers, and evidence is kept apart from assumptions. OpenAI spend runs under limits set in the app.
 
-Two profiles (`APP_ENV`, D-053), natively or in containers. Run only one of them at a time — they share port 8600
-and the database.
+Stack: Python (FastAPI) and PostgreSQL with pgvector; React and three.js for the 3D interface; OpenAI models. It is
+deployed on Render, with the database on Neon.
 
-| | Native | Containers (Docker) |
-|---|---|---|
-| **development** — API auto-reloads on save, PM app with live reload on http://127.0.0.1:5173 | `make install`, then `make api` + `make dev` | `make up-dev` |
-| **production** — the API serves the built app on http://127.0.0.1:8600 | `make serve` | `make up` (detached; `make down`, `make logs`) |
+## The app, page by page
 
-`make test` runs pytest + the frontend typecheck. Images never contain the raw BMW data, `data/` or `.env`
-(`.dockerignore` is an allowlist); compose mounts `data/` and reads `.env`, and publishes ports on 127.0.0.1 only.
+The five pages follow the PM's work from left to right. A checkpoint switch sits in the bottom right corner (JAN 26 → JUL 26).
 
-## Deploying
+### 1 · Evidence
 
-Render (free Docker web service, `render.yaml`) + Neon (free Postgres), one shared access key — see
-[`deploy/README.md`](deploy/README.md) (D-063).
+![Evidence page](docs/screenshots/1-evidence.jpg)
 
-## Repository layout
+Everything the system knows at a checkpoint, before any AI interpretation, shown as one 3D space:
 
-```
-backend/            Python 3.12 (uv) — run every `uv run …` from here
-  src/bmw_req/      pipeline: ingest, research, structure, definition, prioritize, LLM budget guard
-  src/api/          FastAPI JSON layer for the PM app
-  tests/            pytest (no paid calls)
-  scripts/          demo states, benchmarks, pilot, checkpoint research merge
-frontend/           PM app: React + TypeScript (Vite) + three.js
-Dockerfile, compose.yaml   images (targets dev / prod) and compose profiles dev / prod
-deploy/             cloud deployment: Render + Neon (deploy/render/, render.yaml at the root)
-research/           cited checkpoint research (JSON) + sales verification
-foundation/         project memory: state, decisions, open questions, reference docs
-data/               derived data, settings, 3D models, backups (git-ignored); the database lives in Docker
-```
+- **The blue cloud:** the customer comments, placed by meaning, so comments that say similar things sit close together.
+- **The rings:** web research by publication date, customer study results, equipment options and sales volumes, with
+  a sector for each car line.
 
-The raw BMW data (`challange information document/`) and `data/` are git-ignored; the database lives in the Docker volume
-`pgdata`.
-Back up the database with `make backup` (`pg_dump` → `data/backups/`). `make testdata` refreshes the real-data copy
-the API tests clone.
+The counters at the top show what is new since the last checkpoint, and the filters narrow the view by car, market,
+channel, topic and more.
 
-## End-to-end workflow
+### 2 · Structure
 
-Runs per **checkpoint** (D-040, D-041): JAN 26 (cut-off 31 Jan 2026), then JUL 26 building on it. Every stage is a
-recorded run (`checkpoint_run`) at one checkpoint; all commands run from `backend/` with `uv run python -m …`.
+![Structure page](docs/screenshots/2-structure.jpg)
 
-| # | Step | Who | Where |
-|---|---|---|---|
-| 1 | Ingest feedback (10,128 verbatims), customer study, sales, option lists | system | `bmw_req.ingest` |
-| 2 | Reference layer (platforms, plants, competitors, market profiles, brand guardrails) + cited checkpoint research | AI-researched, **PM signs off guardrails** | `bmw_req.reference_data`, `research/checkpoints/`, `bmw_req.research` |
-| 3 | Classify comments into signals in one shared aspect space; map study, options and research onto it | AI | `bmw_req.structure.classify`, `.classify_context` |
-| 4 | Cluster → contextualize (insights, themes, evidence links) → requirement areas | AI | `bmw_req.structure.run_all` |
-| 5 | Define → specify (metric + target ladder) → couple (links) | AI **proposes** | `bmw_req.definition.run` |
-| 6 | Fit gate (brand, segment, market; feasibility as context) → deterministic prio-v1 score per line × market | AI checks, score is rule-based | `bmw_req.prioritize.run` |
-| 7 | PM picks target rungs, reviews links, confirms bands, accepts or rejects AI proposals, sets weights | **Human, mandatory** | PM app: Definition, Prioritize |
-| 8 | Requirement document per line × market, export (logged); audit trail | system | PM app: Document, Audit |
+How the AI turns raw comments into structure, step by step:
 
-The AI never sets a priority: a changed score against a PM-confirmed band becomes a **proposal** with its cause.
-Which model each AI step uses, its effort and spend cap are set on the **AI agents** page (D-055).
+1. **Classify:** comments become signals.
+2. **Cluster:** similar signals are grouped.
+3. **Context:** clusters are named and gathered into themes, and each theme is linked to study, option and research
+   evidence that supports or contradicts it.
+4. **Areas:** themes are grouped into requirement areas.
 
-## How the deliverables map
+The funnel at the top counts each step; the live agent panel on the left shows what the AI did.
 
-| BMW deliverable | Where |
-|---|---|
-| Concept + working prototype | this repo; PM app: Evidence → Structure → Definition → Prioritize → Document |
-| Structured requirement list (ID, description, findings + sources, score, rationale, evidence level, assumptions / uncertainties, status) | Document page, Markdown / CSV export (`/api/document/export`) |
-| Workflow definition: AI autonomous vs mandatory human review | table above; `foundation/documents/architecture.md` |
-| Audit trail: sources → findings → consolidation → scoring → prioritization → human decision | Audit page (per checkpoint); `audit_event` (append-only via triggers) |
+### 3 · Definition
 
-## Key design choices
+![Definition page](docs/screenshots/3-definition.jpg)
 
-- **Evidence vs assumption** kept apart in every requirement; conflicting evidence linked as `contradicts`.
-- **Markets are different customers** — every derivative × market target has its own score, evidence level and
-  priority; missing data (e.g. no China verbatims) is shown as an evidence gap, not silently scored as zero.
-- **Brand fit** is an approval gate (PM override with rationale); **feasibility** is non-blocking context.
-- **OpenAI budget** with limits you set (ask before spending, stop) enforced by a reserving wrapper; every call logged in `llm_usage`, identical calls cached.
+Every requirement is placed where the customer experiences it on today's car. Each one has a customer-experienced
+metric and a target ladder (baseline, threshold, target, stretch). The PM picks the target. Each number is marked as
+cited, projected, an assumption or a gap. The arcs link requirements that depend on or strengthen each other.
 
-Project memory, decisions (D-001 … ) and open questions live in `foundation/`.
+### 4 · Prioritize
+
+![Prioritize page](docs/screenshots/4-prioritize.jpg)
+
+A score for every requirement × car line × market. Its factors are visible: customer, business and future. The
+"skyline" around the car shows each requirement as a column grouped by domain, with Must, Should and Could bands.
+
+When new evidence moves a score against a band the PM already confirmed, the AI doesn't change it. It raises an
+**upgrade or downgrade proposal** with its cause (top left), and the PM decides. Weights can be adjusted with a live
+preview.
+
+### 5 · Document
+
+![Document page](docs/screenshots/5-document.jpg)
+
+The deliverable: the requirement list for one car line × market at a checkpoint, grouped by band. Each row shows its
+target, evidence level, score and any open proposal, and every requirement traces back to its sources.
+
+"Changes since JAN" shows what moved. The list exports to Markdown or CSV.
+
+### AI agents
+
+![AI agents page](docs/screenshots/6-agents.jpg)
+
+Every AI step is an agent with its own model, reasoning effort, spend cap and on/off switch. Spending is shown per
+agent, and the spend limits apply to all of them.
+
+### Audit trail
+
+![Audit page](docs/screenshots/7-audit.jpg)
+
+Every change, one checkpoint at a time: what an AI agent did, what the system loaded and what the PM decided, with the
+reason. It is append-only, and the database itself refuses edits or deletions.
+
+## For developers
+
+How to run, test and deploy it, the project rules and all decisions are in [`AGENTS.md`](AGENTS.md) and
+[`foundation/`](foundation/).

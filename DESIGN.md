@@ -133,7 +133,7 @@ The whole interface is a scan volume. A true-black field holds every piece of ra
 
 Density sits in the contacts, not in the text. Numerals carry the information, set wide, light and tabular like instrument readouts; words are short labels. The only running text is the customer's own words, shown in the inspector at reading size. Colour is categorical and earned: each raw data type has its own hue, one blue belongs to the sweep and the PM's current position, and amber is held back for loss. State is carried by mark shape, never by hue alone.
 
-Motion is a single event, not ambience. The volume never turns by itself; it moves only when the PM drags it. The sweep plays once on arrival and once on each checkpoint change, and contacts it passes flare white as they are acquired.
+Motion is a single event, not ambience. The volume never turns by itself; it moves only when the PM drags it. The app opens at JAN 26 and stays there until the PM switches. The sweep plays once on arrival and once on each checkpoint change, and contacts it passes flare white as they are acquired.
 
 **Key Characteristics:**
 - True black ground (#000) with the live 3D canvas full-bleed behind every overlay.

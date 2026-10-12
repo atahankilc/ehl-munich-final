@@ -12,7 +12,8 @@
 .hud-tl { position: fixed; top: var(--edge); left: var(--edge); z-index: 15; display: grid; gap: 18px; justify-items: start; }
 .readout { display: grid; grid-template-columns: repeat(3, max-content); gap: 16px 32px; margin: 0; pointer-events: none; }
 .readout > div:nth-child(3) { grid-column: 1; }
-@media (min-width: 1900px) { .readout { grid-template-columns: repeat(5, max-content); } .readout > div:nth-child(3) { grid-column: auto; } }
+/* one row only where it clears the centred logo + page tabs (~640px wide); below that it collided at 1920px */
+@media (min-width: 2240px) { .readout { grid-template-columns: repeat(5, max-content); } .readout > div:nth-child(3) { grid-column: auto; } }
 .readout div { display: grid; gap: 6px; align-content: start; }
 .readout dt { display: inline-flex; align-items: center; gap: 7px; }
 .readout dd { margin: 0; display: inline-flex; align-items: baseline; gap: 10px; }

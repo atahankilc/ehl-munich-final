@@ -53,6 +53,15 @@ Why (PDF): turning large volumes of feedback, market signals, competitor info an
 - [ ] **End-to-end workflow definition** — what AI does autonomously, where human review is mandatory.
 - [ ] **Demonstrable audit trail** — requirement traceable from sources → findings → consolidation → scoring → prioritization → human decision; records changes to content, scores, priorities, evidence, status, with **who/what**, **when**, **rationale**.
 
+Where each deliverable lives in SharkSight (moved here from the README, 2026-10-13):
+
+| Deliverable | Where |
+|---|---|
+| Concept + working prototype | PM app: Evidence → Structure → Definition → Prioritize → Document |
+| Structured requirement list | Document page; Markdown / CSV export (`/api/document/export`) |
+| Workflow: AI autonomous vs mandatory human review | `architecture.md` (workflow table) |
+| Audit trail: sources → findings → consolidation → scoring → prioritization → human decision | Audit page (per checkpoint); `audit_event`, append-only by triggers and role permissions (D-059) |
+
 The PDF ("What to demonstrate") phrases the same as three items:
 1. **Concept and working prototype**: AI supports identification, formulation and prioritization of customer-facing requirements from the provided data and, where relevant, external sources.
 2. **Representative set of requirements with clear evidence and reasoning**: show how feedback, product data, market signals or competitor insights become requirements, and explain what drives their priority.

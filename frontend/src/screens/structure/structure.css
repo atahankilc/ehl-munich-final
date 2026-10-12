@@ -11,14 +11,14 @@
 .smark.s-lost::after { transform: rotate(-45deg); }
 
 /* funnel: the stages of the AI pipeline as peer numerals */
-.funnel { position: fixed; top: var(--edge); left: var(--edge); z-index: 10; margin: 0; display: flex; align-items: flex-start; gap: 18px; pointer-events: none; }
-.funnel-cell { display: grid; gap: 8px; position: relative; padding-right: 34px; }
+.funnel { position: fixed; top: var(--edge); left: var(--edge); z-index: 10; margin: 0; display: flex; align-items: flex-start; gap: 12px; pointer-events: none; }
+.funnel-cell { display: grid; gap: 8px; position: relative; padding-right: 28px; }
 .funnel-cell:last-child { padding-right: 0; }
 .funnel-cell dd { margin: 0; display: inline-flex; align-items: baseline; gap: 10px; }
-.funnel-cell .num { font-size: 34px; color: var(--ink); }
+.funnel-cell .num { font-size: 28px; color: var(--ink); }   /* the readout size: the stages must clear the page switch */
 .funnel-delta { display: inline-flex; gap: 10px; font-size: var(--t-label); color: var(--ink-2); }
 .funnel-delta span { display: inline-flex; align-items: center; gap: 5px; }
-.funnel-arrow { position: absolute; right: 0; top: 30px; color: var(--ink-3); }
+.funnel-arrow { position: absolute; right: 0; top: 26px; color: var(--ink-3); }
 .funnel-wait { padding: 6px 0; }
 
 /* 3D theme labels */
