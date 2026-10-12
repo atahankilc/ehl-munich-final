@@ -1,0 +1,50 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4Q3RF15PZCATYG5Z18JQDR3",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "DESIGN.md",
+    "foundation/DECISIONS.md",
+    "foundation/STATE.md",
+    "foundation/documents/prioritization.md",
+    "frontend/src/screens/definition/DefinitionHud.tsx",
+    "frontend/src/screens/definition/Ladder.tsx",
+    "frontend/src/screens/definition/data.ts",
+    "frontend/src/screens/definition/definition.css",
+    "frontend/src/screens/definition/fixture.ts",
+    "frontend/src/screens/definition/stages.ts",
+    "frontend/src/screens/document/DocumentPage.tsx",
+    "frontend/src/screens/document/sample.ts",
+    "frontend/src/screens/prioritize/PrioritizeHud.tsx",
+    "frontend/src/screens/prioritize/data.ts",
+    "frontend/src/screens/prioritize/deciding.tsx",
+    "frontend/src/screens/prioritize/fixture.ts",
+    "frontend/src/screens/prioritize/risefall.tsx",
+    "frontend/src/screens/prioritize/weights.tsx"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 58,
+    "cache_creation_tokens": 43920,
+    "cache_read_tokens": 20292493,
+    "output_tokens": 19360,
+    "api_call_count": 29,
+    "subagent_tokens": {
+      "input_tokens": 0,
+      "cache_creation_tokens": 0,
+      "cache_read_tokens": 0,
+      "output_tokens": 0,
+      "api_call_count": 0
+    }
+  }
+}
