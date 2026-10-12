@@ -13,7 +13,7 @@ db:  ## start only the database container (127.0.0.1:5433), wait until it is rea
 db-stop:  ## stop the database container (data stays in the pgdata volume)
 	docker compose stop db
 
-migrate: db  ## apply the schema migrations (Alembic) to DATABASE_URL
+migrate: db  ## apply the schema migrations (Alembic) as the owner (MIGRATION_DATABASE_URL)
 	cd backend && uv run alembic upgrade head
 
 backup: db  ## pg_dump of the app database → data/backups/sharksight-<UTC time>.dump (restore with pg_restore)

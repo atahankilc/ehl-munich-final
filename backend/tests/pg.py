@@ -38,6 +38,15 @@ def with_db(url: str, name: str) -> str:
     return urlunsplit(p._replace(path=f"/{name}"))
 
 
+def as_app(url: str) -> str:
+    """The same database as the app role `sharksight_app` (migration 0003), if APP_DB_PASSWORD is set."""
+    pw = os.getenv("APP_DB_PASSWORD")
+    if not pw:
+        return url
+    p = urlsplit(url)
+    return urlunsplit(p._replace(netloc=f"sharksight_app:{pw}@{p.hostname}:{p.port}"))
+
+
 def _admin(sql: str) -> None:
     with psycopg.connect(server_url(), autocommit=True) as c:
         c.execute(sql)

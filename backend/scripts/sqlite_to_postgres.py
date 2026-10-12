@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sqlite3
 import sys
@@ -70,7 +71,7 @@ def orphans(pg) -> list[str]:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--sqlite", default=str(get_settings().db_path))
-    ap.add_argument("--target", default=get_settings().database_url)
+    ap.add_argument("--target", default=os.getenv("MIGRATION_DATABASE_URL") or get_settings().database_url)   # owner: replica role
     args = ap.parse_args()
 
     lite = sqlite3.connect(f"file:{args.sqlite}?mode=ro", uri=True)

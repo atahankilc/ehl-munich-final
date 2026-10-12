@@ -6,11 +6,14 @@ wrapper over a psycopg 3 connection that keeps the old behaviour, so ~500 query 
 - `?` placeholders become `%s` (and a literal `%` becomes `%%`), parameters are bound the loose way SQLite did:
   ints and bools go out untyped, so `text_col = ?` with an int compares like before; bools are stored as 0/1.
 - rows work as `row["col"]`, `row[0]`, `dict(row)`; `numeric` comes back as float and `boolean` as 0/1, like SQLite.
-- `INSERT OR IGNORE` → `ON CONFLICT DO NOTHING`; the SQLite timestamp expression → `utc_now_text()` (same text).
+- `INSERT OR IGNORE` → `ON CONFLICT DO NOTHING`; the SQLite timestamp expression → `statement_timestamp()`.
+- timestamps are `timestamptz` (P2) but read back as the ISO text the code always had (`2026-10-11T10:05:03.123Z`),
+  in UTC; `jsonb` reads back as JSON text (callers `json.loads` it, as before).
 - `ORDER BY` sorts NULLs like SQLite (first when ascending, last when descending) unless a term says NULLS itself.
 - autocommit outside explicit transactions; `BEGIN IMMEDIATE` → `BEGIN` + one transaction-scoped advisory lock, which
   serializes exactly the writers that SQLite serialized (budget guard, run creation, …). Readers never wait.
-- vectors (pgvector) read and write as numpy float32 arrays.
+- vectors (pgvector) are written from numpy arrays and read as pgvector `Vector` objects; `vec()` turns any of them
+  into a float32 array.
 Anything else SQLite-only (`INSERT OR REPLACE`, `lastrowid`, `PRAGMA`, `executescript`) is refused loudly.
 """
 
@@ -54,6 +57,22 @@ class _IntFromBool(Loader):
         return 1 if bytes(data) == b"t" else 0
 
 
+class _IsoZFromTimestamptz(Loader):
+    """'2026-10-11 10:05:03.123456+00' (session in UTC) → '2026-10-11T10:05:03.123Z', the text SQLite stored."""
+
+    def load(self, data):
+        s = bytes(data).decode()
+        day, clock = s.split(" ", 1)
+        clock = clock.split("+", 1)[0].split("-", 1)[0]
+        hms, _, frac = clock.partition(".")
+        return f"{day}T{hms}.{(frac + '000')[:3]}Z"
+
+
+class _TextFromJson(Loader):
+    def load(self, data):
+        return bytes(data).decode()
+
+
 class Row(tuple):
     """A result row readable by position and by column name, like sqlite3.Row."""
 
@@ -83,7 +102,7 @@ def translate(sql: str, has_params: bool) -> str:
     """SQLite dialect bits that map 1:1 → PostgreSQL. `?` outside quotes/comments → `%s`; `%` → `%%` when binding."""
     if _REFUSED.search(sql):
         raise NotImplementedError(f"SQLite-only SQL reached PostgreSQL (port it): {sql.strip()[:120]}")
-    sql = _SQLITE_NOW.sub("utc_now_text()", sql)
+    sql = _SQLITE_NOW.sub("statement_timestamp()", sql)
     if _ORDER_BY.search(sql):
         sql = _nulls_like_sqlite(sql)
     if _INSERT_OR_IGNORE.match(sql):
@@ -220,13 +239,15 @@ def connect(url: str | None = None) -> Connection:
     url = url or get_settings().database_url
     if not url:
         raise RuntimeError("DATABASE_URL is not set (see .env.example); start the database with `make db`")
-    raw = psycopg.connect(url, autocommit=True, row_factory=_row_factory)
+    raw = psycopg.connect(url, autocommit=True, row_factory=_row_factory, options="-c timezone=UTC")
     register_vector(raw)
     raw.adapters.register_dumper(int, _UntypedDumper)
     raw.adapters.register_dumper(bool, _UntypedDumper)
     raw.adapters.register_dumper(np.integer, _UntypedDumper)
     raw.adapters.register_loader("numeric", _FloatFromNumeric)
     raw.adapters.register_loader("bool", _IntFromBool)
+    raw.adapters.register_loader("timestamptz", _IsoZFromTimestamptz)
+    raw.adapters.register_loader("jsonb", _TextFromJson)
     return Connection(raw)
 
 
@@ -234,4 +255,6 @@ def vec(v) -> np.ndarray:
     """An embedding as the float32 array pgvector stores (lists, arrays, or legacy float32 bytes)."""
     if isinstance(v, (bytes, bytearray, memoryview)):
         return np.frombuffer(bytes(v), dtype=np.float32)
+    if hasattr(v, "to_numpy"):   # pgvector.Vector, as the vector loader returns it
+        return np.asarray(v.to_numpy(), dtype=np.float32)
     return np.asarray(v, dtype=np.float32)

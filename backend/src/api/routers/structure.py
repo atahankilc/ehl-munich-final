@@ -272,6 +272,6 @@ def activity(cp: str = Query("cp2"), since: int = Query(0, description="return e
         recent = [r[0] for r in conn.execute(
             """SELECT e.source_item_id FROM verbatim_extraction e WHERE e.extractor_version = 'extract-v4' AND e.llm_usage_id IN (
                  SELECT CAST(entity_id AS INTEGER) FROM audit_event WHERE actor_id = 'structure.classify'
-                 AND action = 'classify_comments' AND ts >= to_char((now() - interval '6 seconds') AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'))""")]
+                 AND action = 'classify_comments' AND ts >= statement_timestamp() - interval '6 seconds')""")]
         running = any(s["status"] == "running" for s in stages)
         return {"checkpoint": cp, "running": running, "stages": stages, "events": events, "recent": recent}

@@ -10,7 +10,7 @@ from bmw_req.db import translate
     ("SELECT '?' , ? FROM t", True, "SELECT '?' , %s FROM t"),
     ("SELECT * FROM t WHERE b LIKE 'x%'", False, "SELECT * FROM t WHERE b LIKE 'x%'"),
     ("INSERT OR IGNORE INTO t (a) VALUES (?)", True, "INSERT INTO t (a) VALUES (%s) ON CONFLICT DO NOTHING"),
-    ("UPDATE t SET at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?", True, "UPDATE t SET at = utc_now_text() WHERE id = %s"),
+    ("UPDATE t SET at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?", True, "UPDATE t SET at = statement_timestamp() WHERE id = %s"),
 ])
 def test_translate(sql, params, want):
     assert translate(sql, params) == want

@@ -34,6 +34,36 @@ def test_append_only_tables_refuse_changes(pg_conn, table):
             pg_conn.execute(sql)
 
 
-def test_timestamps_keep_sqlite_text_format(pg_conn):
-    ts = pg_conn.execute("INSERT INTO ingest_batch (kind) VALUES ('test') RETURNING ts").fetchone()[0]
-    assert re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z", ts)
+def test_timestamps_are_timestamptz_but_read_as_the_old_text(pg_conn):
+    """P2: system timestamps are timestamptz; bmw_req.db reads them back as the ISO text SQLite stored."""
+    from bmw_req.db import connect
+
+    kind = pg_conn.execute("SELECT data_type FROM information_schema.columns WHERE table_name = 'audit_event' "
+                           "AND column_name = 'ts'").fetchone()[0]
+    assert kind == "timestamp with time zone"
+    url = pg_conn.info.dsn
+    with connect(f"{url} password={pg_conn.info.password}") as c:
+        ts = c.execute("INSERT INTO ingest_batch (kind) VALUES ('test') RETURNING ts").fetchone()[0]
+        assert re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z", ts)
+        # text in, text out, and comparisons with text parameters still work
+        assert c.execute("SELECT COUNT(*) FROM ingest_batch WHERE ts >= ?", ("2000-01-01T00:00:00.000Z",)).fetchone()[0] >= 1
+
+
+def test_app_role_cannot_change_append_only_rows(pg_url):
+    """P2: the app role may insert audit rows but not update or delete them (permission, not only the trigger);
+    ordinary tables stay writable; the schema is out of reach."""
+    import os
+
+    from bmw_req.db import connect
+
+    if not os.getenv("APP_DB_PASSWORD"):
+        pytest.skip("APP_DB_PASSWORD not set")
+    c = connect()
+    assert c.execute("SELECT current_user").fetchone()[0] == "sharksight_app"
+    c.execute("INSERT INTO audit_event (actor_type, action, entity_type, entity_id) VALUES ('system', 't', 'x', '1')")
+    for stmt in ("UPDATE audit_event SET action = 'z'", "DELETE FROM audit_event", "DELETE FROM prio_decision",
+                 "CREATE TABLE sneaky (id int)", "DROP TRIGGER audit_event_append_only ON audit_event"):
+        with pytest.raises(psycopg.errors.InsufficientPrivilege):
+            c.execute(stmt)
+    c.execute("INSERT INTO ingest_batch (kind) VALUES ('test')")
+    c.execute("UPDATE ingest_batch SET description = 'ok'")

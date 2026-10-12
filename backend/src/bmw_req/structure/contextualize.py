@@ -181,19 +181,15 @@ def embed_nodes(conn, llm: LLM) -> int:
     return len(todo)
 
 
-def visible_nodes(conn, cp: str) -> dict[str, list[tuple[int, str, np.ndarray]]]:
+def visible_nodes(conn, cp: str) -> dict[str, list[int]]:
+    """The evidence nodes a theme may link to at this checkpoint: ids per node type (research / study / option)."""
     vis = C.visible_ids(cp)
     q = ",".join("?" * len(vis))
-    ok_research = {r[0] for r in conn.execute(f"SELECT id FROM source_item WHERE kind IN ('research', 'web', 'reference') "
-                                              f"AND checkpoint IN ({q})", vis)}
-    ok_study = {r[0] for r in conn.execute(f"SELECT m.id FROM study_metric m JOIN source_item s ON s.id = m.source_item_id WHERE s.checkpoint IN ({q})", vis)}
-    ok_option = {r[0] for r in conn.execute(f"SELECT id FROM source_item WHERE kind='option_list' AND checkpoint IN ({q})", vis)}
-    allowed = {"research": ok_research, "study": ok_study, "option": ok_option}
-    out = defaultdict(list)
-    for r in conn.execute("SELECT node_type, node_id, text, embedding FROM node_embedding"):
-        if r[1] in allowed[r[0]]:
-            out[r[0]].append((r[1], r[2], vec(r[3])))
-    return out
+    ok_research = [r[0] for r in conn.execute(f"SELECT id FROM source_item WHERE kind IN ('research', 'web', 'reference') "
+                                              f"AND checkpoint IN ({q})", vis)]
+    ok_study = [r[0] for r in conn.execute(f"SELECT m.id FROM study_metric m JOIN source_item s ON s.id = m.source_item_id WHERE s.checkpoint IN ({q})", vis)]
+    ok_option = [r[0] for r in conn.execute(f"SELECT id FROM source_item WHERE kind='option_list' AND checkpoint IN ({q})", vis)]
+    return {"research": ok_research, "study": ok_study, "option": ok_option}
 
 
 # ------------------------------------------------------------------------------------------------ run
@@ -365,7 +361,7 @@ def run_checkpoint(cp: str, actor: str = "system") -> dict:
     for t in themes:
         if t["embedding"] is None:
             continue
-        cand = candidates(t, nodes)
+        cand = candidates(conn, t, nodes)
         dirty = not parent or t["key"] in dirty_members or t["key"] not in prev_links or \
             any(typ == "research" and nid in newly for typ, nid, _ in cand)
         if not dirty:
@@ -428,12 +424,19 @@ def theme_tracks(conn, run_id: int, parent: int | None, cp: str, n_by_theme: dic
     return C.write_tracks(conn, run_id, ents, prefix="theme:", states=states)
 
 
-def candidates(t, nodes) -> list[tuple[str, int, str]]:
+def candidates(conn, t, nodes: dict[str, list[int]]) -> list[tuple[str, int, str]]:
+    """Per node type the K evidence nodes nearest to the theme (cosine), exact, in the database (pgvector, D-059 P2).
+    Ties go to the higher node id, as before. Exact on purpose: ~2k nodes take milliseconds, and an approximate HNSW
+    index could return other neighbours — it comes when the knowledge base grows (Q-027)."""
     tv = vec(t["embedding"])
     cand = []
     for typ, k in K.items():
-        scored = sorted(((float(v @ tv), nid, txt) for nid, txt, v in nodes.get(typ, [])), reverse=True)[:k]
-        cand += [(typ, nid, txt) for _, nid, txt in scored]
+        ids = nodes.get(typ) or []
+        if not ids:
+            continue
+        rows = conn.execute("SELECT node_id, text FROM node_embedding WHERE node_type = ? AND node_id = ANY(?) "
+                            "ORDER BY embedding <=> ?, node_id DESC LIMIT ?", (typ, ids, tv, k)).fetchall()
+        cand += [(typ, r[0], r[1]) for r in rows]
     return cand
 
 
@@ -490,7 +493,7 @@ def relink(cp: str, actor: str = "system") -> dict:
     edges: list[tuple] = []
     for t in themes:
         if t["embedding"] is not None:
-            edges += link_theme(conn, llm, run_id, t, candidates(t, nodes))
+            edges += link_theme(conn, llm, run_id, t, candidates(conn, t, nodes))
 
     conn.execute("BEGIN IMMEDIATE")
     try:

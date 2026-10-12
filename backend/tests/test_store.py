@@ -33,9 +33,11 @@ def write_xlsx(path, rows):
 
 def test_audit_event_is_append_only(conn):
     conn.execute("INSERT INTO audit_event (actor_type, action, entity_type, entity_id) VALUES ('system', 'x', 'y', '1')")
-    with pytest.raises(psycopg.errors.RaiseException, match="append-only"):
+    # refused by permission (app role, D-059 P2) or, for the owner, by the trigger
+    refused = (psycopg.errors.InsufficientPrivilege, psycopg.errors.RaiseException)
+    with pytest.raises(refused):
         conn.execute("UPDATE audit_event SET action = 'z'")
-    with pytest.raises(psycopg.errors.RaiseException, match="append-only"):
+    with pytest.raises(refused):
         conn.execute("DELETE FROM audit_event")
 
 

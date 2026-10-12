@@ -23,12 +23,13 @@ def _drop_pg_template():
 
 @pytest.fixture
 def pg_url(monkeypatch):
-    """A fresh, empty, migrated PostgreSQL database for this test; DATABASE_URL points at it (D-059)."""
+    """A fresh, empty, migrated PostgreSQL database for this test; DATABASE_URL points at it as the app role, so every
+    test runs with the app's real permissions (D-059)."""
     from api import deps
     from tests import pg
 
     with pg.fresh_db() as url:
-        monkeypatch.setenv("DATABASE_URL", url)
+        monkeypatch.setenv("DATABASE_URL", pg.as_app(url))
         deps.DB.close()
         yield url
         deps.DB.close()
@@ -44,7 +45,7 @@ def real_db_url(monkeypatch):
     if not pg.has_db(pg.REAL_DATA):
         pytest.skip(f"needs the real-data template database {pg.REAL_DATA} (`make testdata`)")
     with pg.fresh_db(pg.REAL_DATA) as url:
-        monkeypatch.setenv("DATABASE_URL", url)
+        monkeypatch.setenv("DATABASE_URL", pg.as_app(url))
         deps.DB.close()
         yield url
         deps.DB.close()

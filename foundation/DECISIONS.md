@@ -64,7 +64,7 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-056 | Document, AI agents and Audit are full-screen 2D pages: no 3D rendered behind them, own checkpoint switch, timeline hidden (supersedes D-051's sheet-over-scene) | accepted |
 | D-057 | Wave pipeline retired: old API routes, `pipeline/`, `service.py`, `research/findings.py`, their tests and scripts removed; shared helpers moved; LangGraph dropped (supersedes D-015); old-only DB tables kept for now | accepted |
 | D-058 | Old wave-pipeline tables dropped (11 tables) after a verified backup; schema no longer creates them | accepted |
-| D-059 | Move to PostgreSQL 17 + pgvector (one DB for relational, vectors, full-text, job queue); no graph DB; plan in `documents/postgres-migration.md` | accepted (P0, P1 done: app on Postgres) |
+| D-059 | Move to PostgreSQL 17 + pgvector (one DB for relational, vectors, full-text, job queue); no graph DB; plan in `documents/postgres-migration.md` | accepted (P0–P2 done) |
 | D-060 | No sample data in the app: pages show an honest "Not run yet" state until the AI has produced their content; fixtures and `?sample=1` removed | accepted |
 
 Keep this index in sync when adding a decision.

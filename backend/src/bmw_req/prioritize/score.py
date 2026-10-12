@@ -74,7 +74,7 @@ def _bands_of(cfg: dict) -> dict:
 
 def stored_config(conn) -> tuple[int | None, dict, dict]:
     """(version id, factor weights, bands) of the current prio-v1 weights version — read-only (defaults if none stored)."""
-    r = conn.execute("SELECT id, weights_json FROM weights_version WHERE (weights_json::json ->> 'scheme') = ? "
+    r = conn.execute("SELECT id, weights_json FROM weights_version WHERE (weights_json ->> 'scheme') = ? "
                      "ORDER BY id DESC LIMIT 1", (SCHEME,)).fetchone()
     if not r:
         return None, dict(DEFAULT_WEIGHTS), dict(DEFAULT_BANDS)
@@ -133,7 +133,7 @@ def weights_history(conn, limit: int = 20) -> list[dict]:
     """prio-v1 weights versions, newest first. `version` numbers the versions WITHIN the scheme (v1 = the default row;
     `weights_version.id` is shared with score-v3, so it is `id` here); `default` = the system's default row."""
     rows = conn.execute("SELECT id, weights_json, created_by, created_at, rationale FROM weights_version "
-                        "WHERE (weights_json::json ->> 'scheme') = ? ORDER BY id", (SCHEME,)).fetchall()
+                        "WHERE (weights_json ->> 'scheme') = ? ORDER BY id", (SCHEME,)).fetchall()
     out = []
     for n, r in enumerate(rows, 1):
         cfg = json.loads(r["weights_json"])

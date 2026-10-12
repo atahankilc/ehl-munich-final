@@ -11,7 +11,7 @@ Portfolio-level from day one: 1 Series (F70), 5 Series (G60 + China LWB G68), 7 
 ## Quick start
 
 ```bash
-cp .env.example .env      # add OPENAI_API_KEY and a POSTGRES_PASSWORD (LLM provider: OpenAI)
+cp .env.example .env      # add OPENAI_API_KEY and the two database passwords (LLM provider: OpenAI)
 make db                   # PostgreSQL 17 + pgvector in Docker, 127.0.0.1:5433 (D-059)
 make migrate              # build the schema (Alembic)
 ```

@@ -12,7 +12,9 @@ x-api: &api
       required: false
   environment: &api-env
     # inside the compose network the database is `db:5432` (the host's 127.0.0.1:5433 is for native runs)
-    DATABASE_URL: postgresql://sharksight:${POSTGRES_PASSWORD}@db:5432/sharksight
+    DATABASE_URL: postgresql://sharksight_app:${APP_DB_PASSWORD}@db:5432/sharksight
+    MIGRATION_DATABASE_URL: postgresql://sharksight:${POSTGRES_PASSWORD}@db:5432/sharksight
+    APP_DB_PASSWORD: ${APP_DB_PASSWORD}
   ports:
     - "127.0.0.1:8600:8600"
   depends_on:

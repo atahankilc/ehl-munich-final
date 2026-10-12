@@ -1,6 +1,6 @@
 # PostgreSQL migration plan (D-059)
 
-**Status:** P0 and P1 done (2026-10-12): the app runs on PostgreSQL · P2 next.
+**Status:** P0, P1, P2 done (2026-10-12) · P3 (operations, docs, drop sqlite-vec) next.
 
 Move the app from SQLite + sqlite-vec to **PostgreSQL 17 + pgvector**, one database for relational data, vectors,
 full-text search and (later) the job queue. Uploaded files stay outside the database (disk volume now, S3-compatible
@@ -141,3 +141,28 @@ people (needed before any shared deployment).
 - Containers: `DATABASE_URL` points at `db:5432` inside compose; the image runs `alembic upgrade head` before the API.
 - Removed: `scripts/demo_state.py`, `scripts/drop_wave_tables.py` (SQLite-only). `sqlite-vec` stays until P3 for the
   copy script.
+
+## P2 as built (2026-10-12)
+
+- **Types (migration 0002):** the 25 system timestamps (`ts`, `created_at`, `settled_at`, `started_at`, `finished_at`,
+  `decided_at`, `retrieved_at`) are `timestamptz` with `statement_timestamp()` defaults (per statement, like SQLite's
+  'now' — `now()` would tie rows written in one transaction and change their order). Source dates (`published_at`,
+  `cutoff`) stay TEXT: they can be partial. The session runs in UTC and `bmw_req.db` reads timestamptz back as the exact
+  text the app always had (`2026-10-11T10:05:03.123Z`); all stored values had millisecond precision, so nothing changed.
+  `weights_version.weights_json` is `jsonb` (the one JSON column queried in SQL); jsonb reads back as JSON text. Other
+  `*_json` columns stay TEXT until a query needs them (some hold non-JSON strings, e.g. audit old/new values).
+- **Vector search:** `contextualize.candidates` asks Postgres for the K nearest evidence nodes per type (`ORDER BY
+  embedding <=> theme, node_id DESC`), exact. `scripts/check_retrieval.py` compared it with the numpy search it
+  replaced: 178 of 178 themes (cp1 71, cp2 107) identical. **No HNSW index yet, on purpose:** 2,192 nodes take
+  milliseconds exactly, and an approximate index could return other neighbours. Add `CREATE INDEX … USING hnsw
+  (embedding vector_cosine_ops)` with `hnsw.iterative_scan` when the knowledge base grows past ~50k nodes (Q-027), and
+  re-run the check. Clustering and the 3D layout need full matrices and stay in numpy.
+- **Bug found:** pgvector returns `Vector` objects, not numpy arrays — every pipeline step reading embeddings would
+  have failed on its next run since P1. `db.vec()` converts them; `tests/test_vectors.py` covers the round trip and the
+  retrieval order.
+- **App role (migration 0003):** the app and pipelines connect as `sharksight_app` (`DATABASE_URL`): read / write on
+  ordinary tables, only SELECT + INSERT on `audit_event`, `def_choice`, `def_link_review`, `prio_decision`, no DDL,
+  no `alembic_version`. Migrations, backups and admin scripts use the owner (`MIGRATION_DATABASE_URL`; the container
+  runs `alembic upgrade head` with it before the API). The password comes from `APP_DB_PASSWORD`. Tests run as the app
+  role, so a missing permission fails a test. A new append-only table must REVOKE UPDATE / DELETE in its migration.
+- **Proof:** all 99 API answers identical to the P1 capture after each change; 134 tests green.
