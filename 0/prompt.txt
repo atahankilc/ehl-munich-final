@@ -1,0 +1,11 @@
+<task-notification>
+<task-id>bu7aff8fa</task-id>
+<tool-use-id>toolu_01G7tECc8RMXzbdPGSZNeqBZ</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-atahankilic-Documents-ehl-munich-final/ecfd5bea-bfa4-48ba-b194-304a3ad2038e/tasks/bu7aff8fa.output</output-file>
+<status>completed</status>
+<summary>Background command "pgrep -f demo_build.py || uv run python -u scripts/demo_build.py &gt; data/demo_build_v2c.log 2&gt;&amp;1; echo "exit $?"; tail -4 data/demo_build_v2c.log" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+şu anda hackathonda bahsedilen modeller ne ve hangi yılki modelleri gösteriyor
