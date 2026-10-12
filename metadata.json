@@ -1,0 +1,37 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4S6RRXG5DEQZ72T8Y3Q3ZT2",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "backend/src/api/access.py",
+    "backend/src/api/main.py",
+    "backend/tests/test_access.py",
+    "deploy/README.md",
+    "foundation/DECISIONS.md",
+    "foundation/STATE.md",
+    "foundation/documents/tech-stack.md",
+    "frontend/src/components/Access.tsx",
+    "frontend/src/components/Guide.tsx",
+    "frontend/src/components/guide.css",
+    "frontend/src/lib/api.ts",
+    "render.yaml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 306,
+    "cache_creation_tokens": 481159,
+    "cache_read_tokens": 28954015,
+    "output_tokens": 134601,
+    "api_call_count": 153
+  }
+}
