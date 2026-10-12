@@ -1,0 +1,5 @@
+lets use a real db, insted of sqlite and when choosing a real db, i want you to consider the future of this project. Like does sql on its own enough?
+
+---
+
+first option sounds good but i wanna ask would we also need a grpah database?
