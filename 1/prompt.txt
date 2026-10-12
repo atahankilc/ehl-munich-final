@@ -1,0 +1,5 @@
+i am trying to deploy this project to cloud but aws didnt work. So i need another way to do that
+
+---
+
+for this repo, please remove everything regarding future vision and unrelated stuff and put it into a file inside documents. I want this repo to be lean. Also remove any deciison which is not related to this project, any vision, and open question adn etc. Those are future task and will be dealt in another repo
