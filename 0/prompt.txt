@@ -1,0 +1,21 @@
+tamamdır harikasın. Artık işimiz bitti gibi. Senden tek isteğim bu reponun readme sini güncellemen. Gereksiz blgilerden arındır. Ne yaptığımızı kısaca bahset. Uygulamanın farklı sayfalarının görüntülerini koy ve açıkla, öyle yok deploy etmedir command runlamadır gerek yok. Ha önemli bir bilgi varsa agent.md ye yada claude.md ye koy
+
+---
+
+bir de sitenin cp 1 den açılmasını istiyorum otomatik olarak, cp2 değil
+
+---
+
+görüntüleri alırken lütfen tam ekran al, diğer türlü çok sıkışık duruyo
+
+---
+
+we deme ben build ettim
+
+---
+
+yav egolu oldu bu da we yada i demeden olmaz mı
+
+---
+
+bu arada kept developing de deme, sadece bu bmwnin şu konuda hackathon challange ı de

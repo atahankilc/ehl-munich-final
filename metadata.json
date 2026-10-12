@@ -1,0 +1,40 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4S81SSQB2F5Q7CDAQ23RHQJ",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "AGENTS.md",
+    "DESIGN.md",
+    "README.md",
+    "docs/screenshots/1-evidence.jpg",
+    "docs/screenshots/2-structure.jpg",
+    "docs/screenshots/3-definition.jpg",
+    "docs/screenshots/4-prioritize.jpg",
+    "docs/screenshots/5-document.jpg",
+    "docs/screenshots/6-agents.jpg",
+    "docs/screenshots/7-audit.jpg",
+    "foundation/STATE.md",
+    "foundation/documents/challenge-brief.md",
+    "frontend/src/screens/scan/scan.css",
+    "frontend/src/screens/structure/structure.css",
+    "frontend/src/state/checkpoint.tsx"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 120,
+    "cache_creation_tokens": 83957,
+    "cache_read_tokens": 21340649,
+    "output_tokens": 32358,
+    "api_call_count": 60
+  }
+}

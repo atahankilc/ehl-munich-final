@@ -1,0 +1,113 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4S81SSQB2F5Q7CDAQ23RHQJ",
+  "session_id": "a6ed0b67-62c2-41be-9f0f-7363fe825452",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-12T23:44:32.123077Z",
+  "branch": "main",
+  "checkpoints_count": 5,
+  "save_step_count": 4,
+  "files_touched": [
+    "AGENTS.md",
+    "DESIGN.md",
+    "README.md",
+    "docs/screenshots/1-evidence.jpg",
+    "docs/screenshots/2-structure.jpg",
+    "docs/screenshots/3-definition.jpg",
+    "docs/screenshots/4-prioritize.jpg",
+    "docs/screenshots/5-document.jpg",
+    "docs/screenshots/6-agents.jpg",
+    "docs/screenshots/7-audit.jpg",
+    "foundation/STATE.md",
+    "foundation/documents/challenge-brief.md",
+    "frontend/src/screens/scan/scan.css",
+    "frontend/src/screens/structure/structure.css",
+    "frontend/src/state/checkpoint.tsx"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5[1m]",
+  "turn_id": "e47e6281c29b",
+  "checkpoint_transcript_start": 1246,
+  "transcript_lines_at_start": 1246,
+  "compact_transcript_start": 171,
+  "token_usage": {
+    "input_tokens": 120,
+    "cache_creation_tokens": 83957,
+    "cache_read_tokens": 21340649,
+    "output_tokens": 32358,
+    "api_call_count": 60
+  },
+  "session_metrics": {
+    "turn_count": 19
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-12T23:44:31.903034Z",
+    "agent_lines": 99,
+    "agent_removed": 76,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 10,
+    "total_committed": 99,
+    "total_lines_changed": 185,
+    "agent_percentage": 94.5945945945946,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 3,
+      "user_lines_removed": 10,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/scheduled_tasks.lock": 1,
+        "DESIGN.md": 1,
+        "frontend/src/state/checkpoint.tsx": 1
+      },
+      "user_removed_per_file": {
+        "DESIGN.md": 1,
+        "frontend/src/state/checkpoint.tsx": 9
+      }
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 1,
+      "user_lines_removed": 0,
+      "agent_lines_added": 111,
+      "agent_lines_removed": 86,
+      "user_added_per_file": {
+        ".claude/scheduled_tasks.lock": 1
+      }
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 1,
+      "user_lines_removed": 0,
+      "agent_lines_added": 111,
+      "agent_lines_removed": 86,
+      "user_added_per_file": {
+        ".claude/scheduled_tasks.lock": 1
+      }
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 1,
+      "user_lines_removed": 0,
+      "agent_lines_added": 111,
+      "agent_lines_removed": 86,
+      "user_added_per_file": {
+        ".claude/scheduled_tasks.lock": 1
+      }
+    },
+    {
+      "checkpoint_number": 5,
+      "user_lines_added": 1,
+      "user_lines_removed": 0,
+      "agent_lines_added": 111,
+      "agent_lines_removed": 86,
+      "user_added_per_file": {
+        ".claude/scheduled_tasks.lock": 1
+      }
+    }
+  ]
+}
