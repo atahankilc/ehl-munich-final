@@ -27,7 +27,7 @@ import numpy as np
 from sklearn.cluster import AgglomerativeClustering
 
 from bmw_req import checkpoints as C
-from bmw_req.db import connect
+from bmw_req.db import connect, vec
 from bmw_req.llm import LLM
 from bmw_req.portfolio import LINES
 from bmw_req.structure.events import log
@@ -38,21 +38,10 @@ SPLIT_SHARE, SPLIT_MIN, SPLIT_DEPTH, SPLIT_STEP = 0.15, 60, 3, 0.05
 MIN_COMMENTS = 3            # a cluster with fewer distinct comments is long tail (kept, flagged)
 EMBED_BATCH = 512
 
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS cluster (
-    key TEXT PRIMARY KEY, polarity TEXT NOT NULL, category TEXT NOT NULL, anchor_signal_id INTEGER NOT NULL,
-    born_run_id INTEGER NOT NULL REFERENCES checkpoint_run(id), born_checkpoint TEXT NOT NULL
-);
-CREATE TABLE IF NOT EXISTS cluster_member (
-    run_id INTEGER NOT NULL REFERENCES checkpoint_run(id), cluster_key TEXT NOT NULL REFERENCES cluster(key),
-    signal_id INTEGER NOT NULL REFERENCES signal(id), PRIMARY KEY (run_id, signal_id)
-);
-CREATE INDEX IF NOT EXISTS cluster_member_key ON cluster_member(run_id, cluster_key);
-"""
 
 
 def ensure(conn) -> None:
-    conn.executescript(SCHEMA)
+    """No-op: the tables come from the Alembic migrations (D-059)."""
 
 
 def line_of(car: str) -> str:
@@ -76,14 +65,14 @@ def signal_text(r) -> str:
 
 def embed_missing(conn, llm: LLM) -> int:
     rows = conn.execute("""SELECT id, category, aspect, need_statement FROM signal WHERE extractor_version = ?
-                           AND source_kind = 'feedback' AND id NOT IN (SELECT rowid FROM signal_embedding) ORDER BY id""",
+                           AND source_kind = 'feedback' AND id NOT IN (SELECT signal_id FROM signal_embedding) ORDER BY id""",
                         (VERSION,)).fetchall()
     for i in range(0, len(rows), EMBED_BATCH):
         chunk = rows[i:i + EMBED_BATCH]
         vecs = llm.embed([signal_text(r) for r in chunk], job="embed:signals:v4")
         conn.execute("BEGIN IMMEDIATE")
-        conn.executemany("INSERT INTO signal_embedding (rowid, embedding) VALUES (?, ?)",
-                         [(r["id"], np.asarray(v, dtype=np.float32).tobytes()) for r, v in zip(chunk, vecs)])
+        conn.executemany("INSERT INTO signal_embedding (signal_id, embedding) VALUES (?, ?)",
+                         [(r["id"], vec(v)) for r, v in zip(chunk, vecs)])
         conn.execute("COMMIT")
     return len(rows)
 
@@ -93,13 +82,13 @@ def load(conn, cps: tuple[str, ...]) -> list[dict]:
     rows = conn.execute(
         f"""SELECT g.id, g.source_item_id, g.category, g.aspect, g.nature, g.intensity, s.vehicle_model_id car,
                    s.market_code market, s.checkpoint, e.embedding
-            FROM signal g JOIN source_item s ON s.id = g.source_item_id JOIN signal_embedding e ON e.rowid = g.id
+            FROM signal g JOIN source_item s ON s.id = g.source_item_id JOIN signal_embedding e ON e.signal_id = g.id
             WHERE g.extractor_version = ? AND g.source_kind = 'feedback' AND s.checkpoint IN ({q}) ORDER BY g.id""",
         (VERSION, *cps)).fetchall()
     out = []
     for r in rows:
         d = dict(r)
-        v = np.frombuffer(d.pop("embedding"), dtype=np.float32)
+        v = vec(d.pop("embedding"))
         d["v"] = v / (np.linalg.norm(v) or 1.0)
         d["pol"] = polarity(d["nature"])
         d["line"] = line_of(d["car"])

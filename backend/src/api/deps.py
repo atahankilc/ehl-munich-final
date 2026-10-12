@@ -1,9 +1,8 @@
-"""Shared plumbing: one SQLite connection for the process, a process-wide lock, the acting PM, error mapping.
+"""Shared plumbing: one database connection for the process, a process-wide lock, the acting PM, error mapping.
 
-`bmw_req.db.connect()` runs the schema script, migrations and loads sqlite-vec on every call, so the API opens ONE
-connection and reuses it. A sqlite3 connection is not safe for concurrent use, so every access — reads too — goes
-through `with db() as conn:` which holds `LOCK`. Service write functions open `BEGIN IMMEDIATE` themselves; never wrap
-them in a transaction here.
+The API opens ONE PostgreSQL connection (D-059) and reuses it. One connection runs one statement or transaction at a
+time, so every access — reads too — goes through `with db() as conn:`, which holds `LOCK`. Write paths open
+`BEGIN IMMEDIATE` themselves; never wrap them in a transaction here.
 
 Do not hold the lock across a dependency boundary: FastAPI may run a dependency's enter/exit in different threads, and
 an RLock must be released by the thread that acquired it. Endpoints take the lock themselves.
@@ -11,36 +10,30 @@ an RLock must be released by the thread that acquired it. Endpoints take the loc
 
 from __future__ import annotations
 
-import sqlite3
 import threading
 from contextlib import contextmanager
-from pathlib import Path
 from typing import Iterator
 from urllib.parse import unquote
 
 from fastapi import Query, Header, HTTPException
 
 from bmw_req.config import get_settings
-from bmw_req.db import connect
+from bmw_req.db import Connection, connect
 
 LOCK = threading.RLock()
 DEFAULT_PM = "Atahan (PM)"
 
 
 class Database:
-    """Lazily opened shared connection to `$DATA_DIR/app.db` (the same file the pipeline jobs open)."""
+    """Lazily opened shared connection to DATABASE_URL (the database the pipeline jobs open, D-059)."""
 
     def __init__(self) -> None:
-        self._conn: sqlite3.Connection | None = None
+        self._conn: Connection | None = None
 
-    @property
-    def path(self) -> Path:
-        return get_settings().db_path
-
-    def conn(self) -> sqlite3.Connection:
+    def conn(self) -> Connection:
         with LOCK:
             if self._conn is None:
-                self._conn = connect(self.path)
+                self._conn = connect(get_settings().database_url)
             return self._conn
 
     def close(self) -> None:
@@ -56,7 +49,7 @@ DB = Database()
 
 
 @contextmanager
-def db() -> Iterator[sqlite3.Connection]:
+def db() -> Iterator[Connection]:
     """Serialized access to the shared connection."""
     with LOCK:
         yield DB.conn()

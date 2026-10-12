@@ -61,10 +61,18 @@ def template_url() -> str:
     return with_db(server_url(), _template)
 
 
+REAL_DATA = "sharksight_testdata"   # a copy of the real data for the API tests (`make testdata`)
+
+
+def has_db(name: str) -> bool:
+    with psycopg.connect(server_url(), autocommit=True) as c:
+        return c.execute("SELECT 1 FROM pg_database WHERE datname = %s", (name,)).fetchone() is not None
+
+
 @contextmanager
-def fresh_db():
-    """URL of a new database cloned from the migrated template; dropped on exit."""
-    tpl = urlsplit(template_url()).path.lstrip("/")
+def fresh_db(template: str | None = None):
+    """URL of a new database cloned from `template` (default: the empty migrated template); dropped on exit."""
+    tpl = template or urlsplit(template_url()).path.lstrip("/")
     name = f"t_{uuid.uuid4().hex[:12]}"
     _admin(f'CREATE DATABASE "{name}" TEMPLATE "{tpl}"')
     try:

@@ -1,5 +1,5 @@
-"""D-059 P0: the Alembic baseline reproduces today's schema on PostgreSQL — same tables and columns (in the same order
-where the code inserts by position), append-only tables refuse UPDATE/DELETE, timestamps keep SQLite's text format.
+"""D-059: the migrated PostgreSQL schema — vector columns, append-only tables refuse UPDATE/DELETE, timestamps keep
+SQLite's text format. (P0 also checked table/column parity with the SQLite schema; that schema is gone since P1.)
 Needs the local server (`make db`); skips otherwise."""
 
 import re
@@ -9,50 +9,10 @@ import pytest
 
 from tests import pg
 
-# vec0 virtual tables (sqlite) ↔ plain vector tables (postgres) differ on purpose; bookkeeping tables are engine-specific
-DIFFERENT_ON_PURPOSE = {"source_embedding", "signal_embedding", "sqlite_sequence", "alembic_version"}
-# tables the code writes with `INSERT INTO t VALUES (…)` (no column list): their column order must match exactly.
-# Elsewhere order may differ — the baseline follows the real DB, where some columns were added by later ALTERs.
-POSITIONAL = {"source_aspect", "node_embedding"}
-
-
-def sqlite_schema() -> dict[str, list[str]]:
-    from bmw_req import checkpoints, prioritize
-    from bmw_req.db import connect
-    from bmw_req.definition import benchmarks, define
-    from bmw_req.structure import areas, classify_context, cluster, contextualize, elicit
-
-    c = connect(":memory:")
-    for ensure in (checkpoints.ensure, cluster.ensure, contextualize.ensure, areas.ensure, elicit.ensure,
-                   define.ensure, benchmarks.ensure, prioritize.ensure):
-        ensure(c)
-    c.executescript(classify_context.SCHEMA)   # created inline by its stage, not by an ensure()
-    names = [r[0] for r in c.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
-             if not re.search(r"_(chunks|rowids|info|vector_chunks\d*)$", r[0])]
-    return {t: [r["name"] for r in c.execute(f"PRAGMA table_info({t})")] for t in names if t not in DIFFERENT_ON_PURPOSE}
-
-
 @pytest.fixture(scope="module")
 def pg_conn():
     with pg.fresh_db() as url, psycopg.connect(url, autocommit=True) as conn:
         yield conn
-
-
-def postgres_schema(conn) -> dict[str, list[str]]:
-    rows = conn.execute("""SELECT table_name, column_name FROM information_schema.columns
-                           WHERE table_schema = 'public' ORDER BY table_name, ordinal_position""").fetchall()
-    out: dict[str, list[str]] = {}
-    for t, col in rows:
-        if t not in DIFFERENT_ON_PURPOSE:
-            out.setdefault(t, []).append(col)
-    return out
-
-
-def test_same_tables_and_columns(pg_conn):
-    lite, post = sqlite_schema(), postgres_schema(pg_conn)
-    assert sorted(lite) == sorted(post)
-    assert {t: cols for t, cols in lite.items() if sorted(post[t]) != sorted(cols)} == {}
-    assert {t: lite[t] for t in POSITIONAL if post[t] != lite[t]} == {}
 
 
 def test_vector_tables_and_extension(pg_conn):

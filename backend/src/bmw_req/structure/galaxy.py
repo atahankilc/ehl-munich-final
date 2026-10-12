@@ -1,7 +1,7 @@
 """The comment galaxy (D-041): every raw customer comment as a point in a fixed 3D evidence space.
 
 1. Embed each comment's raw text (no AI interpretation) with the embedding model, through the budget-guarded wrapper.
-   Stored in `source_embedding` (rowid = source_item.id). ~10k comments ≈ $0.01.
+   Stored in `source_embedding` (keyed by source_item_id, pgvector). ~10k comments ≈ $0.01.
 2. Lay the space out once over ALL comments: PCA to 50 dims, then 3D t-SNE (seed 2026), scaled into a unit ball.
    One layout for both checkpoints, so a comment never moves when the second sweep arrives; the layout only encodes
    textual similarity, not counts or conclusions (same documented trade-off as D-027's cluster structure).
@@ -15,6 +15,7 @@ import sqlite3
 
 import numpy as np
 
+from bmw_req.db import vec
 from bmw_req.llm.client import LLM
 
 BATCH = 512
@@ -25,13 +26,13 @@ METHOD = "pca50+tsne3d(perplexity=40,seed=2026)"
 def embed_comments(conn: sqlite3.Connection, llm: LLM) -> int:
     rows = conn.execute(
         """SELECT id, text FROM source_item WHERE kind = 'feedback' AND COALESCE(TRIM(text), '') != ''
-           AND id NOT IN (SELECT rowid FROM source_embedding) ORDER BY id""").fetchall()
+           AND id NOT IN (SELECT source_item_id FROM source_embedding) ORDER BY id""").fetchall()
     for i in range(0, len(rows), BATCH):
         chunk = rows[i:i + BATCH]
         vecs = llm.embed([r["text"][:4000] for r in chunk], job="embed:comments:galaxy")
         conn.execute("BEGIN IMMEDIATE")
-        conn.executemany("INSERT INTO source_embedding (rowid, embedding) VALUES (?, ?)",
-                         [(r["id"], np.asarray(v, dtype=np.float32).tobytes()) for r, v in zip(chunk, vecs)])
+        conn.executemany("INSERT INTO source_embedding (source_item_id, embedding) VALUES (?, ?)",
+                         [(r["id"], vec(v)) for r, v in zip(chunk, vecs)])
         conn.execute("COMMIT")
     return len(rows)
 
@@ -40,10 +41,10 @@ def layout(conn: sqlite3.Connection) -> int:
     from sklearn.decomposition import PCA
     from sklearn.manifold import TSNE
 
-    rows = conn.execute("""SELECT s.id, e.embedding FROM source_item s JOIN source_embedding e ON e.rowid = s.id
+    rows = conn.execute("""SELECT s.id, e.embedding FROM source_item s JOIN source_embedding e ON e.source_item_id = s.id
                            WHERE s.kind = 'feedback' ORDER BY s.id""").fetchall()
     ids = [r["id"] for r in rows]
-    X = np.stack([np.frombuffer(r["embedding"], dtype=np.float32) for r in rows])
+    X = np.stack([vec(r["embedding"]) for r in rows])
     X = PCA(n_components=50, random_state=SEED).fit_transform(X)
     Y = TSNE(n_components=3, perplexity=40, init="pca", random_state=SEED, max_iter=1000).fit_transform(X)
     Y -= np.median(Y, axis=0)

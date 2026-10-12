@@ -13,8 +13,8 @@ from bmw_req.ingest.study import DIST_LABELS, ingest_study
 
 
 @pytest.fixture
-def conn():
-    c = connect(":memory:")
+def conn(pg_url):
+    c = connect()
     reference.seed(c)
     return c
 

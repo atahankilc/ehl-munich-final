@@ -11,8 +11,8 @@ from tests.test_budget import make_llm, preload
 
 
 @pytest.fixture
-def conn():
-    return connect(":memory:")
+def conn(pg_url):
+    return connect()
 
 
 def test_every_agent_has_a_known_tier_and_unique_key():
@@ -71,7 +71,7 @@ def test_tier_and_custom_model(conn):
 
 
 @pytest.fixture
-def client(tmp_path, monkeypatch):
+def client(tmp_path, monkeypatch, pg_url):
     from api import deps
     from api.main import app
 

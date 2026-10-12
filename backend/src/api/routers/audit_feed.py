@@ -125,7 +125,7 @@ def feed(scope: str = Query("all", pattern="^(evidence|structure|definition|all)
         if before:
             q += " AND ts < ?"
             args.append(before)
-        for r in conn.execute(q + " ORDER BY ts DESC LIMIT 4000", args):
+        for r in conn.execute(q + " ORDER BY ts DESC, id LIMIT 4000", args):
             actor = r["actor_id"] or ""
             is_structure = actor.startswith("structure.")
             is_evidence = actor.startswith(EVIDENCE_ACTORS) or r["action"] in ("restore_snapshot", "ingest", "web_research")

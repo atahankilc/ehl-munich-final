@@ -54,7 +54,7 @@ def structure(cp: str = Query("cp2")) -> dict:
         best: dict[int, tuple[int, str]] = {}
         sums = defaultdict(lambda: [0.0, 0.0, 0.0, 0])
         for r in db_rows(conn, """SELECT m.cluster_key, g.source_item_id, COALESCE(g.intensity, 1) w FROM cluster_member m
-                                  JOIN signal g ON g.id = m.signal_id WHERE m.run_id = ?""", (crun,)):
+                                  JOIN signal g ON g.id = m.signal_id WHERE m.run_id = ? ORDER BY m.signal_id""", (crun,)):
             sid = r["source_item_id"]
             if sid not in best or r["w"] > best[sid][0]:
                 best[sid] = (r["w"], r["cluster_key"])
@@ -66,7 +66,7 @@ def structure(cp: str = Query("cp2")) -> dict:
         insights = {r["cluster_key"]: r for r in db_rows(conn, "SELECT * FROM insight WHERE run_id = ?", (xrun,))} if xrun else {}
         member_theme = {r[0]: r[1] for r in db_rows(conn, "SELECT cluster_key, theme_key FROM theme_member WHERE run_id = ?", (xrun,))} if xrun else {}
         clusters = []
-        for r in db_rows(conn, "SELECT key, polarity, category FROM cluster WHERE key IN (SELECT DISTINCT cluster_key FROM cluster_member WHERE run_id = ?)", (crun,)):
+        for r in db_rows(conn, "SELECT key, polarity, category FROM cluster WHERE key IN (SELECT DISTINCT cluster_key FROM cluster_member WHERE run_id = ?) ORDER BY key", (crun,)):
             k = r["key"]
             st = cstate.get(k, {})
             p = st.get("payload") or {}
@@ -93,7 +93,7 @@ def structure(cp: str = Query("cp2")) -> dict:
             for c in clusters:
                 if c["theme"] and c["comments"]:
                     by_theme[c["theme"]].append(c)
-            for r in db_rows(conn, "SELECT key, title, statement, category FROM theme WHERE key IN (SELECT DISTINCT theme_key FROM theme_member WHERE run_id = ?)", (xrun,)):
+            for r in db_rows(conn, "SELECT key, title, statement, category FROM theme WHERE key IN (SELECT DISTINCT theme_key FROM theme_member WHERE run_id = ?) ORDER BY key", (xrun,)):
                 cs = by_theme.get(r["key"], [])
                 w = sum(c["comments"] for c in cs) or 1
                 themes.append({"key": r["key"], "title": r["title"], "statement": r["statement"], "category": r["category"],
@@ -103,14 +103,14 @@ def structure(cp: str = Query("cp2")) -> dict:
                                "z": sum(c["z"] * c["comments"] for c in cs) / w})
             estate = _states(conn, xrun, "edge:")
             for e in db_rows(conn, "SELECT src_type, src_id, dst_type, dst_id, relation, rationale FROM evidence_edge WHERE run_id = ? "
-                                   "AND relation NOT IN ('belongs_to')", (xrun,)):
+                                   "AND relation NOT IN ('belongs_to') ORDER BY dst_type, dst_id, id", (xrun,)):
                 key = f"{e['src_type']}:{e['src_id']}>{e['relation']}>{e['dst_id']}"
                 edges.append({"src_type": e["src_type"], "src_id": e["src_id"], "dst_type": e["dst_type"], "dst_id": e["dst_id"],
                               "relation": e["relation"], "why": e["rationale"], "state": (estate.get(key) or {}).get("state")})
         areas = []
         if arun:
             astate = _states(conn, arun, "area:")
-            for r in db_rows(conn, "SELECT * FROM req_area WHERE run_id = ?", (arun,)):
+            for r in db_rows(conn, "SELECT * FROM req_area WHERE run_id = ? ORDER BY key", (arun,)):
                 areas.append({"id": r["id"], "key": r["key"], "title": r["title"], "need": r["need"], "kind": r["kind"],
                               "themes": json.loads(r["theme_keys_json"]), "why_now": r["why_now"],
                               "open_questions": json.loads(r["open_questions_json"] or "[]"),
@@ -272,6 +272,6 @@ def activity(cp: str = Query("cp2"), since: int = Query(0, description="return e
         recent = [r[0] for r in conn.execute(
             """SELECT e.source_item_id FROM verbatim_extraction e WHERE e.extractor_version = 'extract-v4' AND e.llm_usage_id IN (
                  SELECT CAST(entity_id AS INTEGER) FROM audit_event WHERE actor_id = 'structure.classify'
-                 AND action = 'classify_comments' AND ts >= strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-6 seconds'))""")]
+                 AND action = 'classify_comments' AND ts >= to_char((now() - interval '6 seconds') AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'))""")]
         running = any(s["status"] == "running" for s in stages)
         return {"checkpoint": cp, "running": running, "stages": stages, "events": events, "recent": recent}

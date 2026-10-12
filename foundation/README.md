@@ -41,4 +41,4 @@ This folder is the project's memory. Every agent (Claude, Codex, humans) reads i
 2. **Python + PM app** (layout D-052): `make install` (= `cd backend && uv sync` for the Python 3.12 venv + `cd frontend && npm install`). Tests: `make test`. App: `make api` + `make dev`. Database (D-059, Docker): `make db` then `make migrate`; `.env` needs `POSTGRES_PASSWORD`, `DATABASE_URL`, `TEST_DATABASE_URL`. Every `uv run …` command in these docs runs from `backend/`. Don't use the system anaconda Python (broken pandas).
 3. **PDF tools**: `brew install poppler` for `pdftotext` (option lists) and `pdftoppm`. The briefing PDF has no text layer, so render it with `pdftoppm` to read it.
 4. **Secrets**: copy `.env.example` to `.env`, then add `OPENAI_API_KEY` (ask Atahan).
-5. **Derived data** and the SQLite DB go to `data/` (git-ignored).
+5. **Derived data** go to `data/` (git-ignored); the database is PostgreSQL in Docker (`make db`, `make migrate`, D-059). Moving an old SQLite `data/app.db` over: `cd backend && uv run python scripts/sqlite_to_postgres.py` (once, into a freshly migrated, empty database).

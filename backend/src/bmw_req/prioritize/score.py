@@ -74,7 +74,7 @@ def _bands_of(cfg: dict) -> dict:
 
 def stored_config(conn) -> tuple[int | None, dict, dict]:
     """(version id, factor weights, bands) of the current prio-v1 weights version — read-only (defaults if none stored)."""
-    r = conn.execute("SELECT id, weights_json FROM weights_version WHERE json_extract(weights_json, '$.scheme') = ? "
+    r = conn.execute("SELECT id, weights_json FROM weights_version WHERE (weights_json::json ->> 'scheme') = ? "
                      "ORDER BY id DESC LIMIT 1", (SCHEME,)).fetchone()
     if not r:
         return None, dict(DEFAULT_WEIGHTS), dict(DEFAULT_BANDS)
@@ -89,8 +89,8 @@ def current_config(conn) -> tuple[int, dict, dict]:
     if wid is not None:
         return wid, weights, bands
     new = {"scheme": SCHEME, "weights": DEFAULT_WEIGHTS, "bands": DEFAULT_BANDS}
-    wid = conn.execute("INSERT INTO weights_version (weights_json, created_by, rationale) VALUES (?, 'system', ?)",
-                       (json.dumps(new), "Default prio-v1 weights (D-050)")).lastrowid
+    wid = conn.execute("INSERT INTO weights_version (weights_json, created_by, rationale) VALUES (?, 'system', ?) RETURNING id",
+                       (json.dumps(new), "Default prio-v1 weights (D-050)")).fetchone()[0]
     audit(conn, actor_type="system", actor_id="prioritize", action="create", entity_type="weights_version",
           entity_id=str(wid), new=new, rationale="Default prio-v1 weights (D-050)")
     return wid, dict(DEFAULT_WEIGHTS), dict(DEFAULT_BANDS)
@@ -121,8 +121,8 @@ def set_weights(conn, weights: dict, actor: str, rationale: str, bands: dict | N
     old_id, old, old_bands = current_config(conn)
     weights, bands = validate(weights, bands if bands is not None else old_bands)
     new = {"scheme": SCHEME, "weights": weights, "bands": bands}
-    wid = conn.execute("INSERT INTO weights_version (weights_json, created_by, rationale) VALUES (?, ?, ?)",
-                       (json.dumps(new), actor, rationale)).lastrowid
+    wid = conn.execute("INSERT INTO weights_version (weights_json, created_by, rationale) VALUES (?, ?, ?) RETURNING id",
+                       (json.dumps(new), actor, rationale)).fetchone()[0]
     audit(conn, actor_type="human", actor_id=actor, action="change_weights", entity_type="weights_version",
           entity_id=str(wid), old={"scheme": SCHEME, "weights": old, "bands": old_bands, "id": old_id}, new=new,
           rationale=rationale)
@@ -133,7 +133,7 @@ def weights_history(conn, limit: int = 20) -> list[dict]:
     """prio-v1 weights versions, newest first. `version` numbers the versions WITHIN the scheme (v1 = the default row;
     `weights_version.id` is shared with score-v3, so it is `id` here); `default` = the system's default row."""
     rows = conn.execute("SELECT id, weights_json, created_by, created_at, rationale FROM weights_version "
-                        "WHERE json_extract(weights_json, '$.scheme') = ? ORDER BY id", (SCHEME,)).fetchall()
+                        "WHERE (weights_json::json ->> 'scheme') = ? ORDER BY id", (SCHEME,)).fetchall()
     out = []
     for n, r in enumerate(rows, 1):
         cfg = json.loads(r["weights_json"])

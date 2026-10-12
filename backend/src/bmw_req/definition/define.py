@@ -48,48 +48,10 @@ LINE_MARKETS: dict[str, list[str]] = {
     line: [m for d in cfg["derivatives"] for m in TARGETS[d]] for line, cfg in LINES.items()}
 ASPECTS = [a for a in ALL_ASPECTS if a != "other"]
 
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS def_requirement (
-    id INTEGER PRIMARY KEY, key TEXT NOT NULL, version INTEGER NOT NULL, run_id INTEGER NOT NULL REFERENCES checkpoint_run(id),
-    parent_id INTEGER REFERENCES def_requirement(id), area_key TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'proposed',
-    title TEXT NOT NULL, statement TEXT, domain TEXT, aspects_json TEXT, zones_json TEXT, lines_json TEXT, markets_json TEXT,
-    targets_json TEXT, decision_type TEXT, today_status TEXT, horizon TEXT, horizon_year INTEGER, kano TEXT,
-    evidence_ids_json TEXT, trend_ids_json TEXT, assumptions_json TEXT, change_note TEXT, model TEXT,
-    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')), UNIQUE (run_id, key)
-);
-CREATE TABLE IF NOT EXISTS def_spec (
-    id INTEGER PRIMARY KEY, run_id INTEGER NOT NULL REFERENCES checkpoint_run(id), req_key TEXT NOT NULL, version INTEGER NOT NULL,
-    parent_id INTEGER REFERENCES def_spec(id), req_version INTEGER, metric_json TEXT, acceptance_json TEXT, ladder_json TEXT,
-    gaps_json TEXT, assumptions_json TEXT, fact_ids_json TEXT, input_ids_json TEXT, change_note TEXT, model TEXT,
-    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')), UNIQUE (run_id, req_key)
-);
-CREATE TABLE IF NOT EXISTS def_link (
-    id INTEGER PRIMARY KEY, run_id INTEGER NOT NULL REFERENCES checkpoint_run(id), a_key TEXT NOT NULL, b_key TEXT NOT NULL,
-    relation TEXT NOT NULL, via TEXT, strength INTEGER, direction TEXT, rationale TEXT, method TEXT, model TEXT,
-    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')), UNIQUE (run_id, a_key, b_key, relation)
-);
-CREATE TABLE IF NOT EXISTS def_choice (   -- append-only: the PM's chosen ladder level per requirement × line × market
-    id INTEGER PRIMARY KEY, req_key TEXT NOT NULL, line TEXT NOT NULL, market TEXT NOT NULL, level TEXT NOT NULL,
-    rationale TEXT NOT NULL, actor TEXT NOT NULL, checkpoint_id TEXT,
-    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-);
-CREATE TABLE IF NOT EXISTS def_link_review (   -- append-only: the PM confirms, removes or adds a link
-    id INTEGER PRIMARY KEY, a_key TEXT NOT NULL, b_key TEXT NOT NULL, relation TEXT NOT NULL, verdict TEXT NOT NULL,
-    via TEXT, strength INTEGER, rationale TEXT NOT NULL, actor TEXT NOT NULL, checkpoint_id TEXT,
-    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-);
-CREATE INDEX IF NOT EXISTS def_requirement_run ON def_requirement(run_id, key);
-CREATE INDEX IF NOT EXISTS def_spec_run ON def_spec(run_id, req_key);
-CREATE INDEX IF NOT EXISTS def_link_run ON def_link(run_id);
-CREATE TRIGGER IF NOT EXISTS def_choice_no_update BEFORE UPDATE ON def_choice BEGIN SELECT RAISE(ABORT, 'def_choice is append-only'); END;
-CREATE TRIGGER IF NOT EXISTS def_choice_no_delete BEFORE DELETE ON def_choice BEGIN SELECT RAISE(ABORT, 'def_choice is append-only'); END;
-CREATE TRIGGER IF NOT EXISTS def_link_review_no_update BEFORE UPDATE ON def_link_review BEGIN SELECT RAISE(ABORT, 'def_link_review is append-only'); END;
-CREATE TRIGGER IF NOT EXISTS def_link_review_no_delete BEFORE DELETE ON def_link_review BEGIN SELECT RAISE(ABORT, 'def_link_review is append-only'); END;
-"""
 
 
 def ensure(conn) -> None:
-    conn.executescript(SCHEMA)
+    """No-op: the tables come from the Alembic migrations (D-059)."""
 
 
 # ------------------------------------------------------------------------------------------------ schema (LLM)
@@ -433,13 +395,13 @@ def run(conn, cp: str, actor: str = "system", pilot: int | None = None, llm: LLM
             cur = conn.execute("""INSERT INTO def_requirement (key, version, run_id, parent_id, area_key, status, title, statement, domain,
                                   aspects_json, zones_json, lines_json, markets_json, targets_json, decision_type, today_status, horizon,
                                   horizon_year, kano, evidence_ids_json, trend_ids_json, assumptions_json, change_note, model)
-                                  VALUES (?, ?, ?, ?, ?, 'proposed', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                  VALUES (?, ?, ?, ?, ?, 'proposed', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id""",
                                (r["key"], r["version"], run_id, r["parent_id"], r["area_key"], r["title"], r["statement"], r["domain"],
                                 json.dumps(r["aspects"]), json.dumps(r["zones"]), json.dumps(r["lines"]), json.dumps(r["markets"]),
                                 json.dumps(r["targets"], ensure_ascii=False), r["decision_type"], r["today_status"], r["horizon"],
                                 r["horizon_year"], r["kano"], json.dumps(r["evidence_ids"]), json.dumps(r["trend_ids"]),
                                 json.dumps(r["assumptions"], ensure_ascii=False), r["change_note"], r["model"]))
-            rid = str(cur.lastrowid)
+            rid = str(cur.fetchone()[0])
             ids[r["key"]] = rid
             edges = [(run_id, "def_requirement", rid, "area", r["area_key"], "derived_from", "sol")]
             if r["parent_id"] and not r.get("carried"):

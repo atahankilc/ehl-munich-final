@@ -67,9 +67,9 @@ def ingest_feedback(conn: sqlite3.Connection, path: Path) -> int:
     conn.execute("BEGIN IMMEDIATE")
     try:
         batch_id = conn.execute(
-            "INSERT INTO ingest_batch (kind, description, file) VALUES ('feedback_wave', ?, ?)",
+            "INSERT INTO ingest_batch (kind, description, file) VALUES ('feedback_wave', ?, ?) RETURNING id",
             (f"{len(new)} verbatims from {path.name}", path.name),
-        ).lastrowid
+        ).fetchone()[0]
         conn.executemany(
             """INSERT INTO source_item (kind, ref, external_id, trust_tier, vehicle_model_id, market_code,
                                         country, text, meta_json, ingest_batch_id)

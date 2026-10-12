@@ -8,7 +8,7 @@ KEY = "sk-test-1234567890abcdefWXYZ"
 
 
 @pytest.fixture
-def client(tmp_path, monkeypatch):
+def client(tmp_path, monkeypatch, pg_url):
     from api import deps
     from api.main import app
     from api.routers import settings

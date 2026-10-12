@@ -11,11 +11,13 @@ Portfolio-level from day one: 1 Series (F70), 5 Series (G60 + China LWB G68), 7 
 ## Quick start
 
 ```bash
-cp .env.example .env      # add OPENAI_API_KEY (LLM provider: OpenAI)
+cp .env.example .env      # add OPENAI_API_KEY and a POSTGRES_PASSWORD (LLM provider: OpenAI)
+make db                   # PostgreSQL 17 + pgvector in Docker, 127.0.0.1:5433 (D-059)
+make migrate              # build the schema (Alembic)
 ```
 
 Two profiles (`APP_ENV`, D-053), natively or in containers. Run only one of them at a time — they share port 8600
-and the SQLite file `data/app.db`.
+and the database.
 
 | | Native | Containers (Docker) |
 |---|---|---|
@@ -38,12 +40,12 @@ Dockerfile, compose.yaml   images (targets dev / prod) and compose profiles dev 
 research/           cited checkpoint research (JSON) + sales verification
 docs/pitch/         pitch deck, script, pptx builder
 foundation/         project memory: state, decisions, open questions, reference docs
-data/               derived data + SQLite DB (git-ignored)
+data/               derived data, settings, 3D models, backups (git-ignored); the database lives in Docker
 ```
 
 The raw BMW data (`challange information document/`) and the database (`data/app.db`) are git-ignored.
-Back up or restore the whole database (the LLM usage log and cache are always kept) with
-`cd backend && uv run python scripts/demo_state.py save|restore|list <name>` — stop the API first.
+Back up the database with `make backup` (`pg_dump` → `data/backups/`). `make testdata` refreshes the real-data copy
+the API tests clone.
 
 ## End-to-end workflow
 

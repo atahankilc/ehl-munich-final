@@ -5,6 +5,8 @@
 !backend/uv.lock
 !backend/src/
 !backend/scripts/
+!backend/alembic.ini
+!backend/migrations/
 !frontend/package.json
 !frontend/package-lock.json
 !frontend/index.html

@@ -118,7 +118,7 @@ Requirement IDs are global (`REQ-0001`); scope lives in `requirement_target`, so
 
 ## Audit trail rules
 
-- Append-only: no UPDATE/DELETE on `audit_event` (enforced by SQLite triggers).
+- Append-only: no UPDATE/DELETE on `audit_event` (enforced by database triggers; PostgreSQL since D-059).
 - Every mutation of requirement content, targets, score, priority, evidence links, fit checks or status → one event (who/what, when, before/after, rationale).
 - AI events record model name + prompt/agent version; web research events record queries and URLs.
 - Access events (view/export) logged as well.

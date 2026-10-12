@@ -18,9 +18,11 @@ class Settings:
     model_embed: str
     raw_data_dir: Path
     data_dir: Path
+    database_url: str | None   # PostgreSQL (D-059)
 
     @property
     def db_path(self) -> Path:
+        """The former SQLite database (D-016) — kept read-only as the pre-D-059 backup and copy source."""
         return self.data_dir / "app.db"
 
 
@@ -37,4 +39,5 @@ def get_settings() -> Settings:
         model_embed=os.getenv("OPENAI_MODEL_EMBED", "text-embedding-3-small"),
         raw_data_dir=_path("RAW_DATA_DIR", "challange information document/BMW-Data"),
         data_dir=_path("DATA_DIR", "data"),
+        database_url=os.getenv("DATABASE_URL"),
     )

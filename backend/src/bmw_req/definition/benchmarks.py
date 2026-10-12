@@ -123,28 +123,10 @@ UNITS: dict[str, dict[str, float]] = {
     "PP100": {"pp100": 1, "problemsper100vehicles": 1, "": 1},
 }
 
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS spec_fact (
-    id INTEGER PRIMARY KEY, source_item_id INTEGER NOT NULL REFERENCES source_item(id),
-    aspect TEXT NOT NULL, attribute TEXT NOT NULL, entity TEXT NOT NULL, brand TEXT, model_code TEXT, market TEXT,
-    value REAL NOT NULL, value_max REAL, unit TEXT NOT NULL,   -- canonical unit of the attribute
-    raw_value REAL, raw_unit TEXT,                             -- the number as written in the quote
-    cycle TEXT, condition TEXT, quote TEXT NOT NULL,
-    quote_field TEXT,                                          -- quote | text: which field of the item holds it
-    method TEXT NOT NULL, model TEXT, created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-    UNIQUE (source_item_id, attribute, entity, market, cycle)
-);
-CREATE INDEX IF NOT EXISTS spec_fact_aspect ON spec_fact(aspect, attribute);
-CREATE TABLE IF NOT EXISTS spec_fact_scan (
-    source_item_id INTEGER PRIMARY KEY REFERENCES source_item(id),
-    attributes_found INTEGER NOT NULL, method TEXT NOT NULL,   -- rule | luna | skip
-    model TEXT, created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-);
-"""
 
 
 def ensure(conn) -> None:
-    conn.executescript(SCHEMA)
+    """No-op: the tables come from the Alembic migrations (D-059)."""
 
 
 # ------------------------------------------------------------------------------------------------ deterministic checks
@@ -407,14 +389,14 @@ def _extract_batch(rows) -> tuple[list[Fact], float, str]:
 def _store(conn, facts: list[dict], scanned: dict[int, tuple[int, str, str | None]]) -> int:
     cols = ("source_item_id", "aspect", "attribute", "entity", "brand", "model_code", "market", "value", "value_max",
             "unit", "raw_value", "raw_unit", "cycle", "condition", "quote", "quote_field", "method", "model")
-    before = conn.total_changes
     conn.execute("BEGIN IMMEDIATE")
     try:
-        conn.executemany(f"INSERT OR IGNORE INTO spec_fact ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",
-                         [tuple(f.get(c) for c in cols) for f in facts])
-        n = conn.total_changes - before
-        conn.executemany("INSERT OR REPLACE INTO spec_fact_scan (source_item_id, attributes_found, method, model) "
-                         "VALUES (?, ?, ?, ?)", [(i, *v) for i, v in scanned.items()])
+        cur = conn.executemany(f"INSERT OR IGNORE INTO spec_fact ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",
+                               [tuple(f.get(c) for c in cols) for f in facts])
+        n = max(cur.rowcount, 0)   # rows actually inserted (duplicates are skipped)
+        conn.executemany("INSERT INTO spec_fact_scan (source_item_id, attributes_found, method, model) VALUES (?, ?, ?, ?) "
+                         "ON CONFLICT (source_item_id) DO UPDATE SET attributes_found = excluded.attributes_found, "
+                         "method = excluded.method, model = excluded.model", [(i, *v) for i, v in scanned.items()])
         conn.execute("COMMIT")
     except BaseException:
         conn.execute("ROLLBACK")

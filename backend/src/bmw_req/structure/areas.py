@@ -30,15 +30,6 @@ from bmw_req.structure import market
 from bmw_req.structure.cluster import z_state
 from bmw_req.structure.events import log
 
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS req_area (
-    id INTEGER PRIMARY KEY, key TEXT NOT NULL, run_id INTEGER NOT NULL REFERENCES checkpoint_run(id),
-    title TEXT NOT NULL, need TEXT NOT NULL, kind TEXT NOT NULL,      -- improve | keep | emerging | quality
-    theme_keys_json TEXT NOT NULL, why_now TEXT, open_questions_json TEXT, metrics_json TEXT,
-    change_note TEXT, model TEXT, created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-    UNIQUE (run_id, key)
-);
-"""
 
 
 class Area(BaseModel):
@@ -80,7 +71,7 @@ Return 15–40 areas. Rules:
 
 
 def ensure(conn) -> None:
-    conn.executescript(SCHEMA)
+    """No-op: the tables come from the Alembic migrations (D-059)."""
 
 
 def theme_digest(conn, ctx_run: int) -> list[dict]:
@@ -163,8 +154,12 @@ def run_checkpoint(cp: str, actor: str = "system") -> dict:
 
     conn.execute("BEGIN IMMEDIATE")
     try:
-        conn.executemany("""INSERT OR REPLACE INTO req_area (key, run_id, title, need, kind, theme_keys_json, why_now, open_questions_json,
-                            metrics_json, change_note, model) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", rows)
+        conn.executemany("""INSERT INTO req_area (key, run_id, title, need, kind, theme_keys_json, why_now, open_questions_json,
+                            metrics_json, change_note, model) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            ON CONFLICT (run_id, key) DO UPDATE SET title = excluded.title, need = excluded.need,
+                            kind = excluded.kind, theme_keys_json = excluded.theme_keys_json, why_now = excluded.why_now,
+                            open_questions_json = excluded.open_questions_json, metrics_json = excluded.metrics_json,
+                            change_note = excluded.change_note, model = excluded.model""", rows)
         for r in rows:
             for t in json.loads(r[5]):
                 conn.execute("INSERT INTO evidence_edge (run_id, src_type, src_id, dst_type, dst_id, relation, method) "

@@ -21,9 +21,9 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-013 | Continuous re-prioritization with snapshots & change proposals | accepted |
 | D-014 | Budget plan ≈$60, thresholds $45/$70/$90, $20 demo reserve | accepted |
 | D-015 | Orchestration: LangGraph | superseded by D-057 |
-| D-016 | Storage: SQLite, relational tables | accepted |
+| D-016 | Storage: SQLite, relational tables | superseded by D-059 |
 | D-017 | No graph DB; relational links + graph view in the UI | accepted |
-| D-018 | Vector search / RAG: sqlite-vec in the same SQLite file | accepted |
+| D-018 | Vector search / RAG: sqlite-vec in the same SQLite file | superseded by D-059 |
 | D-019 | UI: Streamlit (superseded by D-039) | superseded |
 | D-020 | Scaffold conventions (Python 3.12/uv, OpenAI SDK direct, Pydantic, pytest) | accepted |
 | D-021 | Demo slice G60 × US + G68 × CN; demo table set (Q-017) | accepted |
@@ -64,7 +64,7 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-056 | Document, AI agents and Audit are full-screen 2D pages: no 3D rendered behind them, own checkpoint switch, timeline hidden (supersedes D-051's sheet-over-scene) | accepted |
 | D-057 | Wave pipeline retired: old API routes, `pipeline/`, `service.py`, `research/findings.py`, their tests and scripts removed; shared helpers moved; LangGraph dropped (supersedes D-015); old-only DB tables kept for now | accepted |
 | D-058 | Old wave-pipeline tables dropped (11 tables) after a verified backup; schema no longer creates them | accepted |
-| D-059 | Move to PostgreSQL 17 + pgvector (one DB for relational, vectors, full-text, job queue); no graph DB; plan in `documents/postgres-migration.md` | accepted (P0 done) |
+| D-059 | Move to PostgreSQL 17 + pgvector (one DB for relational, vectors, full-text, job queue); no graph DB; plan in `documents/postgres-migration.md` | accepted (P0, P1 done: app on Postgres) |
 
 Keep this index in sync when adding a decision.
 
@@ -655,7 +655,7 @@ Template:
 ## D-059 — PostgreSQL + pgvector instead of SQLite (proposed)
 - Date: 2026-10-12
 - Decided by: Atahan chose Postgres + pgvector and "plan first, then build"; plan by the agent, awaiting Atahan's approval
-- Status: accepted 2026-10-12 by Atahan ("commit the plan and start P0"); supersedes D-016 / D-018 once P1 switches the app (D-017 "no graph DB" stands)
+- Status: accepted 2026-10-12 by Atahan ("commit the plan and start P0"); P1 done the same day — supersedes D-016 / D-018 (D-017 "no graph DB" stands)
 - Context: post-hackathon the project heads to continuous intake by background agents, uploads to the knowledge base, RAG and several users (Q-027); SQLite allows one writer and has no vector index. Atahan asked whether SQL alone is enough and whether a graph DB is needed.
 - Decision (proposed): PostgreSQL 17 + pgvector in Docker (127.0.0.1 only), psycopg 3, Alembic; uploaded files outside the DB; no graph DB (evidence graph = edge tables + recursive SQL; Apache AGE inside Postgres if a real knowledge graph ever needs it). Lift and shift first (same query behaviour, TEXT timestamps/JSON), then Postgres features. Four phases P0–P3 with exit criteria — `foundation/documents/postgres-migration.md`.
 - Alternatives considered: stay on SQLite (fine for one local user, blocks background agents); Postgres without vectors first (keeps numpy brute-force search); add a graph DB (Neo4j) — rejected: small, fixed-depth graph queried relationally, two sources of truth would split traceability and the audit trail.

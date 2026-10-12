@@ -122,9 +122,9 @@ def import_research(conn: sqlite3.Connection, path: Path = RESEARCH_FILE) -> int
     """Load the cited checkpoint research (research/checkpoints/checkpoints.json) as `source_item(kind=research)`.
     Upserts by the item id, so re-running after a new research round adds and updates rows."""
     data = json.loads(path.read_text())
-    cur = conn.execute("INSERT INTO ingest_batch (kind, description, file) VALUES ('checkpoint_research', ?, ?)",
+    cur = conn.execute("INSERT INTO ingest_batch (kind, description, file) VALUES ('checkpoint_research', ?, ?) RETURNING id",
                        (f"{len(data['items'])} cited items, D-040", str(path.relative_to(ROOT))))
-    batch = cur.lastrowid
+    batch = cur.fetchone()[0]
     rows = []
     for it in data["items"]:
         src = it.get("source") or {}
@@ -168,9 +168,9 @@ def start_run(conn: sqlite3.Connection, cp: str, stage: str, actor: str) -> int:
         parent = latest_run(conn, c.parent_id, stage)
         if parent is None:
             raise CheckpointError(f"Run '{stage}' at {BY_ID[c.parent_id].label} first: {c.label} builds on it.")
-    cur = conn.execute("INSERT INTO checkpoint_run (checkpoint_id, stage, parent_run_id, actor) VALUES (?, ?, ?, ?)",
+    cur = conn.execute("INSERT INTO checkpoint_run (checkpoint_id, stage, parent_run_id, actor) VALUES (?, ?, ?, ?) RETURNING id",
                        (cp, stage, parent["id"] if parent else None, actor))
-    return cur.lastrowid
+    return cur.fetchone()[0]
 
 
 def _state(prev: float | None, weight: float | None) -> str:

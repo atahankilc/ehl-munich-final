@@ -77,7 +77,7 @@ def store(conn, res: AgentResult, verified: list[int | None], batch_id: int | No
             desc = f"web research wave {t.wave} ({AGENT_VERSION})"
             row = conn.execute("SELECT id FROM ingest_batch WHERE kind = ? AND description = ?", (kind, desc)).fetchone()
             batch_id = row["id"] if row else conn.execute(
-                "INSERT INTO ingest_batch (kind, description) VALUES (?, ?)", (kind, desc)).lastrowid
+                "INSERT INTO ingest_batch (kind, description) VALUES (?, ?) RETURNING id", (kind, desc)).fetchone()[0]
         for it, qv in zip(res.kept, verified):
             url = clean_url(it.url)
             ref = web_ref(url, it.claim)

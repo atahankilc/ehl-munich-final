@@ -1,6 +1,6 @@
 # PostgreSQL migration plan (D-059)
 
-**Status:** P0 done (2026-10-12) · P1 next.
+**Status:** P0 and P1 done (2026-10-12): the app runs on PostgreSQL · P2 next.
 
 Move the app from SQLite + sqlite-vec to **PostgreSQL 17 + pgvector**, one database for relational data, vectors,
 full-text search and (later) the job queue. Uploaded files stay outside the database (disk volume now, S3-compatible
@@ -102,3 +102,42 @@ people (needed before any shared deployment).
   server); `tests/test_postgres_schema.py` checks table and column parity with today's SQLite schema (exact order for
   the positionally written `source_aspect`, `node_embedding`), append-only triggers, vector columns, timestamp format.
 - Deferred to P2 as planned: the separate owner / app roles (one `sharksight` role for now).
+
+## P1 as built (2026-10-12)
+
+- **`bmw_req.db`** is the compatibility layer (psycopg 3): `?` → `%s` outside literals, ints/bools bound untyped (SQLite's
+  loose typing), rows by name and position, numeric → float, boolean → 0/1, `INSERT OR IGNORE` → `ON CONFLICT DO
+  NOTHING`, the SQLite timestamp expression → `utc_now_text()`, `BEGIN IMMEDIATE` → `BEGIN` + one transaction-scoped
+  advisory lock (the single writer SQLite had — budget guard and run creation keep their guarantees), vectors as numpy
+  float32. `INSERT OR REPLACE`, `PRAGMA`, `rowid`, `executescript` are refused with an error. Unit tests:
+  `tests/test_db_translate.py`.
+- **Ported by hand**: 18 `lastrowid` → `RETURNING id`; 8 `INSERT OR REPLACE` → `ON CONFLICT … DO UPDATE` (`req_area` now
+  keeps its id on a re-run instead of getting a new one); vector tables keyed by entity id; `json_extract` → `->>`;
+  boolean sums and boolean arithmetic in `ORDER BY` → `CASE`; `ROUND` on numeric; `PRAGMA table_info` →
+  `information_schema`; `total_changes` → `rowcount`. The `ensure()` functions are no-ops (schema = Alembic).
+- **Data**: `scripts/sqlite_to_postgres.py` — 267,099 rows, 43 tables, counts and id sums verified, no foreign-key
+  orphans, one audit event; `data/app.db` stays untouched as the pre-D-059 backup.
+- **Proof**: `scripts/compare_api.py` captured 99 API answers from the SQLite app before the switch and from the
+  Postgres app after: 96 identical; the 3 others explained (the migration's own audit event; two "changes since JAN"
+  lists whose order was hash-random before and is now stable).
+
+### What made answers differ, and the fix (keep in mind for new queries)
+
+1. **Text collation**: the image's default `en_US.utf8` sorts `rq:a-b` / `RQ:z` / `rq_z` differently from SQLite (bytes).
+   The cluster is initialised with the builtin `C.UTF-8` locale (`POSTGRES_INITDB_ARGS`) → code-point order = SQLite.
+2. **NULL order**: SQLite sorts NULL first ascending / last descending, Postgres the reverse. The layer adds
+   `NULLS FIRST` / `NULLS LAST` to every `ORDER BY` term that doesn't say.
+3. **Ties and missing `ORDER BY`**: SQLite returned rows in the order of the index it happened to use; Postgres
+   doesn't. Fixed with explicit orders that reproduce it (checked against SQLite's query plans): clusters / themes /
+   areas by key, evidence edges by destination then id, research by date then ref, study items by z then id, audit
+   rows by time then id, the comment → strongest-cluster tie by signal id. **Rule from now on: every query whose row
+   order reaches the user or a tie-break needs a full `ORDER BY`.**
+4. **Pre-existing bug found**: "changes since JAN" listed new / removed / moved requirements in Python set order (random
+   per process). Now band → score → ID.
+
+### Operations (until P3)
+
+- `make backup` (`pg_dump -Fc` → `data/backups/`), `make testdata` (real-data copy the API tests clone).
+- Containers: `DATABASE_URL` points at `db:5432` inside compose; the image runs `alembic upgrade head` before the API.
+- Removed: `scripts/demo_state.py`, `scripts/drop_wave_tables.py` (SQLite-only). `sqlite-vec` stays until P3 for the
+  copy script.

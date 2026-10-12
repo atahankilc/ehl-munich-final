@@ -1,14 +1,13 @@
 """Prioritization (D-050): deterministic prio-v1 parts on a synthetic context (factors, renormalisation, rung → effort,
-bundle band, choose-jointly flag) and an end-to-end + API smoke test on a temp copy of the demo DB (no LLM)."""
+bundle band, choose-jointly flag) and an end-to-end + API smoke test on a throwaway clone of the real data (no LLM)."""
 
 from __future__ import annotations
 
 import json
-import sqlite3
-
+import psycopg
 import pytest
 
-from bmw_req.config import ROOT
+from bmw_req.db import connect
 from bmw_req.prioritize import factors as S
 from bmw_req.prioritize import score as P
 
@@ -143,13 +142,10 @@ def test_no_comment_market_capped_by_commented_market():
 
 
 # ------------------------------------------------------------------------------------------------ DB + API
-REAL_DB = ROOT / "data" / "app.db"
 
 
 @pytest.fixture
-def client(tmp_path, monkeypatch):
-    if not REAL_DB.exists():
-        pytest.skip("needs the local demo DB (data/app.db)")
+def client(tmp_path, monkeypatch, real_db_url):
     from fastapi.testclient import TestClient
 
     from api import deps
@@ -158,9 +154,6 @@ def client(tmp_path, monkeypatch):
 
     data = tmp_path / "data"
     data.mkdir()
-    src, out = sqlite3.connect(f"file:{REAL_DB}?mode=ro", uri=True), sqlite3.connect(data / "app.db")
-    src.backup(out)
-    out.close(), src.close()
     (data / "models").mkdir()
     monkeypatch.setenv("DATA_DIR", str(data))
     monkeypatch.setattr(llm_client.LLM, "__init__", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("no paid calls in tests")))
@@ -212,13 +205,12 @@ def test_run_proposal_and_api(client):
     again = client.get("/api/prioritize?cp=cp1").json()
     tt = next(x for x in again["targets"] if (x["key"], x["line"], x["market"]) == (t["key"], t["line"], t["market"]))
     assert tt["confirmed"]["priority"] == t["band"]
-    from bmw_req.config import get_settings
 
-    with sqlite3.connect(get_settings().db_path) as c:
+    with connect() as c:
         assert c.execute("SELECT COUNT(*) FROM audit_event WHERE actor_type = 'human' AND action IN ('confirm_priority', 'proposal_accepted')"
                          ).fetchone()[0] >= 3
         assert c.execute("SELECT COUNT(*) FROM audit_event WHERE actor_id = 'structure.prioritize' AND action = 'rescore'").fetchone()[0] > 0
-        with pytest.raises(sqlite3.DatabaseError):
+        with pytest.raises(psycopg.Error):
             c.execute("DELETE FROM prio_decision")
 
 
@@ -237,8 +229,8 @@ def test_bands_from_weights_and_validation():
             P.validate(bad_w, bad_b)
 
 
-def _counts(path):
-    with sqlite3.connect(path) as c:
+def _counts():
+    with connect() as c:
         return {t: c.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
                 for t in ("prio_score", "prio_proposal", "prio_decision", "weights_version", "audit_event", "checkpoint_run")}
 
@@ -252,11 +244,10 @@ def _need_runs(conn, *cps):
 
 
 def test_preview_changes_bands_without_writes(client):
-    from bmw_req.config import get_settings
     from bmw_req.db import connect
 
     _need_runs(connect(), "cp1")
-    before = _counts(get_settings().db_path)
+    before = _counts()
     cur = client.get("/api/prioritize?cp=cp1").json()["weights"]
     same = client.post("/api/prioritize/preview", json={"factors": cur["factors"], "bands": cur["bands"], "cp": "cp1"}).json()
     assert same["summary"]["changes"] == 0 and same["summary"]["targets"] > 0     # same weights reproduce the stored run
@@ -268,13 +259,12 @@ def test_preview_changes_bands_without_writes(client):
     assert one["targets"] and {(t["line"], t["market"]) for t in one["targets"]} == {(same["targets"][0]["line"], same["targets"][0]["market"])}
     assert client.post("/api/prioritize/preview", json={"factors": cur["factors"], "bands": {"Must": 40, "Should": 50},
                                                         "cp": "cp1"}).status_code == 409
-    assert _counts(get_settings().db_path) == before
+    assert _counts() == before
 
 
 def test_weights_save_rescore_proposes_against_confirmed_band(client, monkeypatch):
     from api import rescore
     from bmw_req.checkpoints import latest_run
-    from bmw_req.config import get_settings
     from bmw_req.db import connect
 
     conn = connect()
@@ -306,7 +296,7 @@ def test_weights_save_rescore_proposes_against_confirmed_band(client, monkeypatc
     assert len(props) == 1 and props[0]["cause"] == "weights_changed" and props[0]["old_band"] == "Should" and props[0]["against"] == "pm"
     hist = client.get("/api/prioritize/weights/history").json()
     assert hist["history"][0]["version"] == r.json()["weights_version"] and hist["history"][0]["rationale"] == "Stricter Should bar"
-    with sqlite3.connect(get_settings().db_path) as c:
+    with connect() as c:
         old, new = c.execute("SELECT old_value, new_value FROM audit_event WHERE action = 'change_weights' AND actor_type = 'human' "
                              "ORDER BY id DESC LIMIT 1").fetchone()
         assert json.loads(new)["bands"] == bands and json.loads(old)["bands"] == d["weights"]["bands"]

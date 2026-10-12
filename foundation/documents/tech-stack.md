@@ -11,9 +11,9 @@
 | All LLM calls | Go through one budget-guarded wrapper that logs usage | D-014 |
 | Language / runtime | Python 3.12 via `uv`; packages `backend/src/bmw_req/` (pipeline) + `backend/src/api/` (API); `uv run …` from `backend/` | D-020, D-052 |
 | Orchestration | Plain Python stages per checkpoint (`structure.run_all`, `definition.run`, `prioritize.run`), each a recorded `checkpoint_run`; no LangGraph / LangChain | D-057 (supersedes D-015) |
-| Storage | **SQLite**, one file `data/app.db` — moving to **PostgreSQL 17 + pgvector** (`make db`, Alembic in `backend/migrations/`), P0 done, app switches in P1 | D-016 → D-059 |
+| Storage | **PostgreSQL 17 + pgvector** in Docker (`make db`, 127.0.0.1:5433), C.UTF-8 collation; schema in Alembic (`backend/migrations/`, `make migrate`); `bmw_req.db.connect()` keeps the old sqlite3-style surface | D-059 (supersedes D-016) |
 | Graph | **No graph DB**; relational link tables + graph view in the UI | D-017 |
-| Vector store / RAG | **sqlite-vec** in the same SQLite file; every vector row carries its source ID | D-018 |
+| Vector store / RAG | **pgvector** `vector(1536)` columns in the same database; every vector row carries its source ID (search still in numpy until P2) | D-059 (supersedes D-018) |
 | UI | **React + TypeScript (Vite) + three.js/react-three-fiber** (`frontend/`) over a **FastAPI** JSON layer (`backend/src/api/`, 127.0.0.1:8600); Streamlit app removed | D-039 (supersedes D-019), D-052 |
 | OpenAI call path | OpenAI Python SDK, Responses API, inside `bmw_req.llm` (incl. `web_search`) | D-020 |
 | Structured output | Pydantic models → `responses.parse` | D-020 |

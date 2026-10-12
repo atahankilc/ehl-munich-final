@@ -22,6 +22,8 @@ COPY backend/pyproject.toml backend/uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 COPY backend/src ./src
 COPY backend/scripts ./scripts
+COPY backend/alembic.ini ./alembic.ini
+COPY backend/migrations ./migrations
 RUN uv sync --frozen --no-dev
 COPY research/checkpoints/checkpoints.json /app/research/checkpoints/checkpoints.json
 # inside the container the server must listen on all interfaces; compose publishes it on the host's 127.0.0.1 only
@@ -29,7 +31,8 @@ ENV API_HOST=0.0.0.0 API_PORT=8600 DATA_DIR=/app/data
 EXPOSE 8600
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8600/api/health', timeout=4)"
-CMD ["python", "-m", "api"]
+# schema first (idempotent: a migrated database is left as is), then the API
+CMD ["sh", "-c", "alembic upgrade head && exec python -m api"]
 
 # ---------------------------------------------------------------- dev: + pytest, reload
 FROM base AS dev

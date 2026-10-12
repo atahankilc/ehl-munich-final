@@ -529,12 +529,12 @@ def run(conn, cp: str, actor: str = "system", pilot: int | None = None, llm: LLM
         for r in rows:
             cur = conn.execute("""INSERT INTO def_spec (run_id, req_key, version, parent_id, req_version, metric_json, acceptance_json,
                                   ladder_json, gaps_json, assumptions_json, fact_ids_json, input_ids_json, change_note, model)
-                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id""",
                                (run_id, r["req_key"], r["version"], r["parent_id"], r["req_version"], json.dumps(r["metric"], ensure_ascii=False),
                                 json.dumps(r["acceptance"], ensure_ascii=False), json.dumps(r["ladder"], ensure_ascii=False),
                                 json.dumps(r["gaps"], ensure_ascii=False), json.dumps(r["assumptions"], ensure_ascii=False),
                                 json.dumps(r["fact_ids"]), json.dumps(r["input_ids"]), r["change_note"], r["model"]))
-            sid = str(cur.lastrowid)
+            sid = str(cur.fetchone()[0])
             edges = [(run_id, "def_spec", sid, "def_requirement_key", r["req_key"], "specifies", "sol")]
             if r["parent_id"] and not r["carried"]:
                 edges.append((run_id, "def_spec", sid, "def_spec", str(r["parent_id"]), "recalibrates", "sol"))

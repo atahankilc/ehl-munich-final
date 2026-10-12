@@ -14,8 +14,8 @@ from bmw_req.research.run import done_task_ids, store
 
 
 @pytest.fixture
-def conn():
-    c = connect(":memory:")
+def conn(pg_url):
+    c = connect()
     reference.load_reference(c)
     return c
 

@@ -261,11 +261,11 @@ def _decide(conn, key: str, line: str, market: str, priority: str, why: str, act
     """Insert a prio_decision + human audit_event (caller holds the transaction)."""
     before = conn.execute("SELECT priority, rationale, actor, checkpoint_id FROM prio_decision WHERE req_key = ? AND line = ? AND market = ? "
                           "ORDER BY id DESC LIMIT 1", (key, line, market)).fetchone()
-    cur = conn.execute("INSERT INTO prio_decision (req_key, line, market, priority, rationale, actor, checkpoint_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    cur = conn.execute("INSERT INTO prio_decision (req_key, line, market, priority, rationale, actor, checkpoint_id) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id",
                        (key, line, market, priority, why, actor, cp))
     audit(conn, actor_type="human", actor_id=actor, action="confirm_priority", entity_type="prio_target", entity_id=f"{key}|{line}|{market}",
           field="priority", old=dict(before) if before else None, new={"priority": priority, "checkpoint": cp, **extra}, rationale=why)
-    return cur.lastrowid, dict(before) if before else None
+    return cur.fetchone()[0], dict(before) if before else None
 
 
 @router.post("/decision")

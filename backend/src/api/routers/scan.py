@@ -64,7 +64,7 @@ def checkpoints() -> list[dict]:
             vis = visible_ids(c.id)
             q = ",".join("?" * len(vis))
             counts = {k: {"visible": 0, "new": 0} for k in KINDS}
-            for r in conn.execute(f"""SELECT kind, SUM(checkpoint IN ({q})) visible, SUM(checkpoint = ?) new
+            for r in conn.execute(f"""SELECT kind, SUM(CASE WHEN checkpoint IN ({q}) THEN 1 ELSE 0 END) visible, SUM(CASE WHEN checkpoint = ? THEN 1 ELSE 0 END) new
                                       FROM source_item GROUP BY kind""", (*vis, c.id)):
                 if r["kind"] in counts:
                     counts[r["kind"]] = {"visible": r["visible"] or 0, "new": r["new"] or 0}
@@ -130,9 +130,9 @@ def sources(cp: str = Query("cp2")) -> dict:
                 ORDER BY 1, 2, 3""", vis)]
         study = [dict(r) for r in conn.execute(
             f"""SELECT m.id, m.vehicle_model_id car, m.market_code market, m.scale, m.item,
-                       ROUND(m.z_within_column, 3) z, ROUND(COALESCE(m.mean, m.top2), 3) value
+                       ROUND(CAST(m.z_within_column AS NUMERIC), 3) z, ROUND(CAST(COALESCE(m.mean, m.top2) AS NUMERIC), 3) value
                 FROM study_metric m JOIN source_item s ON s.id = m.source_item_id WHERE s.checkpoint IN ({q})
-                ORDER BY m.vehicle_model_id, m.market_code, m.z_within_column DESC""", vis)]
+                ORDER BY m.vehicle_model_id, m.market_code, m.z_within_column DESC, m.id""", vis)]
         options = []
         for r in conn.execute(f"""SELECT id, vehicle_model_id car, external_id code, meta_json FROM source_item
                                   WHERE kind = 'option_list' AND checkpoint IN ({q}) ORDER BY vehicle_model_id, id""", vis):
@@ -144,7 +144,7 @@ def sources(cp: str = Query("cp2")) -> dict:
         for r in conn.execute(
                 f"""SELECT id, market_code market, trust_tier tier, published_at, text, url, meta_json,
                            checkpoint = ? AS is_new
-                    FROM source_item WHERE kind = 'research' AND checkpoint IN ({q}) ORDER BY published_at""",
+                    FROM source_item WHERE kind = 'research' AND checkpoint IN ({q}) ORDER BY published_at, ref""",
                 (cp, *vis)):
             m = json.loads(r["meta_json"] or "{}")
             headline = r["text"].split(" — ")[0]
@@ -155,7 +155,7 @@ def sources(cp: str = Query("cp2")) -> dict:
                              "published_at": r["published_at"], "headline": headline,
                              "yoy": m.get("yoy_pct"), "value": m.get("value"), "unit": m.get("unit"),
                              "pair_key": m.get("pair_key"), "url": r["url"], "new": bool(r["is_new"])})
-        web = conn.execute(f"SELECT COUNT(*) n, SUM(checkpoint = ?) new FROM source_item WHERE kind = 'web' "
+        web = conn.execute(f"SELECT COUNT(*) n, SUM(CASE WHEN checkpoint = ? THEN 1 ELSE 0 END) new FROM source_item WHERE kind = 'web' "
                            f"AND checkpoint IN ({q})", (cp, *vis)).fetchone()
     return {"checkpoint": cp, "sales": sales, "study": study, "options": options, "research": research,
             "web": {"n": web["n"] or 0, "new": web["new"] or 0}}

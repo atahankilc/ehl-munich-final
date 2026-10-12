@@ -28,13 +28,11 @@ from bmw_req.structure.taxonomy import ALL_ASPECTS, CATEGORY_OF, taxonomy_text
 VERSION = "extract-v4"
 Aspect = Literal[tuple(ALL_ASPECTS)]  # type: ignore[valid-type]
 
-SCHEMA = """CREATE TABLE IF NOT EXISTS source_aspect (
-    source_item_id INTEGER NOT NULL REFERENCES source_item(id),
-    key TEXT NOT NULL,                 -- study item label, research ref or option id
-    aspect TEXT NOT NULL, category TEXT,
-    method TEXT NOT NULL,              -- luna | rule
-    PRIMARY KEY (source_item_id, key)
-)"""
+
+# one aspect per source item × key; a re-run overwrites (was SQLite's INSERT OR REPLACE)
+UPSERT_ASPECT = ("INSERT INTO source_aspect (source_item_id, key, aspect, category, method) VALUES (?, ?, ?, ?, 'luna') "
+                 "ON CONFLICT (source_item_id, key) DO UPDATE SET aspect = excluded.aspect, category = excluded.category, "
+                 "method = excluded.method")
 
 
 class Mapped(BaseModel):
@@ -74,7 +72,7 @@ Do not invent facts beyond the item."""
 
 
 def _ensure(conn) -> None:
-    conn.execute(SCHEMA)
+    """No-op: the tables come from the Alembic migrations (D-059)."""
 
 
 def _batches(rows, n):
@@ -91,7 +89,7 @@ def map_study(conn, llm: LLM) -> int:
                            reasoning_effort="low", max_output_tokens=6000, flex=True)
         out.update({m.key: m.aspect for m in res.parsed.items})
     rows = conn.execute("SELECT source_item_id, item FROM study_metric").fetchall()
-    conn.executemany("INSERT OR REPLACE INTO source_aspect VALUES (?, ?, ?, ?, 'luna')",
+    conn.executemany(UPSERT_ASPECT,
                      [(r[0], r[1], out.get(r[1], "other"), CATEGORY_OF.get(out.get(r[1], "other"))) for r in rows])
     return len(out)
 
@@ -106,7 +104,7 @@ def map_options(conn, llm: LLM) -> int:
                            input=json.dumps(chunk, ensure_ascii=False), schema=MappedBatch,
                            reasoning_effort="low", max_output_tokens=6000, flex=True)
         got = {m.key: m.aspect for m in res.parsed.items}
-        conn.executemany("INSERT OR REPLACE INTO source_aspect VALUES (?, ?, ?, ?, 'luna')",
+        conn.executemany(UPSERT_ASPECT,
                          [(int(k), k, a, CATEGORY_OF.get(a)) for k, a in got.items()])
         n += len(got)
     return n
@@ -127,7 +125,7 @@ def map_research(conn, llm: LLM) -> dict:
                            input=json.dumps(payload, ensure_ascii=False), schema=ResearchBatch,
                            reasoning_effort="low", max_output_tokens=10_000, flex=True)
         res_all.update({s.key: s for s in res.parsed.items if s.key in by_key})
-    conn.executemany("INSERT OR REPLACE INTO source_aspect VALUES (?, ?, ?, ?, 'luna')",
+    conn.executemany(UPSERT_ASPECT,
                      [(int(k), by_key[k]["_meta"].get("pair_key") or k, s.aspect, CATEGORY_OF.get(s.aspect))
                       for k, s in res_all.items()])
     return res_all

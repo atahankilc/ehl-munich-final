@@ -11,8 +11,8 @@ from bmw_req.ingest import reference
 
 
 @pytest.fixture
-def conn():
-    c = connect(":memory:")
+def conn(pg_url):
+    c = connect()
     reference.seed(c)
     C.ensure(c)
     B.ensure(c)
@@ -21,9 +21,9 @@ def conn():
 
 def add_item(conn, ref, cp, text="", quote="", tier="T1", published=None, kind="research", meta=None):
     return conn.execute("INSERT INTO source_item (kind, ref, trust_tier, url, published_at, text, quote, checkpoint, meta_json) "
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
                         (kind, ref, tier, f"https://example.com/{ref}", published, text, quote, cp,
-                         json.dumps(meta or {}))).lastrowid
+                         json.dumps(meta or {}))).fetchone()[0]
 
 
 def add_fact(conn, sid, attribute, entity, value, brand=None):

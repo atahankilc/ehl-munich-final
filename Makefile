@@ -1,6 +1,6 @@
 # Common commands from the repo root. Python runs in backend/ (uv), the PM app in frontend/ (npm).
 # Profiles (D-053): development = API auto-reload + Vite dev server; production = API serves the built app.
-.PHONY: install api dev build serve test up up-dev down logs db db-stop migrate
+.PHONY: install api dev build serve test up up-dev down logs db db-stop migrate testdata backup
 
 install:  ## Python venv + frontend deps
 	cd backend && uv sync
@@ -15,6 +15,14 @@ db-stop:  ## stop the database container (data stays in the pgdata volume)
 
 migrate: db  ## apply the schema migrations (Alembic) to DATABASE_URL
 	cd backend && uv run alembic upgrade head
+
+backup: db  ## pg_dump of the app database → data/backups/sharksight-<UTC time>.dump (restore with pg_restore)
+	mkdir -p data/backups
+	docker compose exec -T db pg_dump -U sharksight -Fc sharksight > data/backups/sharksight-$$(date -u +%Y%m%dT%H%M%SZ).dump
+	@ls -lh data/backups/*.dump | tail -1
+
+testdata: db  ## refresh sharksight_testdata, the real-data copy the API tests clone (works while the app runs)
+	docker compose exec -T db sh -c 'dropdb --if-exists -U sharksight sharksight_testdata && createdb -U sharksight sharksight_testdata && pg_dump -U sharksight sharksight | psql -q -U sharksight -d sharksight_testdata'
 
 # ---- native, development profile
 api:  ## API on http://127.0.0.1:8600, auto-reload on backend/src changes

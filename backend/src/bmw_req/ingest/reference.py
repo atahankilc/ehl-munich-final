@@ -76,8 +76,8 @@ def load_reference(conn: sqlite3.Connection) -> dict:
         batch = conn.execute("SELECT id FROM ingest_batch WHERE kind = 'reference' AND description = ?",
                              (f"curated reference layer {digest}",)).fetchone()
         batch_id = batch["id"] if batch else conn.execute(
-            "INSERT INTO ingest_batch (kind, description, file) VALUES ('reference', ?, 'backend/src/bmw_req/reference_data.py')",
-            (f"curated reference layer {digest}",)).lastrowid
+            "INSERT INTO ingest_batch (kind, description, file) VALUES ('reference', ?, 'backend/src/bmw_req/reference_data.py') RETURNING id",
+            (f"curated reference layer {digest}",)).fetchone()[0]
         ids = {}
         for key, (ref, url, published, tier, text, unverified) in rd.SOURCES.items():
             meta = _j({"key": key, "unverified": unverified, "origin_doc": ref.split("#")[0]})

@@ -116,10 +116,10 @@ def ingest_sales(conn: sqlite3.Connection, path: Path) -> int:
             sid = conn.execute(
                 """INSERT INTO source_item (kind, ref, external_id, trust_tier, vehicle_model_id, market_code,
                                             text, meta_json, ingest_batch_id, wave)
-                   VALUES ('sales', ?, ?, 'T1', ?, ?, ?, ?, ?, ?)""",
+                   VALUES ('sales', ?, ?, 'T1', ?, ?, ?, ?, ?, ?) RETURNING id""",
                 (it["ref"], f"{row['sheet']}:{row['file_code']}", row["model"], row["market"], it["text"],
                  json.dumps(it["meta"]), batch_id, it["wave"]),
-            ).lastrowid
+            ).fetchone()[0]
             for ycol in it["ycols"]:
                 year, _, forecast = YEARS[ycol]
                 conn.execute(

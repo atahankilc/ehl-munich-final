@@ -6,8 +6,9 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
 
 ### Q-028 — Generalize SharkSight beyond BMW into a domain-agnostic product?
 - Owner: Atahan · not blocking · raised 2026-10-12
-- Atahan is considering a version anyone can use for ground-up requirements engineering and product decisions. Market scan: `research/market-landscape.md` (no tool covers evidence → measurable requirements → gated, per-segment priority → human decision → audit; closest are Productboard Spark upstream and Flow Engineering downstream).
+- Atahan is considering a version anyone can use for ground-up requirements engineering and product decisions. Market scan: artifact https://claude.ai/artifact/RPFgwBDcz8TFr46pbhLJYA (no tool covers evidence → measurable requirements → gated, per-segment priority → human decision → audit; closest are Productboard Spark upstream and Flow Engineering downstream).
 - Open: positioning (layer between VoC tools and RM/ALM tools?), beachhead (long-cycle physical products?), what becomes config (org/product line/segment, pluggable gates, generic ingest, optional 3D visualizer), integrations (Jira, Jama/Polarion, ReqIF, MCP), and how the BMW-specific rules (brand fit, plant/platform feasibility) map to generic gates.
+- 2026-10-12 — Method packs + evidence-depth idea (Scrum, Kanban, OKR, SAFe, discovery, stage-gate): artifact https://claude.ai/artifact/MMKqm5c2NihxE8uwGBu1SQ. Key point: evidence depth should scale with decision cost/reversibility (light / medium / deep), stories inherit evidence from their epic or opportunity; agile evidence comes mostly after the decision (outcome measurement). Proposal only.
 
 ### Q-027 — Continuous data intake instead of fixed checkpoints (future)
 - Owner: Atahan · not blocking · raised 2026-10-11

@@ -2,7 +2,7 @@
 #   docker compose --profile prod up -d --build   → http://127.0.0.1:8600 (one container, built app)
 #   docker compose --profile dev up --build       → http://127.0.0.1:5173 (Vite, live reload) + API on :8600
 # Ports are published on 127.0.0.1 only (AGENTS rule 1). data/ (DB, snapshots, 3D models) is mounted, never baked in.
-# Don't run the native API (`make api`) at the same time: same port and same SQLite file.
+# Don't run the native API (`make api`) at the same time: same port, same database.
 # `db` (PostgreSQL + pgvector, D-059) has no profile: it starts with either profile and alone via `make db`.
 name: sharksight
 
@@ -10,8 +10,13 @@ x-api: &api
   env_file:
     - path: .env
       required: false
+  environment: &api-env
+    # inside the compose network the database is `db:5432` (the host's 127.0.0.1:5433 is for native runs)
+    DATABASE_URL: postgresql://sharksight:${POSTGRES_PASSWORD}@db:5432/sharksight
   ports:
     - "127.0.0.1:8600:8600"
+  depends_on:
+    db: { condition: service_healthy }
 
 services:
   db:
@@ -20,6 +25,9 @@ services:
       POSTGRES_USER: sharksight
       POSTGRES_DB: sharksight
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      # byte/code-point text order, exactly like SQLite (D-059): ORDER BY and < > on text behave as before;
+      # the builtin provider doesn't depend on the OS locale data
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale-provider=builtin --builtin-locale=C.UTF-8 --locale=C.UTF-8"
     ports:
       - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"   # 5433: 5432 is often taken by another local Postgres
     volumes:
@@ -46,11 +54,13 @@ services:
     build: { context: ., target: dev }
     image: sharksight:dev
     environment:
+      <<: *api-env
       APP_ENV: development
     volumes:
       - ./data:/app/data
       - ./backend/src:/app/backend/src
       - ./backend/scripts:/app/backend/scripts
+      - ./backend/migrations:/app/backend/migrations
       - ./research:/app/research:ro
 
   web-dev:

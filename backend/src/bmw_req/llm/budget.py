@@ -168,14 +168,14 @@ def reserve(conn: sqlite3.Connection, *, job: str, kind: str, model: str, reserv
         after = committed_usd(conn) + reserved_usd
         stop_if_over(after)
         cur = conn.execute(
-            "INSERT INTO llm_usage (job, demo, kind, model, status, reserved_usd) VALUES (?, ?, ?, ?, 'reserved', ?)",
+            "INSERT INTO llm_usage (job, demo, kind, model, status, reserved_usd) VALUES (?, ?, ?, ?, 'reserved', ?) RETURNING id",
             (job, int(demo), kind, model, reserved_usd),
         )
         conn.execute("COMMIT")
     except BaseException:
         conn.execute("ROLLBACK")
         raise
-    return cur.lastrowid
+    return cur.fetchone()[0]
 
 
 def settle(conn: sqlite3.Connection, usage_id: int, *, status: str, cost_usd: float, **fields) -> None:

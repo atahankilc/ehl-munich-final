@@ -102,7 +102,7 @@ def _quotes(conn, cluster_run: int | None, cluster_key: str, line: str, market: 
                            JOIN signal g ON g.id = m.signal_id JOIN source_item s ON s.id = g.source_item_id
                            LEFT JOIN vehicle_model v ON v.id = s.vehicle_model_id
                            WHERE m.run_id = ? AND m.cluster_key = ? AND g.quote IS NOT NULL AND g.quote != ''
-                           ORDER BY (v.line = ?) + (s.market_code = ?) DESC, COALESCE(g.intensity, 0) DESC, g.id LIMIT ?""",
+                           ORDER BY (CASE WHEN v.line = ? THEN 1 ELSE 0 END) + (CASE WHEN s.market_code = ? THEN 1 ELSE 0 END) DESC, COALESCE(g.intensity, 0) DESC, g.id LIMIT ?""",
                         (cluster_run, cluster_key, line, market, n)).fetchall()
     return [{"quote": r["quote"], "source_id": r["sid"], "external_id": r["external_id"], "market": r["market_code"], "line": r["line"]}
             for r in rows]
@@ -247,6 +247,11 @@ def document(cp: str = Query("cp2"), line: str = Query("5 Series"), market: str 
         return build(conn, cp, line, market)
 
 
+def _in_order(rows) -> list[dict]:
+    """Band, then score, then ID — the document's own order (a set difference alone has no stable order)."""
+    return sorted(rows, key=lambda r: (BAND_ORDER.get(r["band"], 9), -(r["score"] or 0), r["id"]))
+
+
 def changes_between(conn, line: str, market: str, a: str = "cp1", b: str = "cp2") -> dict:
     da, dbb = build(conn, a, line, market), build(conn, b, line, market)
     ia, ib = {i["key"]: i for i in da["items"]}, {i["key"]: i for i in dbb["items"]}
@@ -265,14 +270,14 @@ def changes_between(conn, line: str, market: str, a: str = "cp1", b: str = "cp2"
                           "to": {"ai_band": y["ai_band"], "score": y["ai_score"], "confirmed": yc},
                           "direction": "up" if dir_ > 0 else "down" if dir_ < 0 else "same",
                           "ai_band_changed": x["ai_band"] != y["ai_band"], "pm_band_changed": xc != yc})
-    moved.sort(key=lambda m: (m["direction"] == "same", BAND_ORDER.get(m["band"], 9), -(m["score"] or 0)))
+    moved.sort(key=lambda m: (m["direction"] == "same", BAND_ORDER.get(m["band"], 9), -(m["score"] or 0), m["id"]))
     decisions = [{**d, "key": k, "id": ib.get(k, ia.get(k, {})).get("id"), "title": ib.get(k, ia.get(k, {})).get("title")}
                  for k, ds in _decisions_at(conn, b, line, market).items() for d in ds if d["checkpoint"] == b]
     props = [{**p, "id_human": ib.get(k, ia.get(k, {})).get("id"), "title": ib.get(k, ia.get(k, {})).get("title")}
              for k, ps in _proposals_at(conn, b, line, market).items() for p in ps if p["checkpoint"] == b]
     return {"from": {"checkpoint": a, "label": BY_ID[a].label}, "to": {"checkpoint": b, "label": BY_ID[b].label},
             "line": line, "market": market,
-            "new": [brief(ib[k]) for k in ib.keys() - ia.keys()], "removed": [brief(ia[k]) for k in ia.keys() - ib.keys()],
+            "new": _in_order(brief(ib[k]) for k in ib.keys() - ia.keys()), "removed": _in_order(brief(ia[k]) for k in ia.keys() - ib.keys()),
             "moved": moved, "band_up": sum(1 for m in moved if m["direction"] == "up"),
             "band_down": sum(1 for m in moved if m["direction"] == "down"),
             "decisions": decisions,

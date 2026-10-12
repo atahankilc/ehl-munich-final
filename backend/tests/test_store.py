@@ -1,9 +1,9 @@
 """Schema and feedback-ingest tests on synthetic data (no BMW data, no paid calls)."""
 
 import json
-import sqlite3
 
 import openpyxl
+import psycopg
 import pytest
 
 from bmw_req.db import connect
@@ -15,8 +15,8 @@ HEADER = ["ID", "Source", "Brand", "Sales Description", "Country", "Derivate (e-
 
 
 @pytest.fixture
-def conn():
-    c = connect(":memory:")
+def conn(pg_url):
+    c = connect()
     reference.seed(c)
     return c
 
@@ -33,9 +33,9 @@ def write_xlsx(path, rows):
 
 def test_audit_event_is_append_only(conn):
     conn.execute("INSERT INTO audit_event (actor_type, action, entity_type, entity_id) VALUES ('system', 'x', 'y', '1')")
-    with pytest.raises(sqlite3.IntegrityError):
+    with pytest.raises(psycopg.errors.RaiseException, match="append-only"):
         conn.execute("UPDATE audit_event SET action = 'z'")
-    with pytest.raises(sqlite3.IntegrityError):
+    with pytest.raises(psycopg.errors.RaiseException, match="append-only"):
         conn.execute("DELETE FROM audit_event")
 
 

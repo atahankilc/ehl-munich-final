@@ -1,13 +1,12 @@
 """Requirement definition (D-048): the code checks that keep every number honest, candidate pairs, bundles, and an API
-smoke test on a temp copy of the demo DB (no LLM)."""
+smoke test on a throwaway clone of the real data (no LLM)."""
 
 from __future__ import annotations
 
-import sqlite3
-
+import psycopg
 import pytest
 
-from bmw_req.config import ROOT
+from bmw_req.db import connect
 from bmw_req.definition import couple, define, specify
 from bmw_req.definition.domains import domain_for, shared_resources, zones_for
 
@@ -127,13 +126,10 @@ def test_bundles_skip_weak_and_removed_links():
 
 
 # ------------------------------------------------------------------------------------------------ API smoke
-REAL_DB = ROOT / "data" / "app.db"
 
 
 @pytest.fixture
-def client(tmp_path, monkeypatch):
-    if not REAL_DB.exists():
-        pytest.skip("needs the local demo DB (data/app.db)")
+def client(tmp_path, monkeypatch, real_db_url):
     from fastapi.testclient import TestClient
 
     from api import deps
@@ -142,9 +138,6 @@ def client(tmp_path, monkeypatch):
 
     data = tmp_path / "data"
     data.mkdir()
-    src, out = sqlite3.connect(f"file:{REAL_DB}?mode=ro", uri=True), sqlite3.connect(data / "app.db")
-    src.backup(out)
-    out.close(), src.close()
     (data / "models").mkdir()
     monkeypatch.setenv("DATA_DIR", str(data))
     monkeypatch.setattr(llm_client.LLM, "__init__", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("no paid calls in tests")))
@@ -181,11 +174,10 @@ def test_api_smoke(client):
     lr = client.post("/api/definition/link-review", json={"a": other, "b": q["key"], "relation": "synergy", "verdict": "added",
                                                           "via": "energy", "strength": 2, "rationale": "Both use the same energy budget"})
     assert lr.status_code == 200 and lr.json()["review"]["a"] == min(other, q["key"])
-    from bmw_req.config import get_settings
 
-    with sqlite3.connect(get_settings().db_path) as c:
+    with connect() as c:
         assert c.execute("SELECT COUNT(*) FROM audit_event WHERE actor_type = 'human' AND action IN ('choose_level', 'link_added')").fetchone()[0] >= 2
-        with pytest.raises(sqlite3.DatabaseError):
+        with pytest.raises(psycopg.Error):
             c.execute("DELETE FROM def_choice")
 
 

@@ -134,7 +134,9 @@ class LLM:
         )
         if getattr(response, "status", "completed") == "completed":
             self.conn.execute(
-                "INSERT OR REPLACE INTO llm_cache (key, job, model, output_text, llm_usage_id) VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO llm_cache (key, job, model, output_text, llm_usage_id) VALUES (?, ?, ?, ?, ?) "
+                "ON CONFLICT (key) DO UPDATE SET job = excluded.job, model = excluded.model, output_text = excluded.output_text, "
+                "llm_usage_id = excluded.llm_usage_id",
                 (key, job, model, response.output_text, usage_id),
             )
         return LLMResult(

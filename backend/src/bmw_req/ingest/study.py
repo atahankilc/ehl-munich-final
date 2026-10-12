@@ -219,9 +219,9 @@ def ingest_study(conn: sqlite3.Connection, path: Path) -> int:
             sid = conn.execute(
                 """INSERT INTO source_item (kind, ref, external_id, trust_tier, vehicle_model_id, market_code,
                                             text, meta_json, ingest_batch_id, wave)
-                   VALUES ('study', ?, ?, 'T1', ?, ?, ?, ?, ?, ?)""",
+                   VALUES ('study', ?, ?, 'T1', ?, ?, ?, ?, ?, ?) RETURNING id""",
                 (it.ref, it.item, it.model, it.market, _text(it), json.dumps(_meta(it)), batch_id, WAVE),
-            ).lastrowid
+            ).fetchone()[0]
             conn.execute(
                 """INSERT INTO study_metric (source_item_id, vehicle_model_id, market_code, item, scale, mean, top2,
                                              bottom3, net, z_within_column, rank_within_column, n_items_in_column)

@@ -43,8 +43,8 @@ class FakeResponses:
 
 
 @pytest.fixture
-def conn():
-    return connect(":memory:")
+def conn(pg_url):
+    return connect()
 
 
 def make_llm(conn, result=None):

@@ -26,17 +26,6 @@ from bmw_req.llm import LLM
 from bmw_req.structure.events import log
 
 BATCH = 6
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS candidate (
-    id INTEGER PRIMARY KEY, key TEXT NOT NULL, version INTEGER NOT NULL, run_id INTEGER NOT NULL REFERENCES checkpoint_run(id),
-    parent_id INTEGER REFERENCES candidate(id), theme_key TEXT NOT NULL REFERENCES theme(key),
-    status TEXT NOT NULL,          -- candidate | quality
-    title TEXT NOT NULL, statement TEXT, decision_type TEXT, today_status TEXT, horizon TEXT, horizon_year INTEGER,
-    kano TEXT, detail_json TEXT, model TEXT,
-    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-);
-CREATE INDEX IF NOT EXISTS candidate_run ON candidate(run_id, key);
-"""
 
 
 class Metric(BaseModel):
@@ -100,7 +89,7 @@ Customer-facing scope only: no regulation, engineering specs or pricing."""
 
 
 def ensure(conn) -> None:
-    conn.executescript(SCHEMA)
+    """No-op: the tables come from the Alembic migrations (D-059)."""
 
 
 def theme_context(conn, ctx_run: int, theme_key: str) -> dict:
@@ -242,15 +231,16 @@ def run_checkpoint(cp: str, actor: str = "system") -> dict:
         for r in rows:
             cur = conn.execute("""INSERT INTO candidate (key, version, run_id, parent_id, theme_key, status, title, statement, decision_type,
                                   today_status, horizon, horizon_year, kano, detail_json, model)
-                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id""",
                                (r["key"], r["version"], run_id, r["parent_id"], r["theme_key"], r["status"], r["title"], r["statement"],
                                 r["decision_type"], r["today_status"], r["horizon"], r["horizon_year"], r["kano"],
                                 json.dumps(r["detail"]), r["model"]))
+            cid = str(cur.fetchone()[0])
             if r["parent_id"] and r["version"] > 1:
                 conn.execute("""INSERT INTO evidence_edge (run_id, src_type, src_id, dst_type, dst_id, relation, method)
-                                VALUES (?, 'candidate', ?, 'candidate', ?, 'recalibrates', 'sol')""", (run_id, str(cur.lastrowid), str(r["parent_id"])))
+                                VALUES (?, 'candidate', ?, 'candidate', ?, 'recalibrates', 'sol')""", (run_id, cid, str(r["parent_id"])))
             conn.execute("""INSERT INTO evidence_edge (run_id, src_type, src_id, dst_type, dst_id, relation, method)
-                            VALUES (?, 'candidate', ?, 'theme', ?, 'derived_from', 'sol')""", (run_id, str(cur.lastrowid), r["theme_key"]))
+                            VALUES (?, 'candidate', ?, 'theme', ?, 'derived_from', 'sol')""", (run_id, cid, r["theme_key"]))
         weight = {}
         for r in conn.execute("SELECT entity_key, weight FROM track WHERE run_id = ? AND entity_key LIKE 'theme:%'", (ctx_run["id"],)):
             weight[r[0][6:]] = r[1] or 0

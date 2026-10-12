@@ -1,252 +1,237 @@
-"""SQLite store (D-016) with sqlite-vec loaded (D-018). Tables per D-021."""
+"""PostgreSQL store (D-059) behind the connection surface the code was written against (sqlite3, D-016).
 
-import sqlite3
-from pathlib import Path
+The schema lives in Alembic migrations (`backend/migrations/`, `make migrate`), not here. `connect()` returns a thin
+wrapper over a psycopg 3 connection that keeps the old behaviour, so ~500 query sites stay unchanged:
 
-import sqlite_vec
+- `?` placeholders become `%s` (and a literal `%` becomes `%%`), parameters are bound the loose way SQLite did:
+  ints and bools go out untyped, so `text_col = ?` with an int compares like before; bools are stored as 0/1.
+- rows work as `row["col"]`, `row[0]`, `dict(row)`; `numeric` comes back as float and `boolean` as 0/1, like SQLite.
+- `INSERT OR IGNORE` → `ON CONFLICT DO NOTHING`; the SQLite timestamp expression → `utc_now_text()` (same text).
+- `ORDER BY` sorts NULLs like SQLite (first when ascending, last when descending) unless a term says NULLS itself.
+- autocommit outside explicit transactions; `BEGIN IMMEDIATE` → `BEGIN` + one transaction-scoped advisory lock, which
+  serializes exactly the writers that SQLite serialized (budget guard, run creation, …). Readers never wait.
+- vectors (pgvector) read and write as numpy float32 arrays.
+Anything else SQLite-only (`INSERT OR REPLACE`, `lastrowid`, `PRAGMA`, `executescript`) is refused loudly.
+"""
+
+from __future__ import annotations
+
+import re
+from collections.abc import Iterable, Sequence
+
+import numpy as np
+import psycopg
+from pgvector.psycopg import register_vector
+from psycopg.adapt import Dumper, Loader
 
 from bmw_req.config import get_settings
 
-NOW = "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+IntegrityError = psycopg.IntegrityError
+WRITE_LOCK = 0x5348_4B53   # "SHKS": the one advisory lock that stands in for SQLite's single writer
 
-# Demo table set (D-021). JSON columns hold lists/objects; *_json columns are TEXT.
-SCHEMA = f"""
--- Reference layer (portfolio) ------------------------------------------------
-CREATE TABLE IF NOT EXISTS brand (
-    id TEXT PRIMARY KEY, name TEXT NOT NULL, brand_group TEXT, positioning TEXT,
-    core_values_json TEXT, guardrails_json TEXT, source_ids_json TEXT
-);
-CREATE TABLE IF NOT EXISTS platform (
-    id TEXT PRIMARY KEY, owner_brand_group TEXT, powertrains_json TEXT, introduced TEXT,
-    phase_out TEXT, successor_platform_id TEXT REFERENCES platform(id), source_ids_json TEXT
-);
-CREATE TABLE IF NOT EXISTS vehicle_model (
-    id TEXT PRIMARY KEY, brand_id TEXT NOT NULL REFERENCES brand(id), line TEXT, body TEXT,
-    segment TEXT, platform_id TEXT REFERENCES platform(id), generation TEXT, sop TEXT,
-    eop_planned TEXT, powertrains_json TEXT, is_bmw_group INTEGER NOT NULL DEFAULT 1,
-    market_variants_json TEXT
-);
-CREATE TABLE IF NOT EXISTS market (
-    code TEXT PRIMARY KEY, name TEXT NOT NULL, countries_json TEXT NOT NULL,  -- ["*"] = catch-all
-    climate TEXT, usage_patterns TEXT, cultural_expectations TEXT, infrastructure TEXT,
-    powertrain_mix TEXT, profile_source_ids_json TEXT, profile_valid_from TEXT
-);
-CREATE TABLE IF NOT EXISTS plant (
-    id TEXT PRIMARY KEY, name TEXT NOT NULL, city TEXT, country TEXT, platforms_json TEXT,
-    powertrains_json TEXT, nk_ready_from TEXT, capacity_note TEXT, source_ids_json TEXT
-);
-CREATE TABLE IF NOT EXISTS production (
-    vehicle_model_id TEXT NOT NULL REFERENCES vehicle_model(id), plant_id TEXT NOT NULL REFERENCES plant(id),
-    market_variant TEXT, markets_served_json TEXT, since TEXT, until TEXT, source_ids_json TEXT
-);
-CREATE TABLE IF NOT EXISTS sales (
-    vehicle_model_id TEXT NOT NULL REFERENCES vehicle_model(id), market_code TEXT NOT NULL REFERENCES market(code),
-    year INTEGER NOT NULL, units INTEGER, is_forecast INTEGER NOT NULL DEFAULT 0,
-    source_item_id INTEGER NOT NULL REFERENCES source_item(id)
-);
-
--- Evidence layer ---------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS ingest_batch (
-    id INTEGER PRIMARY KEY, ts TEXT NOT NULL DEFAULT {NOW},
-    kind TEXT NOT NULL,           -- feedback_wave | study | sales | option_list | competitor_event | web_refresh | reference
-    description TEXT, file TEXT
-);
-CREATE TABLE IF NOT EXISTS source_item (
-    id INTEGER PRIMARY KEY,
-    kind TEXT NOT NULL,           -- feedback | study | sales | option_list | web | reference
-    ref TEXT NOT NULL,            -- provenance: e.g. 'G60_feedback_hackathon.xlsx#Feedback_Explorer:G60-0001'
-    external_id TEXT,             -- e.g. verbatim ID G60-0001
-    trust_tier TEXT,              -- T1..T3
-    vehicle_model_id TEXT REFERENCES vehicle_model(id), market_code TEXT REFERENCES market(code),
-    country TEXT, platform_id TEXT REFERENCES platform(id),
-    url TEXT, published_at TEXT, retrieved_at TEXT NOT NULL DEFAULT {NOW},
-    text TEXT, quote TEXT, meta_json TEXT,
-    ingest_batch_id INTEGER REFERENCES ingest_batch(id),
-    UNIQUE (kind, ref)
-);
-CREATE INDEX IF NOT EXISTS ix_source_scope ON source_item(vehicle_model_id, market_code);
-
-CREATE TABLE IF NOT EXISTS verbatim_extraction (   -- one row per verbatim × extractor version (D-022)
-    source_item_id INTEGER NOT NULL REFERENCES source_item(id), extractor_version TEXT NOT NULL,
-    in_scope INTEGER NOT NULL, out_of_scope_reason TEXT, llm_usage_id INTEGER REFERENCES llm_usage(id),
-    recheck_llm_usage_id INTEGER REFERENCES llm_usage(id),   -- second-pass check of an out-of-scope verdict (D-023)
-    created_at TEXT NOT NULL DEFAULT {NOW},
-    PRIMARY KEY (source_item_id, extractor_version)
-);
-CREATE TABLE IF NOT EXISTS signal (                -- AI-extracted customer signal; input to findings (D-022)
-    id INTEGER PRIMARY KEY, source_item_id INTEGER NOT NULL REFERENCES source_item(id),
-    extractor_version TEXT NOT NULL, category TEXT NOT NULL, topic TEXT, feedback_type TEXT NOT NULL,
-    severity TEXT, need_statement TEXT, quote TEXT,
-    quote_verified INTEGER NOT NULL,   -- quote is a contiguous span of the verbatim (whitespace/case normalized)
-    llm_usage_id INTEGER REFERENCES llm_usage(id),   -- call (and so model) that produced it (D-023)
-    FOREIGN KEY (source_item_id, extractor_version) REFERENCES verbatim_extraction(source_item_id, extractor_version)
-);
-CREATE INDEX IF NOT EXISTS ix_signal_source ON signal(source_item_id);
-
-CREATE TABLE IF NOT EXISTS study_metric (           -- one row per study item × model × market (D-026)
-    id INTEGER PRIMARY KEY, source_item_id INTEGER NOT NULL REFERENCES source_item(id),
-    vehicle_model_id TEXT NOT NULL REFERENCES vehicle_model(id), market_code TEXT NOT NULL REFERENCES market(code),
-    item TEXT NOT NULL,           -- category / question text as in the file
-    scale TEXT NOT NULL,          -- mean_10 (CN/EU means) | dist_7 (US 7-point distribution)
-    mean REAL, top2 REAL, bottom3 REAL, net REAL,
-    z_within_column REAL,         -- standardized vs. the other items of the same model × market column
-    rank_within_column INTEGER, n_items_in_column INTEGER
-);
-
--- Decision layer ---------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS audit_event (
-    id INTEGER PRIMARY KEY, ts TEXT NOT NULL DEFAULT {NOW},
-    actor_type TEXT NOT NULL CHECK (actor_type IN ('ai', 'human', 'system')), actor_id TEXT,
-    action TEXT NOT NULL, entity_type TEXT NOT NULL, entity_id TEXT NOT NULL,
-    field TEXT, old_value TEXT, new_value TEXT, rationale TEXT, model TEXT, prompt_ref TEXT
-);
-CREATE TRIGGER IF NOT EXISTS audit_event_no_update BEFORE UPDATE ON audit_event
-BEGIN SELECT RAISE(ABORT, 'audit_event is append-only'); END;
-CREATE TRIGGER IF NOT EXISTS audit_event_no_delete BEFORE DELETE ON audit_event
-BEGIN SELECT RAISE(ABORT, 'audit_event is append-only'); END;
-
--- Continuity layer (D-013) -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS weights_version (
-    id INTEGER PRIMARY KEY, weights_json TEXT NOT NULL, created_by TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT {NOW}, rationale TEXT
-);
+_SQLITE_NOW = re.compile(r"strftime\('%Y-%m-%dT%H:%M:%fZ',\s*'now'\)")
+_INSERT_OR_IGNORE = re.compile(r"^\s*INSERT\s+OR\s+IGNORE\s+INTO\b", re.I)
+_REFUSED = re.compile(r"^\s*(INSERT\s+OR\s+REPLACE|PRAGMA)\b|\browid\b", re.I)
 
 
--- Checkpoints (D-041): two real-date checkpoints; checkpoint 2 builds on checkpoint 1 ------------
-CREATE TABLE IF NOT EXISTS checkpoint (
-    id TEXT PRIMARY KEY,                -- cp1 | cp2
-    label TEXT NOT NULL,                -- "JAN 26"
-    cutoff TEXT NOT NULL,               -- ISO date: an item is visible if it was knowable on or before this day
-    parent_id TEXT REFERENCES checkpoint(id),
-    position INTEGER NOT NULL
-);
+# ------------------------------------------------------------------------------------------------ type adaptation
+class _UntypedDumper(Dumper):
+    """Send ints/bools as untyped text so Postgres infers the type from context (SQLite's loose typing)."""
 
-CREATE TABLE IF NOT EXISTS checkpoint_run (  -- one stage executed at one checkpoint, on top of its parent's run
-    id INTEGER PRIMARY KEY,
-    checkpoint_id TEXT NOT NULL REFERENCES checkpoint(id),
-    stage TEXT NOT NULL,                -- acquire | classify | cluster | contextualize | elicit | ...
-    parent_run_id INTEGER REFERENCES checkpoint_run(id),
-    status TEXT NOT NULL DEFAULT 'running',   -- running | completed | failed | superseded
-    actor TEXT NOT NULL,
-    started_at TEXT NOT NULL DEFAULT {NOW}, finished_at TEXT,
-    stats_json TEXT
-);
+    oid = 0
 
-CREATE TABLE IF NOT EXISTS track (           -- one entity's state after one run (track-while-scan)
-    id INTEGER PRIMARY KEY,
-    run_id INTEGER NOT NULL REFERENCES checkpoint_run(id),
-    entity_key TEXT NOT NULL,           -- stable across checkpoints (source ref, cluster key, requirement id)
-    state TEXT NOT NULL,                -- new | held | strengthened | weakened | lost
-    weight REAL,                        -- the number the state is computed from (count, share, score)
-    prev_weight REAL,
-    payload_json TEXT,
-    UNIQUE (run_id, entity_key)
-);
-CREATE INDEX IF NOT EXISTS track_entity ON track(entity_key);
-
-CREATE TABLE IF NOT EXISTS source_layout (   -- fixed 3D position of a comment in the evidence space (D-041)
-    source_item_id INTEGER PRIMARY KEY REFERENCES source_item(id),
-    x REAL NOT NULL, y REAL NOT NULL, z REAL NOT NULL,
-    method TEXT NOT NULL
-);
-
--- LLM bookkeeping (D-014, D-010) ----------------------------------------------
-CREATE TABLE IF NOT EXISTS llm_usage (
-    id                 INTEGER PRIMARY KEY,
-    created_at         TEXT NOT NULL DEFAULT {NOW},
-    settled_at         TEXT,
-    job                TEXT NOT NULL,
-    demo               INTEGER NOT NULL DEFAULT 0,
-    kind               TEXT NOT NULL,            -- responses | embeddings
-    model              TEXT NOT NULL,
-    service_tier       TEXT,
-    status             TEXT NOT NULL,            -- reserved | completed | failed
-    reserved_usd       REAL NOT NULL,
-    cost_usd           REAL,
-    input_tokens       INTEGER,
-    cached_tokens      INTEGER,
-    cache_write_tokens INTEGER,
-    output_tokens      INTEGER,
-    reasoning_tokens   INTEGER,
-    search_calls       INTEGER,
-    response_id        TEXT,
-    error              TEXT
-);
-CREATE TABLE IF NOT EXISTS llm_cache (
-    key TEXT PRIMARY KEY,         -- sha256 of model + request
-    job TEXT, model TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT {NOW},
-    output_text TEXT, llm_usage_id INTEGER REFERENCES llm_usage(id)
-);
-
--- Vectors (D-018): rowid = source_item.id -------------------------------------
-CREATE VIRTUAL TABLE IF NOT EXISTS source_embedding USING vec0(embedding float[1536]);
--- rowid = signal.id (D-025): clustering into findings + semantic retrieval for PM challenges
-CREATE VIRTUAL TABLE IF NOT EXISTS signal_embedding USING vec0(embedding float[1536]);
-"""
+    def dump(self, obj):
+        return str(int(obj)).encode()
 
 
-def connect(path: Path | str | None = None) -> sqlite3.Connection:
-    """Open the app DB (default `data/app.db`), load sqlite-vec and ensure the schema.
-
-    Autocommit mode: callers open transactions explicitly (`BEGIN IMMEDIATE`).
-    """
-    if path is None:
-        path = get_settings().db_path
-    if str(path) != ":memory:":
-        Path(path).parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(path, isolation_level=None, check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    conn.enable_load_extension(True)
-    sqlite_vec.load(conn)
-    conn.enable_load_extension(False)
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA busy_timeout=10000")
-    conn.execute("PRAGMA foreign_keys=ON")
-    conn.executescript(SCHEMA)
-    _migrate(conn)
-    return conn
+class _FloatFromNumeric(Loader):
+    def load(self, data):
+        return float(bytes(data).decode())
 
 
-# Columns added after a table was first created: (table, column, definition). CREATE IF NOT EXISTS
-# doesn't add them to an existing DB.
-MIGRATIONS = [
-    ("signal", "llm_usage_id", "INTEGER REFERENCES llm_usage(id)"),
-    ("verbatim_extraction", "recheck_llm_usage_id", "INTEGER REFERENCES llm_usage(id)"),
-    ("signal", "support_question", "INTEGER NOT NULL DEFAULT 0"),   # Q-020, D-024
-    # Simulated ingest waves (Q-012, D-027): the wave in which an item became visible (history; waves retired, D-057).
-    ("source_item", "wave", "INTEGER NOT NULL DEFAULT 1"),
-    ("audit_event", "run_id", "INTEGER"),
-    # Curated reference layer: provenance + competitor details per model (competes_with, markets, strengths).
-    ("vehicle_model", "source_ids_json", "TEXT"),
-    ("vehicle_model", "profile_json", "TEXT"),
-    # D-041: first checkpoint at which the item is knowable (NULL = after the last checkpoint, never visible).
-    ("source_item", "checkpoint", "TEXT"),
-    # D-043 extract-v4: shared aspect space + richer signal fields; classify runs per checkpoint.
-    ("signal", "aspect", "TEXT"),
-    ("signal", "nature", "TEXT"),
-    ("signal", "want_kind", "TEXT"),
-    ("signal", "intensity", "INTEGER"),
-    ("signal", "impact", "TEXT"),
-    ("signal", "occupant", "TEXT"),
-    ("signal", "context_json", "TEXT"),
-    ("signal", "benchmark", "TEXT"),
-    ("signal", "benchmark_name", "TEXT"),
-    ("signal", "future_cue", "INTEGER"),
-    ("signal", "explicit", "INTEGER"),
-    ("signal", "classify_run_id", "INTEGER"),
-    ("signal", "source_kind", "TEXT"),           # feedback | study | research
-    ("verbatim_extraction", "classify_run_id", "INTEGER"),
-]
+class _IntFromBool(Loader):
+    def load(self, data):
+        return 1 if bytes(data) == b"t" else 0
 
 
-def _migrate(conn: sqlite3.Connection) -> None:
-    for table, column, definition in MIGRATIONS:
-        cols = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
-        if column not in cols:
-            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
-            if (table, column) == ("signal", "llm_usage_id"):
-                # Backfill: until D-023 every signal came from its verbatim's first-pass call.
-                conn.execute(
-                    """UPDATE signal SET llm_usage_id = (SELECT e.llm_usage_id FROM verbatim_extraction e
-                       WHERE e.source_item_id = signal.source_item_id AND e.extractor_version = signal.extractor_version)"""
-                )
+class Row(tuple):
+    """A result row readable by position and by column name, like sqlite3.Row."""
+
+    __slots__ = ()
+    _cols: tuple[str, ...] = ()
+
+    def __getitem__(self, k):
+        if isinstance(k, str):
+            try:
+                return tuple.__getitem__(self, self._cols.index(k))
+            except ValueError:
+                raise IndexError(f"No column named {k!r}") from None
+        return tuple.__getitem__(self, k)
+
+    def keys(self) -> list[str]:
+        return list(self._cols)
+
+
+def _row_factory(cursor):
+    cols = tuple(d.name for d in cursor.description or ())
+    cls = type("Row", (Row,), {"_cols": cols, "__slots__": ()})
+    return lambda values: cls(values)
+
+
+# ------------------------------------------------------------------------------------------------ SQL translation
+def translate(sql: str, has_params: bool) -> str:
+    """SQLite dialect bits that map 1:1 → PostgreSQL. `?` outside quotes/comments → `%s`; `%` → `%%` when binding."""
+    if _REFUSED.search(sql):
+        raise NotImplementedError(f"SQLite-only SQL reached PostgreSQL (port it): {sql.strip()[:120]}")
+    sql = _SQLITE_NOW.sub("utc_now_text()", sql)
+    if _ORDER_BY.search(sql):
+        sql = _nulls_like_sqlite(sql)
+    if _INSERT_OR_IGNORE.match(sql):
+        sql = _INSERT_OR_IGNORE.sub("INSERT INTO", sql, count=1).rstrip().rstrip(";") + " ON CONFLICT DO NOTHING"
+    if not has_params:
+        return sql
+    out, i, n = [], 0, len(sql)
+    while i < n:
+        c = sql[i]
+        if c in ("'", '"'):                      # quoted literal / identifier ('' and "" escape themselves)
+            j = i + 1
+            while j < n and not (sql[j] == c and (j + 1 >= n or sql[j + 1] != c)):
+                j += 2 if sql[j] == c else 1
+            out.append(sql[i:j + 1].replace("%", "%%"))
+            i = j + 1
+        elif c == "-" and sql.startswith("--", i):
+            j = sql.find("\n", i)
+            j = n if j < 0 else j
+            out.append(sql[i:j].replace("%", "%%"))
+            i = j
+        elif c == "?":
+            out.append("%s")
+            i += 1
+        elif c == "%":
+            out.append("%%")
+            i += 1
+        else:
+            out.append(c)
+            i += 1
+    return "".join(out)
+
+
+_ORDER_BY = re.compile(r"\bORDER\s+BY\b", re.I)
+_ORDER_END = re.compile(r"\b(LIMIT|OFFSET|FETCH|FOR|UNION|EXCEPT|INTERSECT)\b", re.I)
+
+
+def _nulls_like_sqlite(sql: str) -> str:
+    """Add NULLS FIRST (ASC) / NULLS LAST (DESC) to every ORDER BY term that doesn't say: SQLite treats NULL as the
+    smallest value, PostgreSQL as the largest. Paren-aware; string literals are left alone by construction (callers
+    pass SQL text where ORDER BY terms are plain expressions)."""
+    out, pos = [], 0
+    for m in _ORDER_BY.finditer(sql):
+        if m.start() < pos:
+            continue
+        out.append(sql[pos:m.end()])
+        i, depth, start, terms = m.end(), 0, m.end(), []
+        while i < len(sql):
+            c = sql[i]
+            if c == "(":
+                depth += 1
+            elif c == ")":
+                if depth == 0:
+                    break
+                depth -= 1
+            elif c == "'":
+                i = sql.index("'", i + 1)
+            elif depth == 0 and (c in ",;" or _ORDER_END.match(sql, i) and not sql[i - 1].isalnum() and sql[i - 1] != "_"):
+                if c == ",":
+                    terms.append(sql[start:i]); start = i + 1
+                else:
+                    break
+            i += 1
+        terms.append(sql[start:i])
+        fixed = []
+        for t in terms:
+            core = t.rstrip()
+            tail = t[len(core):]
+            if re.search(r"\bNULLS\s+(FIRST|LAST)\s*$", core, re.I) or not core.strip():
+                fixed.append(t)
+            elif re.search(r"\bDESC\s*$", core, re.I):
+                fixed.append(core + " NULLS LAST" + tail)
+            else:
+                fixed.append(core + " NULLS FIRST" + tail)
+        out.append(",".join(fixed))
+        pos = i
+    out.append(sql[pos:])
+    return "".join(out)
+
+
+def _params(p):
+    if p is None:
+        return None
+    if isinstance(p, dict):
+        return p
+    return tuple(p)
+
+
+# ------------------------------------------------------------------------------------------------ connection
+class Connection:
+    """The sqlite3-style surface the code uses, over one psycopg connection (autocommit)."""
+
+    def __init__(self, raw: psycopg.Connection):
+        self.raw = raw
+
+    def execute(self, sql: str, params: Sequence | dict | None = None):
+        p = _params(params)
+        head = sql.lstrip()[:16].upper()
+        if head.startswith("BEGIN"):
+            cur = self.raw.execute("BEGIN")
+            if head.startswith("BEGIN IMMEDIATE"):
+                self.raw.execute("SELECT pg_advisory_xact_lock(%s)", (WRITE_LOCK,))
+            return cur
+        return self.raw.execute(translate(sql, bool(p)), p or None)
+
+    def executemany(self, sql: str, seq: Iterable[Sequence]):
+        rows = [_params(r) for r in seq]
+        cur = self.raw.cursor()
+        if rows:
+            cur.executemany(translate(sql, True), rows)
+        return cur
+
+    def executescript(self, sql: str):
+        raise NotImplementedError("The schema lives in Alembic migrations (D-059); executescript is SQLite-only.")
+
+    def cursor(self):
+        return self.raw.cursor()
+
+    def close(self) -> None:
+        self.raw.close()
+
+    @property
+    def in_transaction(self) -> bool:
+        return self.raw.info.transaction_status != psycopg.pq.TransactionStatus.IDLE
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.close()
+
+
+def connect(url: str | None = None) -> Connection:
+    """Open the app database (DATABASE_URL). Autocommit; explicit `BEGIN` opens a transaction."""
+    url = url or get_settings().database_url
+    if not url:
+        raise RuntimeError("DATABASE_URL is not set (see .env.example); start the database with `make db`")
+    raw = psycopg.connect(url, autocommit=True, row_factory=_row_factory)
+    register_vector(raw)
+    raw.adapters.register_dumper(int, _UntypedDumper)
+    raw.adapters.register_dumper(bool, _UntypedDumper)
+    raw.adapters.register_dumper(np.integer, _UntypedDumper)
+    raw.adapters.register_loader("numeric", _FloatFromNumeric)
+    raw.adapters.register_loader("bool", _IntFromBool)
+    return Connection(raw)
+
+
+def vec(v) -> np.ndarray:
+    """An embedding as the float32 array pgvector stores (lists, arrays, or legacy float32 bytes)."""
+    if isinstance(v, (bytes, bytearray, memoryview)):
+        return np.frombuffer(bytes(v), dtype=np.float32)
+    return np.asarray(v, dtype=np.float32)

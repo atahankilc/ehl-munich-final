@@ -15,8 +15,8 @@ def existing_refs(conn: sqlite3.Connection, kind: str, file_name: str) -> set[st
 def open_batch(conn: sqlite3.Connection, kind: str, description: str, file_name: str) -> int:
     """Insert an `ingest_batch` row; call inside the caller's transaction."""
     return conn.execute(
-        "INSERT INTO ingest_batch (kind, description, file) VALUES (?, ?, ?)", (kind, description, file_name)
-    ).lastrowid
+        "INSERT INTO ingest_batch (kind, description, file) VALUES (?, ?, ?) RETURNING id", (kind, description, file_name)
+    ).fetchone()[0]
 
 
 def audit_batch(conn: sqlite3.Connection, actor_id: str, batch_id: int, payload: dict) -> None:

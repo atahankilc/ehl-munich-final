@@ -10,8 +10,8 @@ from bmw_req.ingest import reference
 
 
 @pytest.fixture
-def conn():
-    c = connect(":memory:")
+def conn(pg_url):
+    c = connect()
     reference.seed(c)
     C.ensure(c)
     return c

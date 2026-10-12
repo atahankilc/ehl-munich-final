@@ -26,7 +26,7 @@ from pydantic import BaseModel, Field
 from sklearn.cluster import AgglomerativeClustering
 
 from bmw_req import checkpoints as C
-from bmw_req.db import connect
+from bmw_req.db import connect, vec as as_vector
 from bmw_req.llm import LLM
 from bmw_req.structure.cluster import MIN_COMMENTS, base_comments, z_state
 from bmw_req.structure.events import log
@@ -36,48 +36,21 @@ DUP_SIM, THEME_DIST, THEME_JOIN = 0.86, 0.35, 0.65   # complete linkage: ~70 the
 K = {"research": 14, "study": 6, "option": 6}   # "research" nodes include the web and reference findings (D-047)
 RESEARCH_KINDS = ("research", "web", "reference")
 
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS insight (
-    run_id INTEGER NOT NULL REFERENCES checkpoint_run(id), cluster_key TEXT NOT NULL REFERENCES cluster(key),
-    title TEXT NOT NULL, statement TEXT NOT NULL, need_type TEXT NOT NULL, quality_issue INTEGER NOT NULL,
-    product_decision INTEGER NOT NULL, category TEXT, aspect TEXT, payload_json TEXT, embedding BLOB,
-    PRIMARY KEY (run_id, cluster_key)
-);
-CREATE TABLE IF NOT EXISTS theme (
-    key TEXT PRIMARY KEY, title TEXT NOT NULL, statement TEXT NOT NULL, category TEXT NOT NULL,
-    born_run_id INTEGER NOT NULL, born_checkpoint TEXT NOT NULL, embedding BLOB
-);
-CREATE TABLE IF NOT EXISTS theme_member (
-    run_id INTEGER NOT NULL, theme_key TEXT NOT NULL REFERENCES theme(key), cluster_key TEXT NOT NULL,
-    PRIMARY KEY (run_id, cluster_key)
-);
-CREATE TABLE IF NOT EXISTS node_embedding (
-    node_type TEXT NOT NULL, node_id INTEGER NOT NULL, text TEXT NOT NULL, embedding BLOB NOT NULL,
-    PRIMARY KEY (node_type, node_id)
-);
-CREATE TABLE IF NOT EXISTS evidence_edge (
-    id INTEGER PRIMARY KEY, run_id INTEGER NOT NULL REFERENCES checkpoint_run(id),
-    src_type TEXT NOT NULL, src_id TEXT NOT NULL, dst_type TEXT NOT NULL, dst_id TEXT NOT NULL,
-    relation TEXT NOT NULL,     -- belongs_to | duplicate_of | sub_need_of | supports | contradicts | context |
-                                -- competes_with | trend_for | available_as_option | derived_from | recalibrates
-    weight REAL, method TEXT NOT NULL, rationale TEXT, model TEXT,
-    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-);
-CREATE INDEX IF NOT EXISTS edge_run ON evidence_edge(run_id, dst_type, dst_id);
-"""
 
 
 def ensure(conn) -> None:
-    conn.executescript(SCHEMA)
+    """No-op: the tables come from the Alembic migrations (D-059)."""
 
 
-def vec(b: bytes) -> np.ndarray:
-    v = np.frombuffer(b, dtype=np.float32)
+def vec(v) -> np.ndarray:
+    """A stored embedding (pgvector) as a unit vector."""
+    v = as_vector(v)
     return v / (np.linalg.norm(v) or 1.0)
 
 
-def blob(v) -> bytes:
-    return np.asarray(v, dtype=np.float32).tobytes()
+def stored(v) -> np.ndarray:
+    """An embedding as pgvector stores it (float32)."""
+    return as_vector(v)
 
 
 # ------------------------------------------------------------------------------------------------ 1. standardize
@@ -203,7 +176,7 @@ def embed_nodes(conn, llm: LLM) -> int:
         chunk = todo[i:i + 512]
         vecs = llm.embed([t[2][:2000] for t in chunk], job="embed:nodes")
         conn.execute("BEGIN IMMEDIATE")
-        conn.executemany("INSERT INTO node_embedding VALUES (?, ?, ?, ?)", [(t[0], t[1], t[2], blob(v)) for t, v in zip(chunk, vecs)])
+        conn.executemany("INSERT INTO node_embedding VALUES (?, ?, ?, ?)", [(t[0], t[1], t[2], stored(v)) for t, v in zip(chunk, vecs)])
         conn.execute("COMMIT")
     return len(todo)
 
@@ -267,16 +240,18 @@ def run_checkpoint(cp: str, actor: str = "system") -> dict:
     ins = conn.execute("SELECT cluster_key, statement, category, embedding FROM insight WHERE run_id = ?", (run_id,)).fetchall()
     old_vec = {}
     if parent:
-        old_vec = {(r[0], r[1]): r[2] for r in conn.execute("SELECT cluster_key, statement, embedding FROM insight WHERE run_id = ?", (parent,)) if r[2]}
+        old_vec = {(r[0], r[1]): r[2] for r in conn.execute("SELECT cluster_key, statement, embedding FROM insight WHERE run_id = ?", (parent,)) if r[2] is not None}
     need = [r for r in ins if (r["cluster_key"], r["statement"]) not in old_vec]
     vecs = {}
     for i in range(0, len(need), 512):
         chunk = need[i:i + 512]
         for r, v in zip(chunk, llm.embed([f"{r['category']} | {r['statement']}" for r in chunk], job="embed:insights")):
-            vecs[r["cluster_key"]] = blob(v)
+            vecs[r["cluster_key"]] = stored(v)
     conn.execute("BEGIN IMMEDIATE")
     for r in ins:
-        b = vecs.get(r["cluster_key"]) or old_vec.get((r["cluster_key"], r["statement"]))
+        b = vecs.get(r["cluster_key"])
+        if b is None:
+            b = old_vec.get((r["cluster_key"], r["statement"]))
         conn.execute("UPDATE insight SET embedding = ? WHERE run_id = ? AND cluster_key = ?", (b, run_id, r["cluster_key"]))
     conn.execute("COMMIT")
     ins = conn.execute("SELECT * FROM insight WHERE run_id = ?", (run_id,)).fetchall()
@@ -354,7 +329,7 @@ def run_checkpoint(cp: str, actor: str = "system") -> dict:
     if names:
         tl = list(names.values())
         for t, v in zip(tl, llm.embed([f"{t.title} | {t.statement}" for t in tl], job="embed:themes")):
-            theme_vecs[t.theme_key] = blob(v)
+            theme_vecs[t.theme_key] = stored(v)
     conn.execute("BEGIN IMMEDIATE")
     for g in groups_payload:
         t = names.get(g["theme_key"])
@@ -496,7 +471,8 @@ def relink(cp: str, actor: str = "system") -> dict:
     embedded = embed_nodes(conn, llm)
     conn.execute("BEGIN IMMEDIATE")
     run_id = C.start_run(conn, cp, "contextualize", actor)
-    cols = [r[1] for r in conn.execute("PRAGMA table_info(insight)") if r[1] != "run_id"]
+    cols = [r[0] for r in conn.execute("SELECT column_name FROM information_schema.columns WHERE table_schema = current_schema() "
+                                       "AND table_name = 'insight' ORDER BY ordinal_position") if r[0] != "run_id"]
     conn.execute(f"INSERT INTO insight (run_id, {', '.join(cols)}) SELECT ?, {', '.join(cols)} FROM insight WHERE run_id = ?",
                  (run_id, src["id"]))
     conn.execute("INSERT INTO theme_member (run_id, theme_key, cluster_key) SELECT ?, theme_key, cluster_key FROM theme_member "

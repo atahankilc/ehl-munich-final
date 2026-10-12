@@ -3,19 +3,16 @@ the demo DB (no LLM)."""
 
 from __future__ import annotations
 
-import sqlite3
 
 import pytest
 
-from bmw_req.config import ROOT
+from bmw_req.db import connect
 
-REAL_DB = ROOT / "data" / "app.db"
+
 
 
 @pytest.fixture
-def client(tmp_path, monkeypatch):
-    if not REAL_DB.exists():
-        pytest.skip("needs the local demo DB (data/app.db)")
+def client(tmp_path, monkeypatch, real_db_url):
     from fastapi.testclient import TestClient
 
     from api import deps
@@ -24,9 +21,6 @@ def client(tmp_path, monkeypatch):
 
     data = tmp_path / "data"
     data.mkdir()
-    src, out = sqlite3.connect(f"file:{REAL_DB}?mode=ro", uri=True), sqlite3.connect(data / "app.db")
-    src.backup(out)
-    out.close(), src.close()
     (data / "models").mkdir()
     monkeypatch.setenv("DATA_DIR", str(data))
     monkeypatch.setattr(llm_client.LLM, "__init__", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("no paid calls in tests")))
@@ -84,7 +78,6 @@ def test_cp1_shows_nothing_from_cp2(client):
 
 def test_export_is_logged(client):
     _need(client, "cp2")
-    from bmw_req.db import connect
 
     conn = connect()
     before = conn.execute("SELECT COUNT(*) FROM audit_event WHERE action = 'export'").fetchone()[0]

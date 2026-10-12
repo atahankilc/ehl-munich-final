@@ -292,7 +292,7 @@ def choose(body: ChoiceBody, header_actor: str = Depends(get_actor)) -> dict:
                               (body.key, body.line, body.market)).fetchone()
         conn.execute("BEGIN IMMEDIATE")
         try:
-            cur = conn.execute("INSERT INTO def_choice (req_key, line, market, level, rationale, actor, checkpoint_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            cur = conn.execute("INSERT INTO def_choice (req_key, line, market, level, rationale, actor, checkpoint_id) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id",
                                (body.key, body.line, body.market, body.level, why, actor, body.cp))
             audit(conn, actor_type="human", actor_id=actor, action="choose_level", entity_type="def_requirement", entity_id=body.key,
                   field=f"ladder:{body.line}:{body.market}", old=dict(before) if before else None,
@@ -301,7 +301,7 @@ def choose(body: ChoiceBody, header_actor: str = Depends(get_actor)) -> dict:
         except BaseException:
             conn.execute("ROLLBACK")
             raise
-        out = {"ok": True, "id": cur.lastrowid, "choice": {"key": body.key, "line": body.line, "market": body.market, "level": body.level,
+        out = {"ok": True, "id": cur.fetchone()[0], "choice": {"key": body.key, "line": body.line, "market": body.market, "level": body.level,
                                                            "rationale": why, "actor": actor}, "before": dict(before) if before else None}
     out["rescore"] = _rescore(body.cp, "pm_rung")   # the rung changes effort / confidence: re-score from its checkpoint on
     return out
@@ -324,7 +324,7 @@ def link_review(body: LinkReviewBody, header_actor: str = Depends(get_actor)) ->
         conn.execute("BEGIN IMMEDIATE")
         try:
             cur = conn.execute("""INSERT INTO def_link_review (a_key, b_key, relation, verdict, via, strength, rationale, actor, checkpoint_id)
-                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""", (a, b, body.relation, body.verdict, body.via, body.strength, why, actor, body.cp))
+                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id""", (a, b, body.relation, body.verdict, body.via, body.strength, why, actor, body.cp))
             audit(conn, actor_type="human", actor_id=actor, action=f"link_{body.verdict}", entity_type="def_link",
                   entity_id=f"{a}|{b}|{body.relation}", old=dict(before) if before else None,
                   new={"verdict": body.verdict, "via": body.via, "strength": body.strength, "checkpoint": body.cp}, rationale=why)
@@ -332,7 +332,7 @@ def link_review(body: LinkReviewBody, header_actor: str = Depends(get_actor)) ->
         except BaseException:
             conn.execute("ROLLBACK")
             raise
-        out = {"ok": True, "id": cur.lastrowid, "review": {"a": a, "b": b, "relation": body.relation, "verdict": body.verdict,
+        out = {"ok": True, "id": cur.fetchone()[0], "review": {"a": a, "b": b, "relation": body.relation, "verdict": body.verdict,
                                                            "via": body.via, "strength": body.strength, "rationale": why, "actor": actor},
                "before": dict(before) if before else None}
     out["rescore"] = _rescore(None, "link_review")   # link reviews apply at every checkpoint
