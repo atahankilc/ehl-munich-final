@@ -105,7 +105,7 @@ export function PrioritizeHud() {
   const blocked = targets.filter(isBlocked).length;
   const disagree = disagreements(data, line);
   const confirmed = targets.filter((t) => pmBand(t)).length;
-  // the matrix hangs right under this corner, however tall it is (sample note, wrapped controls)
+  // the matrix hangs right under this corner, however tall it is (not-run note, wrapped controls)
   const hudRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = hudRef.current;
@@ -152,7 +152,7 @@ export function PrioritizeHud() {
           </div>
           <WeightsButton pd={pd} />
         </div>
-        {pd.sample && <p className="dsample" role="status"><b>Sample data</b> {pd.why}. Live priorities replace it as soon as the stage has run.</p>}
+        {pd.notRun && !pd.pending && <p className="dnotrun" role="status"><b>Not run yet</b> {pd.why}. Nothing is shown until the AI has scored it; the page fills in on its own.</p>}
       </div>
 
       {view === "matrix" && <Matrix pd={pd} line={line} markets={markets} market={market} onMarket={setMarket} />}
@@ -339,7 +339,7 @@ function Inspector({ pd, t, markets, onMarket }: { pd: PrioData; t: Target; mark
         <p className="sheet-what">One requirement in one market. The AI scores it and proposes a band; the PM decides.</p>
       </header>
       <h2 className="sheet-title">{t.title}</h2>
-      {rf && <RiseFallBanner key={String(rf.proposal.id)} pd={pd} rf={rf} />}
+      {rf && <RiseFallBanner key={String(rf.proposal.id)} rf={rf} />}
       <Deciding t={t} />
 
       <div className="pfigure">
@@ -455,14 +455,14 @@ function Inspector({ pd, t, markets, onMarket }: { pd: PrioData; t: Target; mark
         </div>
       )}
 
-      {proposal && !rf && <ProposalBlock pd={pd} p={proposal} />}
-      <DecisionBlock pd={pd} t={t} bundled={!!bundle && bundle.keys.length > 1} />
+      {proposal && !rf && <ProposalBlock p={proposal} />}
+      <DecisionBlock t={t} bundled={!!bundle && bundle.keys.length > 1} />
     </aside>
   );
 }
 
-function ProposalBlock({ pd, p }: { pd: PrioData; p: Proposal }) {
-  const verdict = useProposalVerdict(pd);
+function ProposalBlock({ p }: { p: Proposal }) {
+  const verdict = useProposalVerdict();
   const [open, setOpen] = useState<"accept" | "reject" | null>(null);
   const [why, setWhy] = useState("");
   const deltas = Object.entries(p.factor_delta ?? {}).filter(([, v]) => v);
@@ -492,8 +492,8 @@ function ProposalBlock({ pd, p }: { pd: PrioData; p: Proposal }) {
   );
 }
 
-function DecisionBlock({ pd, t, bundled = false }: { pd: PrioData; t: Target; bundled?: boolean }) {
-  const decide = useDecision(pd);
+function DecisionBlock({ t, bundled = false }: { t: Target; bundled?: boolean }) {
+  const decide = useDecision();
   const pm = pmBand(t);
   const [pick, setPick] = useState<Band | null>(null);
   const [why, setWhy] = useState("");
@@ -530,7 +530,6 @@ function DecisionBlock({ pd, t, bundled = false }: { pd: PrioData; t: Target; bu
         </form>
       )}
       {decide.isError && <p className="derror">Not saved: {(decide.error as Error).message}</p>}
-      {pd.sample && <p className="label">Sample data: decisions are kept in this view only.</p>}
     </div>
   );
 }

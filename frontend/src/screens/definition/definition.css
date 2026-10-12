@@ -10,11 +10,11 @@
 .dreadout div { display: grid; gap: 6px; }
 .dreadout dd { margin: 0; display: inline-flex; align-items: baseline; gap: 8px; }
 .dreadout .num { font-size: 28px; color: var(--ink); }
-.dsample {
+.dnotrun {
   max-width: 320px; font-size: var(--t-label); line-height: 1.45; color: var(--ink-3);
   padding: 6px 10px; border: 1px dashed var(--hair-2); border-radius: 6px; background: rgba(0, 0, 0, 0.6);
 }
-.dsample b { color: var(--ink); font-weight: 600; letter-spacing: 0.04em; margin-right: 4px; }
+.dnotrun b { color: var(--ink); font-weight: 600; letter-spacing: 0.04em; margin-right: 4px; }
 .dcontrols { display: flex; flex-wrap: wrap; gap: 8px; }
 .dseg { display: inline-flex; align-items: center; height: 28px; padding: 0 2px; border-radius: 99px; border: 1px solid var(--hair); background: rgba(0, 0, 0, 0.6); }
 .dseg-name { padding: 0 6px 0 9px; }

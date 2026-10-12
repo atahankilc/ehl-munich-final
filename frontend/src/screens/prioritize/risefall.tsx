@@ -4,12 +4,12 @@
 import { useState } from "react";
 import { useCheckpoint } from "@/state/checkpoint";
 import { BandMark } from "./marks";
-import { CP_LABEL, factorLabel, useProposalVerdict, type PrioData } from "./data";
+import { CP_LABEL, factorLabel, useProposalVerdict } from "./data";
 import { rfSentence, type RiseFall } from "./pm";
 
-export function RiseFallBanner({ pd, rf }: { pd: PrioData; rf: RiseFall }) {
+export function RiseFallBanner({ rf }: { rf: RiseFall }) {
   const { cp } = useCheckpoint();
-  const verdict = useProposalVerdict(pd);
+  const verdict = useProposalVerdict();
   const [open, setOpen] = useState<"accept" | "reject" | null>(null);
   const [why, setWhy] = useState("");
   const p = rf.proposal;
@@ -43,7 +43,6 @@ export function RiseFallBanner({ pd, rf }: { pd: PrioData; rf: RiseFall }) {
         </div>
       )}
       {verdict.isError && <p className="derror">Not saved: {(verdict.error as Error).message}</p>}
-      {pd.sample && <p className="label">Sample data: the verdict is kept in this view only.</p>}
     </section>
   );
 }

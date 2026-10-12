@@ -18,9 +18,7 @@ import { getP, selectTarget, setP, useP } from "../prioritize/store";
 import { BandMark, GateMark } from "../prioritize/marks";
 import { TYPE_COLOR } from "../scan/Scene";
 import { DocumentGuide } from "./guide";
-import { sampleForced } from "../prioritize/data";
 import { dirOf, type Dir } from "../prioritize/pm";
-import { withSampleDecisions } from "./sample";
 import "@/components/sheet.css";
 import "./document.css";
 
@@ -100,8 +98,7 @@ export function DocumentPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const sampleOn = sampleForced();
-  const d = useMemo(() => (q.data && sampleOn && q.data.ready ? withSampleDecisions(q.data, cp) : q.data), [q.data, sampleOn, cp]);
+  const d = q.data;
   const items = useMemo(() => (d?.items ?? []).filter((i) => (!domain || i.domain === domain) &&
     (!text || `${i.id} ${i.title} ${i.statement ?? ""}`.toLowerCase().includes(text.toLowerCase()))), [d, domain, text]);
   const domains = useMemo(() => {
@@ -182,8 +179,6 @@ export function DocumentPage() {
             </div>
           </div>
         </header>
-
-        {sampleOn && <p className="dsample" role="status"><b>Sample overlay</b> page 4's sample PM decisions over the live rows (?sample=1, dev / demo only).</p>}
         {showChanges && cp === "cp2" && <Changes data={changes.data} loading={changes.isPending} items={d?.items ?? []} onOpen={(k) => setOpen(k)} />}
 
         {q.isError && <p className="doc-empty">{(q.error as Error).message}</p>}

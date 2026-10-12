@@ -66,8 +66,8 @@ export function DefinitionHud() {
       <div className="hud-tl dhud">
         {/* the stage funnel replaces the readout: the same counts, as the steps that produced them */}
         <DefinitionFunnel def={def} />
-        {def.sample && (
-          <p className="dsample" role="status"><b>Sample data</b> {def.why}. Live definitions replace it as soon as the pipeline has run.</p>
+        {def.notRun && !def.pending && (
+          <p className="dnotrun" role="status"><b>Not run yet</b> {def.why}. Nothing is shown until the AI has produced it; the page fills in on its own.</p>
         )}
         <div className="dcontrols">
           <div className="dseg" role="radiogroup" aria-label="Car line">
@@ -212,7 +212,7 @@ function PinHover({ def }: { def: DefData }) {
 /* --------------------------------------------------------------------------------------------- inspector */
 function Inspector({ def, r, line }: { def: DefData; r: Requirement; line: string }) {
   const detail = useRequirementDetail(r.key, def);
-  const choice = useChoice(def);
+  const choice = useChoice();
   const [allRows, setAllRows] = useState(false);
   const [hot, setHot] = useState<string | null>(null);
   const evRef = useRef<HTMLDivElement>(null);
@@ -255,7 +255,7 @@ function Inspector({ def, r, line }: { def: DefData; r: Requirement; line: strin
         {shown.length === 0 && <p className="use-none">No ladder for {line} yet.</p>}
         {shown.map((row) => (
           <Ladder key={`${row.line}|${row.market}`} reqKey={r.key} row={row} metric={r.metric} evidenceText={evText} onSource={onSource}
-                  busy={choice.isPending} sample={def.sample} facts={detail?.facts}
+                  busy={choice.isPending} facts={detail?.facts}
                   onChoose={(level, rationale) => choice.mutate({ key: r.key, line: row.line, market: row.market, level, rationale })} />
         ))}
         {others.length > 0 && (
@@ -326,7 +326,7 @@ function FromArea({ r }: { r: Requirement }) {
 
 /* --------------------------------------------------------------------------------------------- links */
 function Links({ def, r }: { def: DefData; r: Requirement }) {
-  const review = useLinkReview(def);
+  const review = useLinkReview();
   const bundle = useView((s) => s.bundle);
   useView((s) => s.pendingLinks);
   const [open, setOpen] = useState<{ id: string; verdict: "confirmed" | "removed" } | null>(null);
@@ -392,7 +392,6 @@ function Links({ def, r }: { def: DefData; r: Requirement }) {
         })}
       </ul>
       {review.isError && <p className="derror">Not saved: {(review.error as Error).message}</p>}
-      {def.sample && <p className="label">Sample data: reviews are kept in this view only.</p>}
     </div>
   );
 }

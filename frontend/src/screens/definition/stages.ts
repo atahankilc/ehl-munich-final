@@ -20,8 +20,8 @@ export function defDoneStages(def: DefData): DefStage[] {
   const has = d.requirements.length > 0;
   return DEF_STAGES.filter((s) => {
     if (!has) return false;
-    if (s === "specified") return def.sample || !!d.runs.specify || d.requirements.some((r) => r.ladder.length > 0);
-    if (s === "linked") return def.sample || !!d.runs.couple || d.links.length > 0;
+    if (s === "specified") return !!d.runs.specify || d.requirements.some((r) => r.ladder.length > 0);
+    if (s === "linked") return !!d.runs.couple || d.links.length > 0;
     return true;
   });
 }

@@ -65,6 +65,7 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-057 | Wave pipeline retired: old API routes, `pipeline/`, `service.py`, `research/findings.py`, their tests and scripts removed; shared helpers moved; LangGraph dropped (supersedes D-015); old-only DB tables kept for now | accepted |
 | D-058 | Old wave-pipeline tables dropped (11 tables) after a verified backup; schema no longer creates them | accepted |
 | D-059 | Move to PostgreSQL 17 + pgvector (one DB for relational, vectors, full-text, job queue); no graph DB; plan in `documents/postgres-migration.md` | accepted (P0, P1 done: app on Postgres) |
+| D-060 | No sample data in the app: pages show an honest "Not run yet" state until the AI has produced their content; fixtures and `?sample=1` removed | accepted |
 
 Keep this index in sync when adding a decision.
 
@@ -660,3 +661,11 @@ Template:
 - Decision (proposed): PostgreSQL 17 + pgvector in Docker (127.0.0.1 only), psycopg 3, Alembic; uploaded files outside the DB; no graph DB (evidence graph = edge tables + recursive SQL; Apache AGE inside Postgres if a real knowledge graph ever needs it). Lift and shift first (same query behaviour, TEXT timestamps/JSON), then Postgres features. Four phases P0–P3 with exit criteria — `foundation/documents/postgres-migration.md`.
 - Alternatives considered: stay on SQLite (fine for one local user, blocks background agents); Postgres without vectors first (keeps numpy brute-force search); add a graph DB (Neo4j) — rejected: small, fixed-depth graph queried relationally, two sources of truth would split traceability and the audit trail.
 - Consequences: Docker required for app and tests; budget guard needs an explicit lock; `demo_state.py` / `drop_wave_tables.py` replaced by `pg_dump`-based backups.
+
+## D-060 — No sample data in the app
+- Date: 2026-10-12
+- Decided by: Atahan ("i dont want to see any sample data on app if ai work is not done")
+- Status: accepted
+- Context: pages 3 (Definition) and 4 (Prioritize) fell back to hand-written fixtures (made-up requirements, ladders, scores, PM decisions, sources) whenever their stages hadn't run at the checkpoint, and `?sample=1` forced them / overlaid sample decisions on page 5. Labelled "Sample data", but it still looked like results.
+- Decision: removed `definition/fixture.ts`, `prioritize/fixture.ts`, `document/sample.ts` and `?sample=1`. The data hooks expose `notRun` + a plain reason instead of `sample`; before a stage has run the pages render the API's real but empty payload (zones, domains, weights, car models stay real) with a "Not run yet" note. The prio-v1 factor list and default bands moved into `prioritize/data.ts` (they mirror the backend, not sample content). Writes no longer have a local-only sample branch.
+- Consequences: rule for every new screen — no fixture or placeholder content standing in for AI output (DESIGN.md → "No sample data"). Screenshots of features that need data must use real runs.

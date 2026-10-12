@@ -59,7 +59,7 @@ export function Deciding({ t }: { t: Target }) {
 
 export function BundleMembers({ t, bundle, targets }: { t: Target; bundle: PrioBundle; targets: Target[] }) {
   const def = useDefinition();
-  const reqs = new Map(def.sample ? [] : def.data.requirements.map((r) => [r.key, r]));
+  const reqs = new Map(def.notRun ? [] : def.data.requirements.map((r) => [r.key, r]));
   return (
     <ul className="pmembers pmembers-rows">
       {bundle.keys.map((k) => {

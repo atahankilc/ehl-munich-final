@@ -129,8 +129,8 @@ uv run python -m bmw_req.prioritize.run --checkpoint cp1 --report            ban
   with the same old → new band until the score has moved ≥ 5 points.
 - **Rise / Fall (PM request 2026-10-11, frontend only):** a challenged decision is split by direction (proposed band above the
   PM's = up, green; below = down, big red) on the skyline, HUD, inspector banner, matrix, list and page 5; see DESIGN.md →
-  Rise/Fall rule. It supersedes the white "!" marks below except in the weights preview. Dev / demo: `?sample=1` forces the
-  page-4 fixture (which now carries `against` and two down / two up challenged decisions) and overlays it on page 5.
+  Rise/Fall rule. It supersedes the white "!" marks below except in the weights preview. There is no sample mode: before the stage
+  has run, page 4 says so and shows nothing (D-060).
 - **Page 4 PM marks:** confirmed columns get a sweep-blue edge and a blue "M ✓" chip (base disc stays); a challenged
   decision (open proposal with `against: "pm"`) gets a white ring at the AI score and "! AI: Should ▼ · <cause>", pulsing
   once per checkpoint arrival; matrix cells ✓ / white "!" + proposed band; list rows "PM ✓" in blue, challenged first with

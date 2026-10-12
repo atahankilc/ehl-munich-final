@@ -104,7 +104,7 @@ export function WeightsPanel({ pd }: { pd: PrioData }) {
   const [err, setErr] = useState<string | null>(null);
   const seq = useRef(0);
   useEffect(() => {
-    if (!dirty || pd.sample) { previewStore.set(null); setErr(null); return; }
+    if (!dirty || pd.notRun) { previewStore.set(null); setErr(null); return; }
     const me = ++seq.current;
     setBusy(true);
     const h = setTimeout(() => {
@@ -114,13 +114,13 @@ export function WeightsPanel({ pd }: { pd: PrioData }) {
         .finally(() => { if (me === seq.current) setBusy(false); });
     }, 250);
     return () => clearTimeout(h);
-  }, [draft, dirty, cp, pd.sample]);
+  }, [draft, dirty, cp, pd.notRun]);
   useEffect(() => () => previewStore.set(null), []);
 
   const hist = useQuery({
     queryKey: ["prioritize-weights-history"],
     queryFn: () => api.get<{ history: HistoryRow[] }>("/api/prioritize/weights/history?limit=6"),
-    enabled: !pd.sample, staleTime: 10_000,
+    enabled: !pd.notRun, staleTime: 10_000,
   });
 
   const [saving, setSaving] = useState<false | "form" | "posting">(false);
@@ -153,7 +153,7 @@ export function WeightsPanel({ pd }: { pd: PrioData }) {
     <aside className="pweights" id="weights-panel" aria-label="Weights">
       <button className="audit-close" onClick={() => setWeightsOpen(false)} aria-label="Close weights"><X size={16} /></button>
       <p className="dlist-head"><span className="sheet-layer">Weights v{String(w.version ?? 1)}{w.default !== false ? " · default" : ""} · {String(w.scheme ?? "prio-v1")}</span></p>
-      {pd.sample && <p className="dsample" role="status"><b>Sample data</b> Weights need live scores.</p>}
+      {pd.notRun && <p className="dnotrun" role="status"><b>Not run yet</b> Weights apply to scores, and there are none at this checkpoint.</p>}
 
       {GROUPS.map((g) => {
         const sum = g.keys.reduce((a, k) => a + (draft.factors[k] ?? 0), 0);
@@ -162,15 +162,15 @@ export function WeightsPanel({ pd }: { pd: PrioData }) {
             <h3 className="dlist-domain">{g.name}<span>{Math.round((100 * sum) / total)}%</span></h3>
             {g.keys.map((k) => (
               <Slider key={k} label={factorLabel(k)} note={NOTE[k]} value={draft.factors[k] ?? 0} was={current.factors[k] ?? 0} max={F_MAX}
-                      share={(100 * (draft.factors[k] ?? 0)) / total} onChange={(v) => setF(k, v)} disabled={pd.sample} />
+                      share={(100 * (draft.factors[k] ?? 0)) / total} onChange={(v) => setF(k, v)} disabled={pd.notRun} />
             ))}
           </section>
         );
       })}
       <section className="pw-group">
         <h3 className="dlist-domain">Band thresholds<span>score</span></h3>
-        <Slider label="Must ≥" value={draft.bands.Must} was={current.bands.Must} min={2} max={100} onChange={(v) => setB("Must", v)} disabled={pd.sample} />
-        <Slider label="Should ≥" value={draft.bands.Should} was={current.bands.Should} min={1} max={99} onChange={(v) => setB("Should", v)} disabled={pd.sample} />
+        <Slider label="Must ≥" value={draft.bands.Must} was={current.bands.Must} min={2} max={100} onChange={(v) => setB("Must", v)} disabled={pd.notRun} />
+        <Slider label="Should ≥" value={draft.bands.Should} was={current.bands.Should} min={1} max={99} onChange={(v) => setB("Should", v)} disabled={pd.notRun} />
       </section>
 
       <section className="pw-preview" aria-live="polite">
@@ -196,7 +196,7 @@ export function WeightsPanel({ pd }: { pd: PrioData }) {
         </form>
       ) : (
         <div className="ladder-actions">
-          <button className="dbtn primary" disabled={!dirty || pd.sample} onClick={() => setSaving("form")}>Save…</button>
+          <button className="dbtn primary" disabled={!dirty || pd.notRun} onClick={() => setSaving("form")}>Save…</button>
           <button className="dbtn" disabled={!dirty} onClick={() => setDraft(current)}>Reset</button>
         </div>
       )}

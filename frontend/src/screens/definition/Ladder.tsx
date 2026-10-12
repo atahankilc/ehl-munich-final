@@ -67,12 +67,11 @@ interface Props {
   onSource: (id: string) => void;
   onChoose: (level: ChoosableRung, rationale: string) => void;
   busy: boolean;
-  sample: boolean;
   /** spec_fact rows behind the requirement (detail payload); matching ones become quiet ticks on the scale */
   facts?: Record<string, unknown>[];
 }
 
-export function Ladder({ reqKey, row, metric, evidenceText, onSource, onChoose, busy, sample, facts }: Props) {
+export function Ladder({ reqKey, row, metric, evidenceText, onSource, onChoose, busy, facts }: Props) {
   useView((s) => s.pending);
   const [pick, setPick] = useState<ChoosableRung | null>(null);
   const [why, setWhy] = useState("");
@@ -215,7 +214,6 @@ export function Ladder({ reqKey, row, metric, evidenceText, onSource, onChoose, 
           <div className="ladder-actions">
             <button type="submit" className="dbtn primary" disabled={busy || why.trim().length < 5}>Choose {RUNG_NAME[pick].toLowerCase()}</button>
             <button type="button" className="dbtn" onClick={() => { setPick(null); setWhy(""); }}>Cancel</button>
-            {sample && <span className="label">Sample data: kept in this view only</span>}
           </div>
         </form>
       )}

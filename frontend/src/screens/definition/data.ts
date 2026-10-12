@@ -1,12 +1,13 @@
-// Page 3 data: the live definition payload when the pipeline has run at this checkpoint, the sample fixture until then.
+// Page 3 data: the definition payload at this checkpoint. Before the AI stages have run it is the API's real but empty
+// payload (`ready: false`) — never sample data (Atahan, 2026-10-12): the page says the stages haven't run instead.
 import { useMemo } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { api, getActor, queryClient } from "@/lib/api";
 import { useCheckpoint } from "@/state/checkpoint";
+import type { CheckpointId } from "@/lib/types";
 import type {
   ChoiceBody, ChoosableRung, DefinitionPayload, DefLink, LadderRow, LineName, LinkReviewBody, Requirement, RequirementDetail,
 } from "@/lib/definition";
-import { bundlesOf, fixtureDetail, fixtureFor } from "./fixture";
 import { getView, setView } from "./store";
 import { trackRescore } from "../prioritize/rescore";
 
@@ -32,9 +33,32 @@ export const isDashed = (r: string) => r === "conflicts" || r === "competes_for"
 
 export interface DefData {
   data: DefinitionPayload;
-  sample: boolean;            // true: fixture (API missing or not ready at this checkpoint)
-  why: string | null;         // why the sample is shown
+  notRun: boolean;            // true: the AI stages have not produced definitions at this checkpoint (or the API is down)
+  why: string | null;         // what is missing, in plain words
   pending: boolean;
+}
+
+/** Connected components over links with strength ≥ 2 that are not removed (the API computes the same). */
+export function bundlesOf(ls: DefLink[]): DefinitionPayload["bundles"] {
+  const parent = new Map<string, string>();
+  const find = (k: string): string => { let p = parent.get(k) ?? k; if (p !== k) { p = find(p); parent.set(k, p); } return p; };
+  for (const l of ls) {
+    if (l.strength < 2 || l.review?.verdict === "removed") continue;
+    const a = find(l.a), b = find(l.b);
+    if (!parent.has(l.a)) parent.set(l.a, l.a);
+    if (!parent.has(l.b)) parent.set(l.b, l.b);
+    if (a !== b) parent.set(a, b);
+  }
+  const groups = new Map<string, string[]>();
+  for (const k of parent.keys()) { const r = find(k); groups.set(r, [...(groups.get(r) ?? []), k]); }
+  return [...groups.values()].filter((g) => g.length > 1).map((keys, i) => ({ id: `b${i + 1}`, keys: keys.sort(), reason: "Strongly linked" }));
+}
+
+/** What the page shows before there is anything: no requirements, no links (the API's not-ready payload fills in the
+ *  real zones, domains and car models as soon as it answers). */
+export function emptyDefinition(cp: CheckpointId): DefinitionPayload {
+  return { checkpoint: cp, ready: false, runs: { define: null, specify: null, couple: null }, domains: [], resources: {},
+           zones: {}, models: {}, requirements: [], links: [], bundles: [] };
 }
 
 export function useDefinition(): DefData {
@@ -47,20 +71,19 @@ export function useDefinition(): DefData {
     refetchInterval: (s) => (s.state.data?.ready && s.state.data.checkpoint === cp ? false : 10_000),
   });
   return useMemo(() => {
-    const live = q.data?.ready && q.data.checkpoint === cp ? q.data : null;
-    if (live) return { data: { ...live, bundles: live.bundles ?? bundlesOf(live.links) }, sample: false, why: null, pending: false };
-    const fx = fixtureFor(cp);
-    // the zones and models of the live payload are real even before the pipeline has run
-    if (q.data?.zones && Object.keys(q.data.zones).length) fx.zones = q.data.zones;
-    if (q.data?.models && Object.keys(q.data.models).length) fx.models = { ...fx.models, ...q.data.models };
-    const why = q.isError ? "Definition API not available" : q.data && !q.data.ready ? "Pipeline has not run at this checkpoint" : "Waiting for the API";
-    return { data: fx, sample: true, why, pending: q.isPending };
+    const here = q.data?.checkpoint === cp ? q.data : null;
+    if (here?.ready) return { data: { ...here, bundles: here.bundles ?? bundlesOf(here.links) }, notRun: false, why: null, pending: false };
+    const why = q.isError ? "The definition API is not available"
+      : here ? "The definition stages (define → specify → couple) have not run at this checkpoint"
+      : "Loading";
+    return { data: here ? { ...emptyDefinition(cp), ...here, requirements: [], links: [], bundles: [] } : emptyDefinition(cp),
+             notRun: true, why, pending: q.isPending };
   }, [q.data, q.isError, q.isPending, cp]);
 }
 
 export function useRequirementDetail(key: string | null, def: DefData) {
   const { cp } = useCheckpoint();
-  const live = !def.sample;
+  const live = !def.notRun;
   const q = useQuery({
     queryKey: ["definition-req", key, cp],
     queryFn: () => api.get<RequirementDetail>(`/api/definition/requirement/${encodeURIComponent(key!)}?cp=${cp}`),
@@ -70,7 +93,7 @@ export function useRequirementDetail(key: string | null, def: DefData) {
     if (!key) return null;
     if (live && q.data) return q.data;
     const r = def.data.requirements.find((x) => x.key === key);
-    return r ? (live ? { ...r, evidence: [], facts: [], area: null, history: [] } as RequirementDetail : fixtureDetail(r)) : null;
+    return r ? { ...r, evidence: [], facts: [], area: null, history: [] } as RequirementDetail : null;
   }, [key, live, q.data, def.data]);
 }
 
@@ -97,17 +120,15 @@ export function fmtLevel(v: number | null | undefined, unit: string | undefined)
 }
 
 /* --------------------------------------------------------------------------------------------- writes */
-export function useChoice(def: DefData) {
+export function useChoice() {
   const { cp } = useCheckpoint();
   return useMutation({
     mutationFn: async (b: Omit<ChoiceBody, "actor">) => {
       setView((s) => ({ pending: { ...s.pending, [`${b.key}|${b.line}|${b.market}`]: b.level } }));
-      if (def.sample) return { sample: true };
       return api.post("/api/definition/choice", { ...b, actor: getActor() });
     },
     onError: (_e, b) => setView((s) => { const p = { ...s.pending }; delete p[`${b.key}|${b.line}|${b.market}`]; return { pending: p }; }),
     onSuccess: async (r, b) => {
-      if (def.sample) return;
       await queryClient.invalidateQueries({ queryKey: ["definition", cp] });
       await queryClient.invalidateQueries({ queryKey: ["definition-req", b.key] });
       void trackRescore(r);   // a new rung re-scores page 4 in the background
@@ -116,17 +137,15 @@ export function useChoice(def: DefData) {
   });
 }
 
-export function useLinkReview(def: DefData) {
+export function useLinkReview() {
   const { cp } = useCheckpoint();
   return useMutation({
     mutationFn: async ({ link, ...b }: Omit<LinkReviewBody, "actor"> & { link: DefLink }) => {
       if (b.verdict !== "added") setView((s) => ({ pendingLinks: { ...s.pendingLinks, [String(link.id)]: b.verdict as "confirmed" | "removed" } }));
-      if (def.sample) return { sample: true };
       return api.post("/api/definition/link-review", { ...b, actor: getActor() });
     },
     onError: (_e, { link }) => setView((s) => { const p = { ...s.pendingLinks }; delete p[String(link.id)]; return { pendingLinks: p }; }),
     onSuccess: async (r, { link }) => {
-      if (def.sample) return;
       await queryClient.invalidateQueries({ queryKey: ["definition", cp] });
       void trackRescore(r);
       setView((s) => { const p = { ...s.pendingLinks }; delete p[String(link.id)]; return { pendingLinks: p }; });
