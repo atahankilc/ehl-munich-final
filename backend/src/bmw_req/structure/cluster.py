@@ -40,9 +40,6 @@ EMBED_BATCH = 512
 
 
 
-def ensure(conn) -> None:
-    """No-op: the tables come from the Alembic migrations (D-059)."""
-
 
 def line_of(car: str) -> str:
     for line, spec in LINES.items():
@@ -160,7 +157,6 @@ def z_state(c1: int, n1: int, d: int, nd: int) -> str:
 
 def run_checkpoint(cp: str, actor: str = "system") -> dict:
     conn = connect()
-    ensure(conn)
     embedded = embed_missing(conn, LLM(conn=conn))
     vis = C.visible_ids(cp)
     sigs = load(conn, vis)

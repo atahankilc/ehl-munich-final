@@ -5,12 +5,12 @@ Idempotent: verbatims already ingested are skipped, and no batch is created if n
 """
 
 import json
-import sqlite3
 from collections import defaultdict
 from pathlib import Path
 
 import openpyxl
 
+from bmw_req.db import Connection
 from bmw_req.ingest.reference import country_to_market
 
 SHEET = "Feedback_Explorer"
@@ -50,7 +50,7 @@ def read_verbatims(path: Path) -> dict[str, dict]:
     return verbatims
 
 
-def ingest_feedback(conn: sqlite3.Connection, path: Path) -> int:
+def ingest_feedback(conn: Connection, path: Path) -> int:
     """Returns the number of newly ingested verbatims."""
     path = Path(path)
     verbatims = read_verbatims(path)

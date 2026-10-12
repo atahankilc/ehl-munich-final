@@ -22,7 +22,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from bmw_req import checkpoints as C
-from bmw_req.definition.define import ensure, generate
+from bmw_req.definition.define import generate
 from bmw_req.definition.domains import RESOURCES, TENSIONS, shared_resources
 from bmw_req.llm import LLM
 from bmw_req.structure.events import log
@@ -152,7 +152,6 @@ def clean(j: Judgment, shared: list[str]) -> dict | None:
 
 
 def run(conn, cp: str, actor: str = "system", pilot: int | None = None, llm: LLM | None = None) -> dict:
-    ensure(conn)
     llm = llm or LLM(conn=conn)
     drun, srun = C.latest_run(conn, cp, "define"), C.latest_run(conn, cp, "specify")
     if drun is None or srun is None:

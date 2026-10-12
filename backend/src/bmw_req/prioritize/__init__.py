@@ -14,5 +14,3 @@ BANDS = ("Must", "Should", "Could")
 BAND_RANK = {b: i for i, b in enumerate(BANDS)}   # lower = stronger
 
 
-def ensure(conn) -> None:
-    """No-op: the tables come from the Alembic migrations (D-059)."""

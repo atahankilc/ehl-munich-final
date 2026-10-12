@@ -9,11 +9,11 @@ Idempotent: refs already ingested are skipped.
 """
 
 import json
-import sqlite3
 from pathlib import Path
 
 import openpyxl
 
+from bmw_req.db import Connection
 from bmw_req.ingest.common import audit_batch, existing_refs, open_batch
 
 FILE = "sales_volumes.xlsx"
@@ -100,7 +100,7 @@ def _items(path_name: str, row: dict) -> list[dict]:
     return out
 
 
-def ingest_sales(conn: sqlite3.Connection, path: Path) -> int:
+def ingest_sales(conn: Connection, path: Path) -> int:
     """Returns the number of newly ingested source items."""
     path = Path(path)
     rows = read_sales(path)

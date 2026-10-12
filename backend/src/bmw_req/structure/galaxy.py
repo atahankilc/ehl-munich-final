@@ -11,11 +11,10 @@
 
 from __future__ import annotations
 
-import sqlite3
 
 import numpy as np
 
-from bmw_req.db import vec
+from bmw_req.db import Connection, vec
 from bmw_req.llm.client import LLM
 
 BATCH = 512
@@ -23,7 +22,7 @@ SEED = 2026
 METHOD = "pca50+tsne3d(perplexity=40,seed=2026)"
 
 
-def embed_comments(conn: sqlite3.Connection, llm: LLM) -> int:
+def embed_comments(conn: Connection, llm: LLM) -> int:
     rows = conn.execute(
         """SELECT id, text FROM source_item WHERE kind = 'feedback' AND COALESCE(TRIM(text), '') != ''
            AND id NOT IN (SELECT source_item_id FROM source_embedding) ORDER BY id""").fetchall()
@@ -37,7 +36,7 @@ def embed_comments(conn: sqlite3.Connection, llm: LLM) -> int:
     return len(rows)
 
 
-def layout(conn: sqlite3.Connection) -> int:
+def layout(conn: Connection) -> int:
     from sklearn.decomposition import PCA
     from sklearn.manifold import TSNE
 

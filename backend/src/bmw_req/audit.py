@@ -2,7 +2,8 @@
 status or a setting is one `audit_event` row; the table refuses UPDATE and DELETE (triggers in `db.py`)."""
 
 import json
-import sqlite3
+
+from bmw_req.db import Connection
 
 
 def audit(conn, *, actor_type, actor_id, action, entity_type, entity_id, field=None, old=None, new=None,
@@ -17,7 +18,7 @@ def audit(conn, *, actor_type, actor_id, action, entity_type, entity_id, field=N
     )
 
 
-def log_access(conn: sqlite3.Connection, actor: str, action: str, entity_type: str, entity_id: str, detail=None):
+def log_access(conn: Connection, actor: str, action: str, entity_type: str, entity_id: str, detail=None):
     """Access events (view/export) are part of the audit trail (brief: 'all actions, changes, access events')."""
     audit(conn, actor_type="human", actor_id=actor or "anonymous", action=action, entity_type=entity_type,
           entity_id=entity_id, new=detail)

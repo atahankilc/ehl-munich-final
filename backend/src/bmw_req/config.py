@@ -20,11 +20,6 @@ class Settings:
     data_dir: Path
     database_url: str | None   # PostgreSQL (D-059)
 
-    @property
-    def db_path(self) -> Path:
-        """The former SQLite database (D-016) — kept read-only as the pre-D-059 backup and copy source."""
-        return self.data_dir / "app.db"
-
 
 def _path(var: str, default: str) -> Path:
     p = Path(os.getenv(var, default))

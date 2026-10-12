@@ -18,11 +18,11 @@ from __future__ import annotations
 
 import calendar
 import json
-import sqlite3
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
+from bmw_req.db import Connection, Row
 from bmw_req.config import ROOT
 
 
@@ -85,7 +85,7 @@ def visible_ids(cp: str) -> tuple[str, ...]:
     return tuple(out)
 
 
-def ensure(conn: sqlite3.Connection) -> None:
+def ensure(conn: Connection) -> None:
     """Write the checkpoint table (idempotent)."""
     conn.executemany(
         "INSERT INTO checkpoint (id, label, cutoff, parent_id, position) VALUES (?, ?, ?, ?, ?) "
@@ -95,7 +95,7 @@ def ensure(conn: sqlite3.Connection) -> None:
     )
 
 
-def assign_visibility(conn: sqlite3.Connection) -> dict:
+def assign_visibility(conn: Connection) -> dict:
     """Set `source_item.checkpoint` for every item by the rules above. Deterministic; safe to re-run."""
     ensure(conn)
     updates = []
@@ -118,7 +118,7 @@ def assign_visibility(conn: sqlite3.Connection) -> dict:
     return counts
 
 
-def import_research(conn: sqlite3.Connection, path: Path = RESEARCH_FILE) -> int:
+def import_research(conn: Connection, path: Path = RESEARCH_FILE) -> int:
     """Load the cited checkpoint research (research/checkpoints/checkpoints.json) as `source_item(kind=research)`.
     Upserts by the item id, so re-running after a new research round adds and updates rows."""
     data = json.loads(path.read_text())
@@ -151,13 +151,13 @@ def import_research(conn: sqlite3.Connection, path: Path = RESEARCH_FILE) -> int
 
 
 # ------------------------------------------------------------------------------------------------ runs & tracks
-def latest_run(conn: sqlite3.Connection, cp: str, stage: str) -> sqlite3.Row | None:
+def latest_run(conn: Connection, cp: str, stage: str) -> Row | None:
     return conn.execute(
         "SELECT * FROM checkpoint_run WHERE checkpoint_id = ? AND stage = ? AND status = 'completed' "
         "ORDER BY id DESC LIMIT 1", (cp, stage)).fetchone()
 
 
-def start_run(conn: sqlite3.Connection, cp: str, stage: str, actor: str) -> int:
+def start_run(conn: Connection, cp: str, stage: str, actor: str) -> int:
     """Open a run of `stage` at `cp`. At a child checkpoint the parent checkpoint must already have a completed run
     of the same stage: checkpoint 2 always builds on checkpoint 1's output."""
     c = BY_ID.get(cp)
@@ -181,7 +181,7 @@ def _state(prev: float | None, weight: float | None) -> str:
     return "strengthened" if change >= CHANGE else "weakened" if change <= -CHANGE else "held"
 
 
-def write_tracks(conn: sqlite3.Connection, run_id: int, entities: dict[str, tuple[float | None, dict | None]],
+def write_tracks(conn: Connection, run_id: int, entities: dict[str, tuple[float | None, dict | None]],
                  prefix: str | None = None, states: dict[str, str] | None = None) -> dict:
     """Record every entity this run produced as {entity_key: (weight, payload)}. States are computed against the
     parent run: absent there → new; present in both → held / strengthened / weakened by weight change (±10 %);
@@ -209,7 +209,7 @@ def write_tracks(conn: sqlite3.Connection, run_id: int, entities: dict[str, tupl
     return counts
 
 
-def finish_run(conn: sqlite3.Connection, run_id: int, stats: dict) -> None:
+def finish_run(conn: Connection, run_id: int, stats: dict) -> None:
     """Complete a run; an earlier completed run of the same stage at the same checkpoint is superseded."""
     r = conn.execute("SELECT checkpoint_id, stage FROM checkpoint_run WHERE id = ?", (run_id,)).fetchone()
     conn.execute("UPDATE checkpoint_run SET status = 'superseded' WHERE checkpoint_id = ? AND stage = ? "
@@ -218,7 +218,7 @@ def finish_run(conn: sqlite3.Connection, run_id: int, stats: dict) -> None:
                  "stats_json = ? WHERE id = ?", (json.dumps(stats), run_id))
 
 
-def run_acquire(conn: sqlite3.Connection, cp: str, actor: str = "system") -> dict:
+def run_acquire(conn: Connection, cp: str, actor: str = "system") -> dict:
     """Stage 0, 'acquire': every source visible at `cp` becomes a track (weight 1). At cp2 the comments of cp1 are
     `held` and the second half arrives as `new` — the first link in the cp1 → cp2 chain later stages extend."""
     conn.execute("BEGIN IMMEDIATE")
@@ -237,7 +237,7 @@ def run_acquire(conn: sqlite3.Connection, cp: str, actor: str = "system") -> dic
     return {"run_id": run_id, **counts}
 
 
-def setup(conn: sqlite3.Connection, research: bool = True) -> dict:
+def setup(conn: Connection, research: bool = True) -> dict:
     """One-shot: import research, assign visibility, run 'acquire' at cp1 then cp2."""
     conn.execute("BEGIN IMMEDIATE")
     try:

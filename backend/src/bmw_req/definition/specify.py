@@ -34,7 +34,7 @@ from pydantic import BaseModel, Field
 
 from bmw_req import checkpoints as C
 from bmw_req.definition import benchmarks as B
-from bmw_req.definition.define import area_context, ensure, generate
+from bmw_req.definition.define import area_context, generate
 from bmw_req.llm import LLM
 from bmw_req.structure.elicit import describe
 from bmw_req.structure.events import log
@@ -414,8 +414,6 @@ def run(conn, cp: str, actor: str = "system", pilot: int | None = None, llm: LLM
     redo='all' re-specifies every requirement from scratch (e.g. after a prompt change). `only`: restrict to these keys
     (pilot)."""
     redo = redo or ("flagged" if repair else None)
-    ensure(conn)
-    B.ensure(conn)
     llm = llm or LLM(conn=conn)
     drun, xrun, arun = C.latest_run(conn, cp, "define"), C.latest_run(conn, cp, "contextualize"), C.latest_run(conn, cp, "areas")
     if drun is None:

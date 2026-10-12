@@ -38,9 +38,6 @@ RESEARCH_KINDS = ("research", "web", "reference")
 
 
 
-def ensure(conn) -> None:
-    """No-op: the tables come from the Alembic migrations (D-059)."""
-
 
 def vec(v) -> np.ndarray:
     """A stored embedding (pgvector) as a unit vector."""
@@ -195,7 +192,6 @@ def visible_nodes(conn, cp: str) -> dict[str, list[int]]:
 # ------------------------------------------------------------------------------------------------ run
 def run_checkpoint(cp: str, actor: str = "system") -> dict:
     conn = connect()
-    ensure(conn)
     llm = LLM(conn=conn)
     stats: dict = {"embedded_nodes": embed_nodes(conn, llm)}
     crun = C.latest_run(conn, cp, "cluster")
@@ -466,7 +462,6 @@ def relink(cp: str, actor: str = "system") -> dict:
     tracks the usual way and supersedes the old run. Lineage stays intact: run cp1 first, then cp2 (whose parent is then
     the new cp1 run, so its edge states compare against the new cp1 edges)."""
     conn = connect()
-    ensure(conn)
     llm = LLM(conn=conn)
     src = C.latest_run(conn, cp, "contextualize")
     if src is None:

@@ -1,17 +1,19 @@
 # Project State
 
-_Last updated: 2026-10-11_
+_Last updated: 2026-10-12_
 
 ## Current phase
 
-**Phase 3 — Post-hackathon (from 2026-10-11).** The hackathon is over; Atahan continues the project solo to improve it. No submission deadline or judges any more — demo-first shortcuts (AGENTS rule 18) are no longer the main constraint. Rules on confidential BMW data (rule 1) still apply.
+**Phase 3 — Post-hackathon (from 2026-10-11).** The hackathon is over; Atahan continues the project solo to improve it.
+Demo-first shortcuts (AGENTS rule 18) are no longer the main constraint; rule 1 (confidential BMW data) still applies.
 
-_Earlier:_ **Phase 2 — End-to-end demo built (2026-10-10).** Atahan delegated the whole challenge to the agent ("full power, sole competitor").
-- Evidence layer complete: 10,128 verbatims (extract-v3, D-024), customer study (391 items), sales, option lists (458 items), reference layer (96 cited sources), web research (219 cited items, 152 web findings).
-- Findings: verbatim clusters G60 243 · F70 166 · G70 242 (D-025), 391 study findings (D-026).
-- Requirements pipeline: derivation (sol, derive-v6) → portfolio consolidation → dedup vs backlog (D-035) → evidence linker → fit checks → scoring v3 → change proposals, orchestrated per simulated wave (LangGraph, D-027–D-029). D-038: defects go to a Quality hand-over page instead of becoming requirements, strict merging, markets without comments can't outrank evidenced ones, one priority for Expected needs.
-- PM app (Streamlit, D-032, restructured D-036, D-037: Home → How it works → Review → Priorities by market → AI suggestions, plus detail pages, Quality hand-over (D-038) and a demo tour) with approve/reject/defer/edit/challenge/override/priority/inbox, audit trail, export.
-- Demo states via `backend/scripts/demo_state.py` (snapshots `evidence`, `wave1`, `demo`; `demo_build.py` removed with the wave pipeline, D-057).
+The app (SharkSight) as of 2026-10-12:
+- **Pages:** Evidence → Structure → Definition → Prioritize → Document (the 3D workflow), plus AI agents and Audit (full-screen, D-055/D-056).
+- **Pipeline:** checkpoint pipeline only (D-040 ff.); the wave pipeline is retired (D-057/D-058). Every stage has run at JAN 26 and JUL 26: acquire, classify, cluster, contextualize, areas, define, specify, couple, gate, prioritize.
+- **Data:** 12,370 source items (10,128 verbatims, 1,369 research / web / reference items), 15,440 classified signals; 76 (JAN) / 80 (JUL) requirements; 252 / 259 prioritized line × market targets; 2,868 audit events; $11.69 OpenAI spend.
+- **Stack:** PostgreSQL 17 + pgvector in Docker (D-059; P0–P3 done), FastAPI + React/three.js, Docker profiles (D-053), adjustable budget + per-agent settings (D-054/D-055), no sample data (D-060).
+
+_Hackathon (Phase 2, 2026-10-10):_ Atahan delegated the challenge to the agent; the first end-to-end demo ran on simulated waves and Streamlit (D-021–D-038), since replaced.
 
 ## Team & logistics (Q-007, Q-008 resolved 2026-10-11)
 
@@ -21,26 +23,16 @@ _Earlier:_ **Phase 2 — End-to-end demo built (2026-10-10).** Atahan delegated 
 | PM in the app | Atahan |
 | Deadline / judging | none — hackathon over |
 
-## Minimal demo path (decided, D-021)
-
-One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's minimum of one derivative in one market (`challenge-brief.md`).
-- **Scope:** 5 Series (D-005).
-  - **G60 × US:** ~3.6k verbatims + detailed study + sales. Best-evidenced.
-  - **G68 × CN:** study + sales, no verbatims, so web evidence and the market conflict carry it (D-011).
-  - G60 × EU as an optional third target (~110 verbatims + study).
-- **Flow:**
-  1. Classify the G60 verbatims.
-  2. Group them into findings with sources.
-  3. Derive ~10–15 requirements with targets US/CN.
-  4. Run fit checks.
-  5. Score and explain.
-  6. PM approves, rejects or challenges a few.
-  7. Show the audit trail.
-  8. Run wave 2 (Q-012) and show priority changes + change proposals.
-- F70/G70 stay supported by the data model and run later through the same pipeline.
-
 ## Done
 
+Post-hackathon (2026-10-11 / 12):
+- Repo cleanup + monorepo layout `backend/` / `frontend/` (D-052); run profiles + containers (D-053).
+- Adjustable budget + API key in the app (D-054); AI agents page as the source of truth for models, efforts, caps (D-055); Audit page per checkpoint (D-055); full-screen 2D pages (D-056).
+- Wave pipeline retired and its tables dropped (D-057, D-058); LangGraph removed.
+- PostgreSQL 17 + pgvector (D-059): migrations, compatibility layer, data copied and verified (99 API answers identical), timestamptz, exact vector search in SQL, restricted app role, SQLite removed.
+- No sample data anywhere in the app (D-060).
+
+Hackathon:
 - Challenge analyzed; all BMW data profiled and re-verified (`documents/data-inventory.md`).
 - Foundation, `AGENTS.md`, `CLAUDE.md` created.
 - BMW mentor input recorded (D-011 markets differ, D-012 future needs, D-013 continuous re-prioritization). BMW support recommended the annual report → `documents/bmw-annual-report-2025.md`.
@@ -54,39 +46,35 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 
 ## In progress
 
-- **Requirement definition layer (D-048, page 3 `/definition`)** — contract `documents/requirement-definition.md`. Done: `definition/domains.py` (domains, aspect→zone, aspect→resources; zone `underfloor`), `benchmarks.py` (246 cited `spec_fact` rows, 210 visible; gap research 26 web items), `define` cp1 (run 20: 76 requirements from 36 areas), `couple` cp1 (run 24: 73 links — 0 conflicts, attention-heavy; judge fix requested for cp2), API `/api/definition`, page 3 (car, pins by domain, link arcs, ladder inspector + PM choice, 4-stage stepper (Drafted → Specified → Linked → On the car) where the page-2 diamonds rise and, still rising, burst into requirements before landing on the car, Agent panel for define/specify/couple). **Running:** `specify` cp1 re-run (run 25) — run 23 had 249/252 thresholds as gaps and rating-share metrics, re-prompted to use benchmark attributes and competitor-feature thresholds; then cp2 define → specify → couple with carry-forward. Ceiling $4.00 for the layer. Open for Atahan: page-read dates for 4 web items, and whether undated OEM spec pages may count as "current at retrieval" (12 items invisible under D-041).
-- Rebuild on two real-date checkpoints (D-040, D-041). Done: research layer (1,028 cited items incl. China round 2), checkpoint lineage in the DB (`checkpoint_run` / `track`, stage `acquire` at cp1 and cp2), comment galaxy, new frontend with the Scan screen (`uv run python -m api` + `cd web && npm run dev` → http://127.0.0.1:5173). **Waiting for Atahan** to lead classification → clustering → contextualization → requirement elicitation; each will be a stage on the checkpoint API.
+Nothing running.
 
-## Demo (how to run)
+## How to run
 
-- **PM app (D-039, layout D-052, profiles D-053):** production `make serve` or `make up` (container) → http://127.0.0.1:8600; development `make api` + `make dev` or `make up-dev` → http://127.0.0.1:5173. Only one at a time (same port and DB). All `uv run …` commands run from `backend/`.
-- **Pitch:** click **Present** in the top band (or ⌘K → "Present the demo story"): Briefing → Decide (AI priority change, then one requirement decided with a reason) → 5 Series USA in 3D → 5 Series LWB China (cockpit x-ray) → Markets/China → REQ-0001 fully opened ("Trace step by step") → Evidence gaps → Process timeline → Audit → Deliverable. `[` / `]` step.
+- **Database first:** `make db`, then `make migrate` (PostgreSQL in Docker, 127.0.0.1:5433, D-059). Back up with `make backup` (`pg_dump` → `data/backups/`); `make testdata` refreshes the real-data copy the API tests clone.
+- **PM app:** production `make serve` or `make up` (container) → http://127.0.0.1:8600; development `make api` + `make dev` or `make up-dev` → http://127.0.0.1:5173. Only one at a time (same port, same database). All `uv run …` commands run from `backend/`.
+- **Pipeline stages:** `uv run python -m bmw_req.structure.run_all`, `… -m bmw_req.definition.run --checkpoint cp1`, `… -m bmw_req.prioritize.run --checkpoint cp1` (then `cp2`); spend is guarded by the limits and agent settings on the AI agents page.
 - **3D models:** `data/models/{f70,g60,g70}.glb` (git-ignored, Q-025); without them a placeholder car renders.
-- Database: PostgreSQL in Docker (`make db`, `make migrate`); back up with `make backup` (`pg_dump` → `data/backups/`), refresh the test copy with `make testdata` (D-059). The pre-D-059 SQLite file `data/app.db` is kept read-only.
+- The pre-Postgres SQLite file `data/app.db` is no longer read by anything (kept until Atahan deletes it); `data/backups/` holds the `pg_dump` backups.
 
 ## Next up (suggested order)
 
-- **Open after the 2026-10-11 structure run (D-043):** (1) session "ed" is running D-047 relink cp1 → cp2 + D-046 market backfill — then check /structure in a real browser at JAN and JUL (morph, halos, area diamonds, arcs, inspectors); (2) add page-2 sections to DESIGN.md (Structure layer, Funnel, Agent panel, Area/Cluster/Theme inspectors); (3) contextualize themes now use complete linkage 0.35 (71 themes cp1 / 107 cp2) and z-gated theme tracks — note this in D-043 if not yet there; (4) next pipeline step = requirement drafting from areas (`structure/elicit.py` exists, not run); (5) commit the remaining uncommitted work when Atahan asks.
-
-
-- Validation (2026-10-10, `documents/validation-report.md`): duplicates fixed (D-035); Q-021 and Q-023 closed by D-038, leftovers in Q-024; thin future orientation (42/53 `today`).
-
-0. Fill in Team & logistics (Q-007, Q-008); rehearse the demo path above.
-1. Ask BMW mentors: Q-005, Q-006, Q-015, Q-016 (Q-010 is now decided as non-blocking, D-030 — confirm).
-2. PM sign-off of the proposed brand guardrails (D-031) — they gate approval.
-3. Quality levers (benchmarks in `data/eval/`): judge "measurable" (3.5) and "evidence-grounded" (3.6) are the weakest dimensions; top-20 pain coverage 65–75% after wave 1 (rest picked up in waves 2/3).
-4. Optional: async/background wave runs in the UI (currently blocking), wave-3 derivation cap (it still adds ~11 requirements).
+1. **Automatic checks:** CI (GitHub workflow: pytest on a Postgres service + frontend typecheck) and a Python linter; fix the 3 lint findings that predate the cleanup (`run_all.py`, `prioritize/score.py`).
+2. **AI output quality:** the weakest judged dimensions were "measurable" and "evidence-grounded"; terse audit text for the prioritize stage ("scored", "auto rescore").
+3. **Continuous intake design** (Q-027): background web agent, uploads to the knowledge base, versioning without fixed checkpoints, job queue in Postgres; add the HNSW index when nodes pass ~50k.
+4. **Login / roles for people** before anyone else uses the app.
+5. **Open with BMW / Atahan:** Q-005, Q-006, Q-015, Q-016; sign-off of the brand guardrails (D-031), which gate approval.
 
 ## Budget (OpenAI — limits adjustable in the app, D-054; was $100 total, D-014)
 
 | Item | Value |
 |---|---|
-| Spent to date | **$10.95** (2026-10-11 10:05: +$2.67 requirement definition D-048 so far — define cp1 $0.90 incl. failed reservations, specify cp1 runs 22/23/25 ≈ $1.0, benchmarks extraction $0.02 + gap research $0.39, couple cp1; +$0.12 D-047 relink cp1+cp2 + embeddings; failed calls hold ≈ $0.35 worst-case reservations, not billed tokens) — was **$8.22** (+$0.84 structure & context pipeline D-043: classify $0.57 incl. A/B + both checkpoints + source mapping, areas $0.19, contextualize $0.08, embeddings $0.01; +$0.009 comment galaxy D-041) — was $7.37 (2026-10-10; +$0.06 validation, +$0.45 dedup demo rebuild D-035): derivation $2.38 (incl. prompt iterations v2–v6, 4 wave-1 runs, waves 2–3 ×2), web research $1.69, fit checks $0.55, extraction $0.52, linker $0.23, recheck $0.13, benchmarks $0.09, challenge $0.08, consolidation $0.08, other $0.12, **plus a $1.00 reconciliation row** (usage rows lost in a failed demo restore, upper-bound estimate; bug fixed). Source of truth: `llm_usage` / Budget page |
-| Planned build spend | ≈ $60 (≈ $48 + 25% contingency) |
-| Ask before spending / stop (app settings, D-054) | $45 / $90 (defaults; Atahan changes them in Audit → Usage) |
+| Spent to date | **$11.69** (2026-10-12, from `llm_usage`; history: 2026-10-11 10:05 $10.95 — 2026-10-11 10:05: +$2.67 requirement definition D-048 so far — define cp1 $0.90 incl. failed reservations, specify cp1 runs 22/23/25 ≈ $1.0, benchmarks extraction $0.02 + gap research $0.39, couple cp1; +$0.12 D-047 relink cp1+cp2 + embeddings; failed calls hold ≈ $0.35 worst-case reservations, not billed tokens) — was **$8.22** (+$0.84 structure & context pipeline D-043: classify $0.57 incl. A/B + both checkpoints + source mapping, areas $0.19, contextualize $0.08, embeddings $0.01; +$0.009 comment galaxy D-041) — was $7.37 (2026-10-10; +$0.06 validation, +$0.45 dedup demo rebuild D-035): derivation $2.38 (incl. prompt iterations v2–v6, 4 wave-1 runs, waves 2–3 ×2), web research $1.69, fit checks $0.55, extraction $0.52, linker $0.23, recheck $0.13, benchmarks $0.09, challenge $0.08, consolidation $0.08, other $0.12, **plus a $1.00 reconciliation row** (usage rows lost in a failed demo restore, upper-bound estimate; bug fixed). Source of truth: `llm_usage` / Budget page |
+| Ask before spending / stop (app settings, D-054) | $45 / $90 (defaults; Atahan changes them on the AI agents page) |
 | OpenAI project hard limit | $95 (to set by Atahan, + $45 alert) |
 
-## Pilot results (2026-10-10, `scripts/pilot.py`, outputs in `data/pilot/`)
+## History: hackathon results (retired pipeline, kept for the record)
+
+### Pilot results (2026-10-10, `scripts/pilot.py`, outputs in `data/pilot/`)
 
 | Step | Calls | Tokens in / out (reasoning) | Cost | Latency (Flex) |
 |---|---|---|---|---|
@@ -99,7 +87,7 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 - Prompt caching wrote almost the whole prompt on every call (+25% input, ~8% of pilot cost) with no reuse → Q-018.
 - Follow-ups → Q-018. Source D finding → Q-005, `data-inventory.md`.
 
-## G60 extraction results (2026-10-10, extract-v2, `bmw_req.pipeline.run_extract`)
+### G60 extraction results (2026-10-10, extract-v2, `bmw_req.pipeline.run_extract`)
 
 - 160 luna Flex calls (2 validation + 158 full), 16 workers, 12 min; **$0.1348** ($0.00084/call); 421k in / 455k out (58k reasoning); 0 cache writes; 0 failed, 0 missing, 0 invented IDs; no retries needed.
 - 4,000 verbatims → 3,732 in scope → **5,400 signals** (US 4,607 · RoW 485 · EU 308).
@@ -108,7 +96,7 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 - 33 signals (0.6%) have unverified quotes — mostly stitched with "…" or a changed word form ("enjoy" vs "enjoys"); flagged, not dropped.
 - Out-of-scope verdicts drop some usable content → Q-019 → re-check below.
 
-## Q-019 re-check results (2026-10-10, `bmw_req.pipeline.recheck`, sol low, Flex)
+### Q-019 re-check results (2026-10-10, `bmw_req.pipeline.recheck`, sol low, Flex)
 
 - 11 calls, **$0.1342** (agent had estimated ≈ $0.05 — off by 2.7×: sol output 1.2–2k tokens/call at $5/M Flex). Avg 3.4k in / 1.6k out per call.
 - First attempt: 7 of 11 batches refused by the run's own $0.30 cap, because the cap counts open reservations and each sol call reserves ≈ $0.13 worst case (4 in flight ≈ $0.53). No API calls were made for them; re-run with a $1 cap finished them. Lesson: size run caps to workers × worst-case reservation.
@@ -127,9 +115,8 @@ Update the budget table after every paid run. Once the app exists, the source of
 - BMW says engineering is out of scope → keep feasibility framed as a filter (Q-010).
 - BMW data must never be committed or sent anywhere except OpenAI (AGENTS rule 1).
 - Public sales are only in model-series pairs, with no regional per-model figures. Model-level market volume relies on BMW's `sales_volumes.xlsx`, which looks stylized and conflicts with public China data (Q-015).
-- Scoring as drafted penalizes CN (no verbatims) and G70 EU (~19 verbatims) — see Q-004.
-- Feedback data has no dates → the 2-year process must be demoed as simulated ingest waves (Q-012).
-- `gpt-6-luna` structured-output quality is untested → pilot first (D-014); fallback `gpt-5-mini`.
+- Markets without own comments (CN) or very few (G70 EU) score on borrowed customer voice at half weight (D-038, prio-v1).
+- Feedback data has no dates → the process runs on two real-date checkpoints (D-040); continuous intake is Q-027.
 - China-built i5 (G68 BEV) reportedly ended Jul 2026 (insider rumour, unconfirmed by BMW as of 2026-10-10) — affects 5 Series China powertrain assumptions.
 - X5/7 Series successors: BMW calls them NK models, trade press says the platform is CLAR-derived (`bmw-annual-report-2025.md` §4). This matters for the G70 successor.
 
@@ -202,3 +189,4 @@ Update the budget table after every paid run. Once the app exists, the source of
 - 2026-10-12 — Postgres P1 done: app, pipelines and tests run on PostgreSQL (D-059; D-016/D-018 superseded). Compatibility layer `bmw_req.db`, hand ports (RETURNING, upserts, vectors), data copied (267k rows, verified), C.UTF-8 collation + SQLite NULL order + explicit tie orders → 96/99 API answers identical to SQLite, 3 explained; found and fixed hash-random order in "changes since JAN". `make backup` / `make testdata`; demo_state/drop_wave_tables removed. 131 tests green. SQLite `data/app.db` kept read-only. Next: P2 (pgvector search, JSONB, timestamptz, app role).
 - 2026-10-12 — No sample data (D-060, Atahan): Definition/Prioritize fixtures, the Document sample overlay and `?sample=1` removed; pages show "Not run yet" + real empty payloads until the AI has run. Checked on an empty DB in the browser and on the real data (cp1 76 / cp2 80 requirements, 252 / 259 targets).
 - 2026-10-12 — Postgres P2 done: timestamptz (25 system timestamps, read back as the same ISO text) + jsonb weights; exact pgvector retrieval in SQL (178/178 themes identical to numpy; HNSW later, Q-027); app role `sharksight_app` without UPDATE/DELETE on append-only tables (tests run as it); found + fixed pgvector `Vector` reads that would have broken every embedding step since P1. 99/99 API answers identical, 134 tests green. Next: P3 (backup/restore round trip, drop sqlite-vec, docs).
+- 2026-10-12 — Postgres P3 done (Atahan: "just drop the sqlite and finish the docs"; backup→restore round trip not run): sqlite-vec, the copy script, `db_path`, sqlite3 type hints and the 8 no-op `ensure()` stubs (+28 calls) removed; 99/99 API answers unchanged, 134 tests green. Docs brought current: STATE rewritten (phase, done, how to run, next up), README, PRODUCT, architecture, tech-stack, prioritization, foundation README folder map.

@@ -11,7 +11,6 @@ Idempotent: refs already ingested are skipped.
 
 import json
 import re
-import sqlite3
 import statistics
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -19,6 +18,7 @@ from pathlib import Path
 import openpyxl
 from openpyxl.utils import get_column_letter
 
+from bmw_req.db import Connection
 from bmw_req.ingest.common import audit_batch, existing_refs, open_batch
 
 FILE = "F70_G60_G68_G70_customer_studies.xlsx"
@@ -204,7 +204,7 @@ def _meta(it: Item) -> dict:
     return meta
 
 
-def ingest_study(conn: sqlite3.Connection, path: Path) -> int:
+def ingest_study(conn: Connection, path: Path) -> int:
     """Returns the number of newly ingested study items."""
     path = Path(path)
     items = read_study(path)

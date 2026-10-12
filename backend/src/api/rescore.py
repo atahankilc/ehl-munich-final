@@ -1,7 +1,7 @@
 """Background worker for the automatic prioritize re-score (`bmw_req.prioritize.auto`).
 
 PM actions (decision, proposal verdict, weights, ladder rung, link review) call `queue(cp, trigger, include_self)` AFTER
-their transaction committed and return `{"rescore": "queued"}` at once. One worker thread at a time, on its OWN SQLite
+their transaction committed and return `{"rescore": "queued"}` at once. One worker thread at a time, on its OWN database
 connection; requests that arrive while it runs are coalesced into one follow-up pass that starts at the earliest
 requested checkpoint (re-running from there covers every later one). `status()` is exposed in GET /api/prioritize.
 

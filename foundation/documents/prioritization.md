@@ -113,7 +113,7 @@ uv run python -m bmw_req.prioritize.run --checkpoint cp1 --report            ban
   `POST /proposal/{id}` (re-score the LATER checkpoints only: inputs at the decision's own checkpoint did not change),
   `POST /weights` (all checkpoints), `POST /api/definition/choice` (from the choice's checkpoint, or all) and
   `POST /api/definition/link-review` (all: link reviews apply everywhere). The POST commits, then queues and returns
-  `rescore: "queued"` (`"none"` when nothing is later). One daemon worker thread on its own SQLite connection; requests
+  `rescore: "queued"` (`"none"` when nothing is later). One daemon worker thread on its own database connection; requests
   during a run coalesce into one follow-up pass from the earliest requested checkpoint; ~0.1 s per checkpoint. Only
   checkpoints that already have a prioritize run are re-run; each is a normal new `checkpoint_run` (stats `trigger:
   "auto:<trigger>"`) and logs `audit_event` actor `structure.prioritize`, action `auto_rescore {trigger, from, runs}`.

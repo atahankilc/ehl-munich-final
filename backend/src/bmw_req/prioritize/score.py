@@ -31,7 +31,7 @@ from bmw_req.definition.domains import ASPECT_RESOURCES
 from bmw_req.prioritize import factors as S
 from bmw_req.audit import audit
 from bmw_req.portfolio import LINES, MIN_MARKET_VERBATIMS
-from bmw_req.prioritize import BAND_RANK, ensure
+from bmw_req.prioritize import BAND_RANK
 from bmw_req.structure.classify import VERSION as EXTRACT_VERSION
 from bmw_req.structure.events import log
 from bmw_req.structure.market import LABEL as MARKET_LABEL, LINE_OF_CAR, market_context
@@ -186,7 +186,6 @@ def load(conn, cp: str) -> dict:
     """Everything prio-v1 reads at `cp` (latest completed upstream runs)."""
     from api.routers.definition import _links   # PM reviews applied: removed links flagged, PM-added links included
 
-    ensure(conn)
     runs = {s: C.latest_run(conn, cp, s) for s in STAGES_UP}
     if not runs["define"] or not runs["specify"]:
         raise C.CheckpointError(f"Run 'define' and 'specify' at {cp} first")

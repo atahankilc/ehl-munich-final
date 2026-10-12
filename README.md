@@ -43,7 +43,8 @@ foundation/         project memory: state, decisions, open questions, reference 
 data/               derived data, settings, 3D models, backups (git-ignored); the database lives in Docker
 ```
 
-The raw BMW data (`challange information document/`) and the database (`data/app.db`) are git-ignored.
+The raw BMW data (`challange information document/`) and `data/` are git-ignored; the database lives in the Docker volume
+`pgdata`.
 Back up the database with `make backup` (`pg_dump` → `data/backups/`). `make testdata` refreshes the real-data copy
 the API tests clone.
 

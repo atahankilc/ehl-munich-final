@@ -7,8 +7,6 @@ replaced (normalised dot product, ties to the higher node id). Prints the overla
 
 import sys
 
-import numpy as np
-
 from bmw_req import checkpoints as C
 from bmw_req.db import connect
 from bmw_req.structure import contextualize as X

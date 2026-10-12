@@ -70,9 +70,6 @@ Return 15–40 areas. Rules:
   best existing area or create a new area; set change_note only where an area changed."""
 
 
-def ensure(conn) -> None:
-    """No-op: the tables come from the Alembic migrations (D-059)."""
-
 
 def theme_digest(conn, ctx_run: int) -> list[dict]:
     out = []
@@ -102,7 +99,6 @@ def theme_digest(conn, ctx_run: int) -> list[dict]:
 
 def run_checkpoint(cp: str, actor: str = "system") -> dict:
     conn = connect()
-    ensure(conn)
     llm = LLM(conn=conn)
     ctx = C.latest_run(conn, cp, "contextualize")
     if ctx is None:

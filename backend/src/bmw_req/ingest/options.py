@@ -12,7 +12,6 @@ Re-runs are free (LLM cache) and idempotent (UNIQUE(kind, ref)).
 import argparse
 import json
 import re
-import sqlite3
 import subprocess
 import threading
 import time
@@ -24,6 +23,7 @@ from typing import Literal
 import openai
 from pydantic import BaseModel, Field
 
+from bmw_req.db import Connection
 from bmw_req.ingest.common import audit_batch, existing_refs, open_batch
 from bmw_req.structure.taxonomy import Category
 
@@ -168,7 +168,7 @@ def build_rows(model: str, file_name: str, pages: dict[int, str], results: dict[
     return rows
 
 
-def store_rows(conn: sqlite3.Connection, file_name: str, rows: list[dict], llm_model: str | None) -> int:
+def store_rows(conn: Connection, file_name: str, rows: list[dict], llm_model: str | None) -> int:
     seen = existing_refs(conn, "option_list", file_name)
     new = [r for r in rows if r["ref"] not in seen]
     if not new:

@@ -29,7 +29,6 @@ from bmw_req.definition.define import generate
 from bmw_req.llm import LLM
 from bmw_req.prioritize.fitcheck import INSTRUCTIONS as FIT_INSTRUCTIONS, Result, luna_then_sol
 from bmw_req.portfolio import LINES
-from bmw_req.prioritize import ensure
 from bmw_req.prioritize.score import _loads, targets_of
 from bmw_req.structure.events import log
 
@@ -138,7 +137,6 @@ def rows_for(view: dict, res: GateResult, by: str, model: str) -> list[tuple]:
 
 
 def run(conn, cp: str, actor: str = "system", pilot: int | None = None, only: list[str] | None = None, workers: int = 4) -> dict:
-    ensure(conn)
     drun, srun = C.latest_run(conn, cp, "define"), C.latest_run(conn, cp, "specify")
     if drun is None or srun is None:
         raise C.CheckpointError(f"Run 'define' and 'specify' at {cp} first")

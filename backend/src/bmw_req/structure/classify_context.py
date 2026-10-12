@@ -71,9 +71,6 @@ premium car buyers). For every key return:
 Do not invent facts beyond the item."""
 
 
-def _ensure(conn) -> None:
-    """No-op: the tables come from the Alembic migrations (D-059)."""
-
 
 def _batches(rows, n):
     for i in range(0, len(rows), n):
@@ -201,7 +198,6 @@ def write_context_tracks(conn) -> dict:
 
 def main() -> dict:
     conn = connect()
-    _ensure(conn)
     llm = LLM(conn=conn)
     stats = {"study_labels": map_study(conn, llm)}
     log(conn, "classify", "map_study", {"items": stats["study_labels"]}, model=llm.model_for("fast"))

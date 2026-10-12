@@ -8,7 +8,7 @@ web
 
 ## Stack
 
-React + TypeScript (Vite) frontend with three.js via react-three-fiber for real-time 3D; a small FastAPI JSON layer (`backend/src/api/`) over the existing Python pipeline (`backend/src/bmw_req`, SQLite). Chosen by Atahan on 2026-10-11 to replace the Streamlit UI (D-039). Runs locally only (confidential BMW data, AGENTS rule 1).
+React + TypeScript (Vite) frontend with three.js via react-three-fiber for real-time 3D; a small FastAPI JSON layer (`backend/src/api/`) over the existing Python pipeline (`backend/src/bmw_req`, PostgreSQL + pgvector, D-059). Chosen by Atahan on 2026-10-11 to replace the Streamlit UI (D-039). Runs locally only (confidential BMW data, AGENTS rule 1).
 
 ## Users
 
@@ -48,7 +48,7 @@ Not a feedback dashboard and not a chatbot: a decision instrument. Every require
 
 ## Evidence on Hand
 
-- Live demo database `data/app.db` (39 requirements, 151 car × market targets, 3 runs, ~1.6k audit events, findings, signals with verbatim quotes, study metrics, sales, option lists, 219 cited web items). Verbatims are BMW-confidential: localhost only.
+- Live database (PostgreSQL in Docker): 10,128 verbatims, 1,369 cited research / web / reference items, study metrics, sales, option lists; 15,440 classified signals; 76 (JAN 26) / 80 (JUL 26) requirements and 252 / 259 prioritized line × market targets; ~2.9k audit events. Verbatims are BMW-confidential: localhost only.
 - 3D models of today's cars: public CC BY Sketchfab models (attribution required), downloaded by Atahan into `data/models/` (Q-025). Fan-made approximations, not BMW CAD.
 - No testimonials, user research or production usage exist — never fabricate them.
 

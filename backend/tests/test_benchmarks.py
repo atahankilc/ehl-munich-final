@@ -15,7 +15,6 @@ def conn(pg_url):
     c = connect()
     reference.seed(c)
     C.ensure(c)
-    B.ensure(c)
     return c
 
 

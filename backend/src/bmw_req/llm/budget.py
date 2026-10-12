@@ -9,11 +9,11 @@ Limits are on total committed spend = settled cost + open reservations, read fro
 
 import logging
 import os
-import sqlite3
 import sys
 import threading
 from contextlib import contextmanager
 
+from bmw_req.db import Connection
 from bmw_req import app_settings
 
 from bmw_req.llm import agents
@@ -47,7 +47,7 @@ class AgentBlocked(BudgetExceeded):
     """The agent is switched off or reached its spend cap (D-055). A BudgetExceeded, so pipelines stop the same way."""
 
 
-def agent_committed_usd(conn: sqlite3.Connection, agent: agents.Agent) -> float:
+def agent_committed_usd(conn: Connection, agent: agents.Agent) -> float:
     rows = conn.execute("""SELECT job, SUM(CASE WHEN status = 'reserved' THEN reserved_usd ELSE cost_usd END)
                            FROM llm_usage GROUP BY job""").fetchall()
     return sum(v or 0.0 for job, v in rows if agents.match(job) is agent)
@@ -64,7 +64,7 @@ def approved():
         _confirmed = prev
 
 
-def needs_confirmation(conn: sqlite3.Connection) -> bool:
+def needs_confirmation(conn: Connection) -> bool:
     """True when the next call would need a confirmation (committed spend is already past the limit)."""
     return committed_usd(conn) > app_settings.budget_limits().confirm_above_usd and not _confirmed
 
@@ -130,17 +130,17 @@ def actual_usd(
     return tokens_usd + search_calls * WEB_SEARCH_PER_CALL
 
 
-def spent_usd(conn: sqlite3.Connection) -> float:
+def spent_usd(conn: Connection) -> float:
     return conn.execute("SELECT COALESCE(SUM(cost_usd), 0) FROM llm_usage WHERE status != 'reserved'").fetchone()[0]
 
 
-def committed_usd(conn: sqlite3.Connection) -> float:
+def committed_usd(conn: Connection) -> float:
     return conn.execute(
         "SELECT COALESCE(SUM(CASE WHEN status = 'reserved' THEN reserved_usd ELSE cost_usd END), 0) FROM llm_usage"
     ).fetchone()[0]
 
 
-def reserve(conn: sqlite3.Connection, *, job: str, kind: str, model: str, reserved_usd: float, demo: bool) -> int:
+def reserve(conn: Connection, *, job: str, kind: str, model: str, reserved_usd: float, demo: bool) -> int:
     """Insert a reservation row, or raise BudgetExceeded / BudgetNeedsConfirmation if it would cross a limit."""
     limits = app_settings.budget_limits()
 
@@ -178,7 +178,7 @@ def reserve(conn: sqlite3.Connection, *, job: str, kind: str, model: str, reserv
     return cur.fetchone()[0]
 
 
-def settle(conn: sqlite3.Connection, usage_id: int, *, status: str, cost_usd: float, **fields) -> None:
+def settle(conn: Connection, usage_id: int, *, status: str, cost_usd: float, **fields) -> None:
     """Replace a reservation with actual usage. `fields` are llm_usage columns (tokens, response_id, error, ...)."""
     cols = ["status", "cost_usd", *fields]
     sets = ", ".join(f"{c} = ?" for c in cols)

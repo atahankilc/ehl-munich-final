@@ -242,7 +242,7 @@ def pending(conn, ids: list[int] | None = None, checkpoint: str | None = None) -
 def run(items: list[dict], job: str, run_id: int | None, cap_usd: float, workers: int = 12) -> dict:
     first = connect().execute("SELECT COALESCE(MAX(id), 0) FROM llm_usage").fetchone()[0]
 
-    def spent() -> float:   # each worker thread reads through its own connection (sqlite3 is not thread-safe)
+    def spent() -> float:   # each worker thread reads through its own connection (one statement at a time per connection)
         return _llm().conn.execute("""SELECT COALESCE(SUM(CASE WHEN status='reserved' THEN reserved_usd ELSE cost_usd END),0)
                                       FROM llm_usage WHERE job = ? AND id > ?""", (job, first)).fetchone()[0]
     chunks = [items[i:i + BATCH] for i in range(0, len(items), BATCH)]

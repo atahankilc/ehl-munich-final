@@ -7,7 +7,6 @@ dependencies = [
     "openai",
     "httpx",
     "numpy",
-    "sqlite-vec",
     "pydantic",
     "python-dotenv",
     "openpyxl>=3.1.5",

@@ -21,7 +21,6 @@ from api.deps import conflict, db, get_actor, need_rationale, not_found
 from bmw_req.car_zones import MODELS_GLTF, ZONES, model_url
 from bmw_req.checkpoints import BY_ID, CHECKPOINTS, latest_run
 from bmw_req.definition import benchmarks as B
-from bmw_req.definition.define import ensure
 from bmw_req.definition.domains import DOMAINS, RESOURCES
 from bmw_req.audit import audit
 
@@ -38,7 +37,6 @@ def _loads(s, default=None):
 def _runs(conn, cp: str) -> dict:
     if cp not in BY_ID:
         raise not_found(f"No checkpoint {cp!r}")
-    ensure(conn)
     return {s: latest_run(conn, cp, s) for s in STAGES}
 
 
@@ -227,7 +225,6 @@ def requirement(key: str, cp: str = Query("cp2")) -> dict:
         out = _requirement(r, spec, areas.get(r["area_key"]), _states(conn, runs["define"]["id"], "rq:").get(key),
                            _states(conn, srun, "spec:").get(key), _choices(conn))
         fact_ids = [int(f.split(":")[1]) for f in _loads(spec["fact_ids_json"], [])] if spec else []
-        B.ensure(conn)
         facts = B._fact_rows(conn, f"f.id IN ({','.join('?' * len(fact_ids))})", fact_ids, None) if fact_ids else []
         history = []
         for c in CHECKPOINTS:
@@ -285,7 +282,6 @@ def choose(body: ChoiceBody, header_actor: str = Depends(get_actor)) -> dict:
     why = need_rationale(body.rationale)
     actor = (body.actor or "").strip() or header_actor
     with db() as conn:
-        ensure(conn)
         if not conn.execute("SELECT 1 FROM def_requirement WHERE key = ? LIMIT 1", (body.key,)).fetchone():
             raise not_found(f"No requirement {body.key!r}")
         before = conn.execute("SELECT level, rationale, actor FROM def_choice WHERE req_key = ? AND line = ? AND market = ? ORDER BY id DESC LIMIT 1",
@@ -315,7 +311,6 @@ def link_review(body: LinkReviewBody, header_actor: str = Depends(get_actor)) ->
         raise conflict(f"Unknown resource {body.via!r}")
     a, b = sorted((body.a, body.b))
     with db() as conn:
-        ensure(conn)
         for k in (a, b):
             if not conn.execute("SELECT 1 FROM def_requirement WHERE key = ? LIMIT 1", (k,)).fetchone():
                 raise not_found(f"No requirement {k!r}")

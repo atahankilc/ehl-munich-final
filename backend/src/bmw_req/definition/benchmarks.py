@@ -30,7 +30,6 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import sqlite3
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from typing import Literal
@@ -38,7 +37,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from bmw_req import checkpoints as C
-from bmw_req.db import connect
+from bmw_req.db import Row, connect
 from bmw_req.llm import LLM
 from bmw_req.structure.events import log
 from bmw_req.structure.taxonomy import ALL_ASPECTS
@@ -125,9 +124,6 @@ UNITS: dict[str, dict[str, float]] = {
 
 
 
-def ensure(conn) -> None:
-    """No-op: the tables come from the Alembic migrations (D-059)."""
-
 
 # ------------------------------------------------------------------------------------------------ deterministic checks
 _QCHARS = str.maketrans({"‘": "'", "’": "'", "“": '"', "”": '"', "–": "-", "—": "-", "\u00a0": " ", "\u202f": " "})
@@ -201,7 +197,7 @@ def is_candidate(text: str, metric: str | None = None) -> bool:
     return spec or pct
 
 
-def _items(conn, ids: list[int] | None = None) -> list[sqlite3.Row]:
+def _items(conn, ids: list[int] | None = None) -> list[Row]:
     q = (f"SELECT id, kind, text, quote, meta_json, market_code, vehicle_model_id, published_at FROM source_item "
          f"WHERE kind IN ({','.join('?' * len(KINDS))})")
     args: list = list(KINDS)
@@ -406,7 +402,6 @@ def _store(conn, facts: list[dict], scanned: dict[int, tuple[int, str, str | Non
 
 def extract(conn, ids: list[int] | None = None, pilot: bool = False, workers: int = 6) -> dict:
     """Scan unprocessed research/web/reference items (or only `ids`). `pilot`: one luna batch, nothing else."""
-    ensure(conn)
     rows = _items(conn, ids)
     cands, skip, rule, to_luna = [], {}, [], []
     for r in rows:
@@ -474,7 +469,6 @@ def _fact_rows(conn, where: str, args: list, limit: int | None) -> list[dict]:
 
 def facts_for(conn, aspects: list[str], cp: str, limit: int = 40) -> list[dict]:
     """Facts on `aspects` whose source is visible at `cp` (cp2 sees cp1 + cp2), best tier first, then newest."""
-    ensure(conn)
     vis = C.visible_ids(cp)
     return _fact_rows(conn, f"f.aspect IN ({','.join('?' * len(aspects))}) AND s.checkpoint IN ({','.join('?' * len(vis))})",
                       [*aspects, *vis], limit)
@@ -489,7 +483,6 @@ def fact_delta(conn, aspects: list[str], cp_from: str = "cp1", cp_to: str = "cp2
     """Facts newly visible at `cp_to` (not at `cp_from`) for `aspects` — "the bar moved". Each carries `previous`: the
     best `cp_from` fact on the same attribute for the same entity, else the same brand + model word ('BMW iX3 LWB' ~
     'BMW iX3 Long Wheelbase', 'BYD' ~ 'BYD'), else None. Never matched across models of one brand."""
-    ensure(conn)
     new_cps = [c for c in C.visible_ids(cp_to) if c not in C.visible_ids(cp_from)]
     if not new_cps or not aspects:
         return []
@@ -564,7 +557,6 @@ def research(conn, cap_usd: float = GAP_CAP_USD, only: list[str] | None = None) 
 
 # ------------------------------------------------------------------------------------------------ CLI
 def summary(conn) -> dict:
-    ensure(conn)
     rows = conn.execute("""SELECT f.attribute, COALESCE(s.checkpoint, 'never') cp, COUNT(*) n FROM spec_fact f
                            JOIN source_item s ON s.id = f.source_item_id GROUP BY 1, 2""").fetchall()
     table: dict[str, dict] = {a: {} for a in SLUGS}
@@ -581,7 +573,6 @@ def main(argv=None) -> None:
     ap.add_argument("--cap-usd", type=float, default=GAP_CAP_USD)
     args = ap.parse_args(argv)
     conn = connect()
-    ensure(conn)
     if args.research:
         print(json.dumps(research(conn, args.cap_usd, args.only), indent=1))
     print(json.dumps(extract(conn, pilot=args.pilot), indent=1))

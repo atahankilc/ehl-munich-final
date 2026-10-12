@@ -2,7 +2,8 @@
 (AGENTS rule 7). Platforms, plants, production and market profiles come later from the cited seed docs."""
 
 import json
-import sqlite3
+
+from bmw_req.db import Connection
 
 EUROPE = [
     "AT", "BE", "BG", "CH", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GB", "GR", "HR", "HU", "IE",
@@ -27,7 +28,7 @@ VEHICLE_MODELS = [
 ]
 
 
-def seed(conn: sqlite3.Connection) -> None:
+def seed(conn: Connection) -> None:
     conn.executemany(
         "INSERT OR IGNORE INTO brand (id, name, brand_group) VALUES (?, ?, ?)", BRANDS
     )
@@ -40,7 +41,7 @@ def seed(conn: sqlite3.Connection) -> None:
     )
 
 
-def country_to_market(conn: sqlite3.Connection) -> callable:
+def country_to_market(conn: Connection) -> callable:
     """Build a country → market-code lookup from the `market` rows; '*' is the catch-all."""
     exact, fallback = {}, None
     for row in conn.execute("SELECT code, countries_json FROM market"):
@@ -58,7 +59,7 @@ def _j(v):
     return None if v is None else json.dumps(v, ensure_ascii=False, sort_keys=True)
 
 
-def load_reference(conn: sqlite3.Connection) -> dict:
+def load_reference(conn: Connection) -> dict:
     """Load `bmw_req.reference_data` idempotently: sources → source_item(kind='reference'), then platforms,
     plants, production, brands, vehicle models (BMW + competitors) and market profiles, each pointing at the
     source_item ids. Writes one audit_event (actor 'system', action 'load_reference') when content changed."""

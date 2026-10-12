@@ -2,7 +2,7 @@
 
 > **As built (2026-10-10):** the workflow below is implemented end to end — modules per step in the repo `README.md`; decisions D-024–D-033. Deviations from this concept: findings span all markets of a derivative with per-market/per-wave metrics (not one finding per market); feasibility is non-blocking (D-030); market fit is a score modifier; requirement status is per requirement, priority per target.
 
-**Status: DRAFT v3 — conceptual.** The workflow, entities and rules below are the agreed *concept* (D-005, D-008–D-013). The *technical* stack is decided (LangGraph, SQLite, sqlite-vec, no graph DB, Streamlit — D-015–D-020, see `tech-stack.md`). The data model below is built in SQLite (`backend/src/bmw_req/db.py`) per D-021, with three entities folded in: `segment` → `vehicle_model.segment`, `market_profile` → columns on `market`, `finding_scope` → scope columns on `finding`. Added: `source_item.country`, `source_embedding` (sqlite-vec), `llm_cache`.
+**Status: DRAFT v3 — conceptual.** The workflow, entities and rules below are the agreed *concept* (D-005, D-008–D-013). The *technical* stack is in `tech-stack.md` (PostgreSQL 17 + pgvector, no graph DB, FastAPI + React — D-059, D-017, D-039). The physical schema lives in the Alembic migrations (`backend/migrations/`); the concept below maps onto the checkpoint pipeline's tables (`source_item`, `signal`, `cluster`, `insight`, `theme`, `evidence_edge`, `req_area`, `def_requirement` / `def_spec` / `def_link`, `prio_score` / `prio_fit` / `prio_decision` / `prio_proposal`, `audit_event`, `llm_usage`). The wave-era tables (`requirement`, `finding`, …) were dropped (D-058).
 
 ## Guiding principle
 

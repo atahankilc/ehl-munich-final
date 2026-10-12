@@ -9,7 +9,6 @@ Only checkpoints that already have a prioritize run are re-run — an auto re-sc
 from __future__ import annotations
 
 from bmw_req import checkpoints as C
-from bmw_req.prioritize import ensure
 from bmw_req.prioritize import score as P
 from bmw_req.structure.events import log
 
@@ -25,7 +24,6 @@ def checkpoints_from(cp: str | None) -> list[str]:
 def rescore(conn, cp: str | None, trigger: str, include_self: bool = True) -> list[dict]:
     """Re-run prioritize at `cp` (unless `include_self` is False — the input there didn't change) and every later
     checkpoint. Returns one entry per checkpoint: {checkpoint, run_id, proposals} or {checkpoint, skipped}."""
-    ensure(conn)
     cps = checkpoints_from(cp)
     if cp in C.BY_ID and not include_self:
         cps = cps[1:]

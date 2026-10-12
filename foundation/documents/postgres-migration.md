@@ -1,6 +1,6 @@
 # PostgreSQL migration plan (D-059)
 
-**Status:** P0, P1, P2 done (2026-10-12) · P3 (operations, docs, drop sqlite-vec) next.
+**Status:** done (2026-10-12): P0–P3. The app, pipelines and tests run only on PostgreSQL.
 
 Move the app from SQLite + sqlite-vec to **PostgreSQL 17 + pgvector**, one database for relational data, vectors,
 full-text search and (later) the job queue. Uploaded files stay outside the database (disk volume now, S3-compatible
@@ -166,3 +166,22 @@ people (needed before any shared deployment).
   runs `alembic upgrade head` with it before the API). The password comes from `APP_DB_PASSWORD`. Tests run as the app
   role, so a missing permission fails a test. A new append-only table must REVOKE UPDATE / DELETE in its migration.
 - **Proof:** all 99 API answers identical to the P1 capture after each change; 134 tests green.
+
+## P3 as built (2026-10-12)
+
+Atahan: "just drop the sqlite and finish the docs".
+- Removed: `sqlite-vec`, `scripts/sqlite_to_postgres.py` (its one job is done; the copy is recorded in the audit trail),
+  `Settings.db_path`, every `sqlite3` import / type hint (now `bmw_req.db.Connection` / `Row`), and the 8 no-op
+  `ensure()` stubs with their 28 calls (`checkpoints.ensure`, which writes the checkpoint rows, stays).
+- Not done, by decision: a backup → restore round-trip test. `make backup` writes `pg_dump -Fc` files; restoring is
+  `pg_restore --clean -d sharksight` as the owner (untested).
+- The SQLite file `data/app.db` is no longer read; it stays on disk until Atahan deletes it.
+- 99/99 API answers unchanged against P2; 134 tests green.
+
+## Rules for new code (summary)
+
+- Schema changes only through a new Alembic migration (raw SQL in `migrations/sql/`); a new append-only table REVOKEs
+  UPDATE / DELETE from `sharksight_app` in its migration.
+- Every query whose row order reaches the user or breaks a tie needs a full `ORDER BY`.
+- System timestamps: `timestamptz` with `statement_timestamp()`; source dates stay TEXT.
+- Embeddings: `vector(1536)`; read them through `bmw_req.db.vec()`; nearest neighbours with `<=>` in SQL.

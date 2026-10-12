@@ -42,7 +42,7 @@ test: db  ## Python tests (incl. the PostgreSQL ones) + frontend typecheck
 	cd backend && uv run pytest -q
 	cd frontend && npm run typecheck
 
-# ---- containers (compose.yaml); stop the native API first: same port, same SQLite file
+# ---- containers (compose.yaml); stop the native API first: same port, same database
 up:  ## production container on http://127.0.0.1:8600
 	docker compose --profile prod up -d --build
 

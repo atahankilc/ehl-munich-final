@@ -28,7 +28,6 @@ from api import rescore as R
 from api.deps import conflict, db, get_actor, need_rationale, not_found
 from bmw_req.checkpoints import BY_ID, CHECKPOINTS, CheckpointError, latest_run, visible_ids
 from bmw_req.audit import audit
-from bmw_req.prioritize import ensure
 from bmw_req.prioritize import score as P
 
 router = APIRouter(prefix="/api/prioritize", tags=["prioritize"])
@@ -42,7 +41,6 @@ def _loads(s, default=None):
 def _runs(conn, cp: str) -> dict:
     if cp not in BY_ID:
         raise not_found(f"No checkpoint {cp!r}")
-    ensure(conn)
     return {s: latest_run(conn, cp, s) for s in ("prioritize", "gate")}
 
 
@@ -273,7 +271,6 @@ def decision(body: DecisionBody, header_actor: str = Depends(get_actor)) -> dict
     why = need_rationale(body.rationale)
     actor = (body.actor or "").strip() or header_actor
     with db() as conn:
-        ensure(conn)
         cp = body.cp if body.cp in BY_ID else None
         ai = conn.execute("SELECT band, score FROM prio_score WHERE req_key = ? AND line = ? AND market = ? ORDER BY run_id DESC LIMIT 1",
                           (body.key, body.line, body.market)).fetchone()
@@ -305,7 +302,6 @@ def proposal(pid: int, body: ProposalBody, header_actor: str = Depends(get_actor
     why = need_rationale(body.rationale)
     actor = (body.actor or "").strip() or header_actor
     with db() as conn:
-        ensure(conn)
         p = conn.execute("SELECT * FROM prio_proposal WHERE id = ?", (pid,)).fetchone()
         if p is None:
             raise not_found(f"No proposal {pid}")
@@ -345,7 +341,6 @@ def weights(body: WeightsBody, header_actor: str = Depends(get_actor)) -> dict:
     if factors is None:
         raise conflict("factors are required")
     with db() as conn:
-        ensure(conn)
         conn.execute("BEGIN IMMEDIATE")
         try:
             wid = P.set_weights(conn, factors, actor, why, body.bands)
@@ -365,7 +360,6 @@ def weights(body: WeightsBody, header_actor: str = Depends(get_actor)) -> dict:
 @router.get("/weights/history")
 def weights_history(limit: int = Query(20, ge=1, le=100)) -> dict:
     with db() as conn:
-        ensure(conn)
         wid, f, b = P.stored_config(conn)
         return {"current": {**P.current_meta(conn), "factors": f, "bands": b},
                 "defaults": {"factors": P.DEFAULT_WEIGHTS, "bands": P.DEFAULT_BANDS},

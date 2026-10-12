@@ -88,9 +88,6 @@ themes that are only about faults.
 Customer-facing scope only: no regulation, engineering specs or pricing."""
 
 
-def ensure(conn) -> None:
-    """No-op: the tables come from the Alembic migrations (D-059)."""
-
 
 def theme_context(conn, ctx_run: int, theme_key: str) -> dict:
     ins = conn.execute("""SELECT i.cluster_key, i.title, i.statement, i.need_type, i.quality_issue, i.product_decision, i.payload_json
@@ -146,7 +143,6 @@ def validate(d: Draft, ctx: dict) -> tuple[Draft, list[str]]:
 
 def run_checkpoint(cp: str, actor: str = "system") -> dict:
     conn = connect()
-    ensure(conn)
     llm = LLM(conn=conn)
     ctx_run = C.latest_run(conn, cp, "contextualize")
     if ctx_run is None:

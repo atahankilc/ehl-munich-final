@@ -50,9 +50,6 @@ ASPECTS = [a for a in ALL_ASPECTS if a != "other"]
 
 
 
-def ensure(conn) -> None:
-    """No-op: the tables come from the Alembic migrations (D-059)."""
-
 
 # ------------------------------------------------------------------------------------------------ schema (LLM)
 class Target(BaseModel):
@@ -288,7 +285,6 @@ def llm_input(chunk: list[dict]) -> str:
 def run(conn, cp: str, actor: str = "system", pilot: int | None = None, llm: LLM | None = None) -> dict:
     """Run `define` at `cp`. `pilot=N`: draft only the first N areas, print-only (no run, no rows; LLM calls are cached
     so the full run reuses an identical first batch)."""
-    ensure(conn)
     llm = llm or LLM(conn=conn)
     arun, xrun = C.latest_run(conn, cp, "areas"), C.latest_run(conn, cp, "contextualize")
     if arun is None or xrun is None:

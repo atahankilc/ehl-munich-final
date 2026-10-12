@@ -34,6 +34,11 @@ This folder is the project's memory. Every agent (Claude, Codex, humans) reads i
 | `documents/competitor-landscape.md` | Competitors per segment × market, demand trends, brand positioning (cited) |
 | `documents/bmw-annual-report-2025.md` | BMW Group Report 2025 extract (T1, page-cited) |
 | `documents/glossary.md` | Codes, platforms, data and model terms |
+| `documents/requirement-definition.md` | Page 3: metrics, target ladders, links (D-048) |
+| `documents/prioritization.md` | Page 4: prio-v1 factors, bundles, fit gate, PM decisions (D-050) |
+| `documents/document.md` | Page 5: the requirement document and export (D-051) |
+| `documents/postgres-migration.md` | The move to PostgreSQL + pgvector, as built; rules for new queries (D-059) |
+| `documents/validation-report.md` | Hackathon validation pass (2026-10-10, retired wave pipeline — history) |
 
 ## Fresh clone
 
@@ -41,4 +46,4 @@ This folder is the project's memory. Every agent (Claude, Codex, humans) reads i
 2. **Python + PM app** (layout D-052): `make install` (= `cd backend && uv sync` for the Python 3.12 venv + `cd frontend && npm install`). Tests: `make test`. App: `make api` + `make dev`. Database (D-059, Docker): `make db` then `make migrate`; `.env` needs `POSTGRES_PASSWORD`, `APP_DB_PASSWORD`, `DATABASE_URL` (app role), `MIGRATION_DATABASE_URL` (owner), `TEST_DATABASE_URL` — see `.env.example`. Every `uv run …` command in these docs runs from `backend/`. Don't use the system anaconda Python (broken pandas).
 3. **PDF tools**: `brew install poppler` for `pdftotext` (option lists) and `pdftoppm`. The briefing PDF has no text layer, so render it with `pdftoppm` to read it.
 4. **Secrets**: copy `.env.example` to `.env`, then add `OPENAI_API_KEY` (ask Atahan).
-5. **Derived data** go to `data/` (git-ignored); the database is PostgreSQL in Docker (`make db`, `make migrate`, D-059). Moving an old SQLite `data/app.db` over: `cd backend && uv run python scripts/sqlite_to_postgres.py` (once, into a freshly migrated, empty database).
+5. **Derived data** go to `data/` (git-ignored); the database is PostgreSQL in Docker (`make db`, `make migrate`, D-059).
