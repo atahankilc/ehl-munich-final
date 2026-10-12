@@ -57,6 +57,7 @@ SQLite, AWS) — D-004, D-015, D-016, D-018, D-019, D-023, D-025, D-028, D-032, 
 | D-060 | No sample data in the app: pages show an honest "Not run yet" state until the AI has produced their content; fixtures and `?sample=1` removed | accepted |
 | D-062 | Cloud deployment on Google Cloud: one free-tier e2-micro VM (us-central1) running the same compose stack; CLI `deploy/gcp/deploy.sh` | superseded by D-063 (files removed) |
 | D-063 | Cloud deployment on Render (free Docker web service, `render.yaml`) + Neon (free Postgres, Frankfurt); one shared ACCESS_KEY (Basic auth) instead of logins; compressed CC BY car models in the image | accepted |
+| D-064 | Cloud app is open to read; changes need the shared ACCESS_KEY (`X-Access-Key`, entered in an Access panel next to Guide); replaces D-063's Basic-auth gate on everything | accepted |
 
 Keep this index in sync when adding a decision.
 
@@ -607,3 +608,19 @@ Template:
   whole pipeline stages run locally, not on Neon's 0.5 GB. Tested locally: restore as a non-superuser role (12,370
   source items), the image without a mounted disk serving the models, 401 without / 200 with the key, the app role
   denied an UPDATE on `audit_event`, the car rendering from the compressed model.
+
+## D-064 — Open to read, the key only for changes
+- Date: 2026-10-13
+- Decided by: Atahan ("repoma bakan herkes uygulamaya girebilsin … backend key yoksa bişi yapmasın"; key entry as a
+  button + panel next to Guide; key chosen by Atahan, set only in Render, not in the repo)
+- Status: accepted (amends D-063: its Basic-auth gate on every request is replaced)
+- Context: Atahan wants anyone with the link to see the app; the repo is public. The agent pointed out that this makes
+  the BMW-confidential data (10,128 comments, study, sales) publicly readable — Atahan's call.
+- Decision: `api/access.py` — with `ACCESS_KEY` set, GET / HEAD / OPTIONS and `POST /api/prioritize/preview` (computes
+  only) are open; every other request needs the key in `X-Access-Key` (constant-time compare), else 403 and nothing
+  happens. `GET /api/access` → `{required, valid}`. Frontend: `lib/api.ts` sends the key stored in the browser
+  (localStorage) with every request; an **Access** pill + panel in the bottom-left dock (lock icon open / closed)
+  takes the key, says whether it is accepted and can forget it; the pill only exists when the server requires a key.
+- Consequences: no browser password prompt; locally nothing changes. An OpenAI key saved in the app lives on the
+  server for everyone until a restart. Tested: 4 API tests (open reads, 403 without / with a wrong key, change
+  with the key), the image in Docker, the panel in the browser (read-only → key accepted → forget).

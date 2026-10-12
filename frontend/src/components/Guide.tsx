@@ -3,7 +3,8 @@
 // pill like the Audit button; clicking one opens its panel above the pills and closes the other, clicking the open one
 // closes it. Which one is open (or none) is remembered per browser.
 import { useEffect, useState, type ReactNode } from "react";
-import { BookOpen, Bot } from "lucide-react";
+import { BookOpen, Bot, LockKeyhole, LockKeyholeOpen } from "lucide-react";
+import { AccessPanel, useAccess } from "@/components/Access";
 import type { Selection } from "@/lib/types";
 import { TYPE_COLOR } from "@/screens/scan/colors";
 import "./guide.css";
@@ -170,10 +171,10 @@ function GuideBody({ mode, sel }: { mode: Mode; sel: Selection | null }) {
 }
 
 /* ------------------------------------------------------------------------------------------- dock */
-type Panel = "guide" | "agent";
+type Panel = "guide" | "agent" | "access";
 const OPEN_KEY = "dock.open";
 const readOpen = (): Panel | null => {
-  try { const v = localStorage.getItem(OPEN_KEY); return v === "" ? null : v === "agent" ? "agent" : "guide"; } catch { return "guide"; }
+  try { const v = localStorage.getItem(OPEN_KEY); return v === "" ? null : v === "agent" || v === "access" ? v : "guide"; } catch { return "guide"; }
 };
 
 /** `guide` replaces the built-in Guide content (page 3 brings its own, screens/definition/guide.tsx). */
@@ -184,13 +185,15 @@ export function Dock({ mode, sel, agent, running = false, guide }: { mode: Mode;
   useEffect(() => { try { localStorage.setItem(OPEN_KEY, open ?? ""); } catch { /* private mode */ } }, [open]);
   useEffect(() => { setOpen(start()); }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (sel) setOpen((o) => (o ? "guide" : o)); }, [sel]);   // opening something explains it, if the dock is in use
-  const shown = open === "agent" && !agent ? "guide" : open;
+  const access = useAccess();
+  const locked = access.data?.required ?? false;   // the Access pill only exists where changes need a key (cloud)
+  const shown = (open === "agent" && !agent) || (open === "access" && !locked) ? "guide" : open;
   const toggle = (p: Panel) => setOpen((o) => (o === p ? null : p));
   return (
     <section className="dock" data-open={shown ?? undefined} aria-label="Guide">
       {shown && (
         <div className="dock-body" id="dock-panel" key={shown}>
-          {shown === "agent" ? agent : guide ?? <GuideBody mode={mode} sel={sel} />}
+          {shown === "agent" ? agent : shown === "access" ? <AccessPanel /> : guide ?? <GuideBody mode={mode} sel={sel} />}
         </div>
       )}
       <div className="dock-pills">
@@ -201,6 +204,12 @@ export function Dock({ mode, sel, agent, running = false, guide }: { mode: Mode;
           <button className="dock-pill" aria-expanded={shown === "agent"} aria-controls="dock-panel" onClick={() => toggle("agent")}
                   data-running={running ? "" : undefined}>
             <Bot size={14} aria-hidden /> Agent{running && <i className="dock-live" aria-label="working" />}
+          </button>
+        )}
+        {locked && (
+          <button className="dock-pill" aria-expanded={shown === "access"} aria-controls="dock-panel" onClick={() => toggle("access")}
+                  title={access.data?.valid ? "Changes unlocked" : "Read-only: enter the access key"}>
+            {access.data?.valid ? <LockKeyholeOpen size={14} aria-hidden /> : <LockKeyhole size={14} aria-hidden />} Access
           </button>
         )}
       </div>

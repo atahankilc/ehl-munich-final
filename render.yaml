@@ -10,14 +10,14 @@ services:
     region: frankfurt                # same region as the Neon project (AWS eu-central-1)
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    healthCheckPath: /api/health     # the only path open without the access key
+    healthCheckPath: /api/health
     autoDeploy: true
     envVars:
       - key: APP_ENV
         value: production
       - key: API_PORT
         value: "10000"               # Render's default port
-      - key: ACCESS_KEY              # the one password for the browser (any user name)
+      - key: ACCESS_KEY              # reads are open; changes need this key (Access panel, bottom left)
         sync: false
       - key: DATABASE_URL            # the app role — printed by deploy/render/load-data.sh
         sync: false

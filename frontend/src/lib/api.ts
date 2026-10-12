@@ -20,6 +20,25 @@ export function setActor(name: string) {
   }
 }
 
+// The shared access key of a cloud deployment (D-063): reads are open, changes need it. Kept in this browser only and
+// sent with every request; the server compares it (api/access.py). Locally the server needs none.
+const ACCESS_KEY = "sharksight.accessKey";
+export function getAccessKey(): string {
+  try {
+    return localStorage.getItem(ACCESS_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+export function setAccessKey(key: string) {
+  try {
+    if (key) localStorage.setItem(ACCESS_KEY, key);
+    else localStorage.removeItem(ACCESS_KEY);
+  } catch {
+    /* private mode: the key lasts until reload */
+  }
+}
+
 export class ApiError extends Error {
   status: number;
   constructor(status: number, message: string) {
@@ -33,7 +52,7 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   try {
     res = await fetch(path, {
       method,
-      headers: { "Content-Type": "application/json", "X-Actor": getActor() },
+      headers: { "Content-Type": "application/json", "X-Actor": getActor(), ...(getAccessKey() ? { "X-Access-Key": getAccessKey() } : {}) },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
