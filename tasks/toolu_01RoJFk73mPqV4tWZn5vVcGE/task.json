@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01RoJFk73mPqV4tWZn5vVcGE",
+  "agent_id": "a370a8c393666983f",
+  "subagent_type": "general-purpose",
+  "task_description": "Benchmark facts extraction",
+  "token_usage": {
+    "input_tokens": 102,
+    "cache_creation_tokens": 162341,
+    "cache_read_tokens": 6110328,
+    "output_tokens": 15673,
+    "api_call_count": 51
+  },
+  "started_at": "2026-10-11T07:55:27.801369+02:00",
+  "completed_at": "2026-10-11T15:14:54.094733+02:00"
+}

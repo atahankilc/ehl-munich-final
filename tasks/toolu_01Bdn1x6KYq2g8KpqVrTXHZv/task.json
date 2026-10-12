@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01Bdn1x6KYq2g8KpqVrTXHZv",
+  "agent_id": "a39efbaabbbec8a38",
+  "subagent_type": "general-purpose",
+  "task_description": "Ladder rival markers + stage guide",
+  "token_usage": {
+    "input_tokens": 92,
+    "cache_creation_tokens": 174050,
+    "cache_read_tokens": 3962197,
+    "output_tokens": 6449,
+    "api_call_count": 46
+  },
+  "started_at": "2026-10-11T10:05:41.448945+02:00",
+  "completed_at": "2026-10-11T15:14:54.277269+02:00"
+}

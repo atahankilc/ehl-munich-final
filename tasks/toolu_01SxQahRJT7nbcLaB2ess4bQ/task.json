@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01SxQahRJT7nbcLaB2ess4bQ",
+  "agent_id": "a9abd472012c8883e",
+  "subagent_type": "Plan",
+  "task_description": "Prioritization layer design proposal",
+  "token_usage": {
+    "input_tokens": 32,
+    "cache_creation_tokens": 99451,
+    "cache_read_tokens": 990042,
+    "output_tokens": 553,
+    "api_call_count": 16
+  },
+  "started_at": "2026-10-11T10:05:41.440337+02:00",
+  "completed_at": "2026-10-11T15:14:54.252064+02:00"
+}

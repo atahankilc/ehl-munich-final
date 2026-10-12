@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01JAWnNCvhGdWA4dkUCdn9Ng",
+  "agent_id": "aa3203a1d1d9119ba",
+  "subagent_type": "general-purpose",
+  "task_description": "Up/down indicators for PM decisions",
+  "token_usage": {
+    "input_tokens": 116,
+    "cache_creation_tokens": 569480,
+    "cache_read_tokens": 8817019,
+    "output_tokens": 9803,
+    "api_call_count": 58
+  },
+  "started_at": "2026-10-11T11:53:56.071904+02:00",
+  "completed_at": "2026-10-11T15:14:54.519703+02:00"
+}

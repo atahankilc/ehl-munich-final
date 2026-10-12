@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01PVnjn1Yxe8MnAAAvuAXWKA",
+  "agent_id": "a71a397ef1cebfa1a",
+  "subagent_type": "Explore",
+  "task_description": "Docs + quantitative evidence survey",
+  "token_usage": {
+    "input_tokens": 24,
+    "cache_creation_tokens": 71823,
+    "cache_read_tokens": 508706,
+    "output_tokens": 418,
+    "api_call_count": 12
+  },
+  "started_at": "2026-10-11T07:40:26.807489+02:00",
+  "completed_at": "2026-10-11T15:14:54.010849+02:00"
+}

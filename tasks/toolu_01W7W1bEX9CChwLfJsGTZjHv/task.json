@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01W7W1bEX9CChwLfJsGTZjHv",
+  "agent_id": "a3296374ce4255065",
+  "subagent_type": "Explore",
+  "task_description": "Frontend 3D + structure survey",
+  "token_usage": {
+    "input_tokens": 32,
+    "cache_creation_tokens": 180922,
+    "cache_read_tokens": 1726534,
+    "output_tokens": 1094,
+    "api_call_count": 16
+  },
+  "started_at": "2026-10-11T07:40:26.806841+02:00",
+  "completed_at": "2026-10-11T15:14:54.006153+02:00"
+}

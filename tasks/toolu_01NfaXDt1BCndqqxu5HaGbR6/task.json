@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01NfaXDt1BCndqqxu5HaGbR6",
+  "agent_id": "ac5cd36a3e5a06876",
+  "subagent_type": "general-purpose",
+  "task_description": "Prioritize stage + gate + API",
+  "token_usage": {
+    "input_tokens": 190,
+    "cache_creation_tokens": 478230,
+    "cache_read_tokens": 17166845,
+    "output_tokens": 45432,
+    "api_call_count": 95
+  },
+  "started_at": "2026-10-11T10:16:23.533714+02:00",
+  "completed_at": "2026-10-11T15:14:54.393644+02:00"
+}
