@@ -67,8 +67,8 @@ OPTION_RULES: list[tuple[str, tuple[str, ...]]] = [
 ]
 
 # ------------------------------------------------------------------------------------------------ 3D models
-# Self-hosted glTF/GLB files (third-party CC BY models, downloaded once into `$DATA_DIR/models/`, git-ignored), rendered
-# locally in the browser: nothing about requirements leaves the machine. `orientation` names the model's world axes
+# Self-hosted glTF/GLB files (third-party CC BY models; compressed copies in `assets/models/`, baked into the image at
+# `$DATA_DIR/models/`), rendered locally in the browser: nothing about requirements leaves the machine. `orientation` names the model's world axes
 # as loaded in three.js (after the files' Sketchfab Z-up→Y-up root matrix); derived from the Sketchfab-viewer calibration
 # (5 Series nose at +Y, 1/7 Series at −Y in Z-up) and checked by rendering. Kept as data so the viewer never hardcodes a model.
 MODELS_GLTF: dict[str, dict] = {

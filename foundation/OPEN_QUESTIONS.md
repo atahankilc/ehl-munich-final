@@ -76,7 +76,7 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
 
 ## Resolved
 
-### Q-029 — Cloud deployment → **Google Cloud, one e2-micro VM with the compose stack** (D-062)
+### Q-029 — Cloud deployment → **Render + Neon, one shared access key** (D-063; before: AWS D-061, Google Cloud D-062)
 - Atahan 2026-10-12: data may be hosted in the cloud for this; Google Cloud first, then AWS (`deploy/aws/deploy.sh`), then AWS dropped for Google Cloud: `deploy/gcp/deploy.sh`.
 
 ### Q-007 — Team roles & who is the "PM" in the demo? → **Atahan, solo**

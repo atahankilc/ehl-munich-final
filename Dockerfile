@@ -31,7 +31,7 @@ COPY research/checkpoints/checkpoints.json /app/research/checkpoints/checkpoints
 ENV API_HOST=0.0.0.0 API_PORT=8600 DATA_DIR=/app/data
 EXPOSE 8600
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8600/api/health', timeout=4)"
+    CMD python -c "import os, urllib.request; urllib.request.urlopen(f\"http://127.0.0.1:{os.getenv('API_PORT', '8600')}/api/health\", timeout=4)"
 # schema first (idempotent: a migrated database is left as is), then the API
 CMD ["sh", "-c", "alembic upgrade head && exec python -m api"]
 
@@ -43,4 +43,6 @@ ENV APP_ENV=development
 # ---------------------------------------------------------------- prod (default)
 FROM base AS prod
 COPY --from=web /app/frontend/dist /app/frontend/dist
+# public CC BY car models (assets/models/README.md); a mounted data/ dir (compose) hides them and brings its own
+COPY assets/models /app/data/models
 ENV APP_ENV=production

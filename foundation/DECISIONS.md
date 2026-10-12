@@ -55,7 +55,8 @@ SQLite, AWS) — D-004, D-015, D-016, D-018, D-019, D-023, D-025, D-028, D-032, 
 | D-058 | Old wave-pipeline tables dropped (11 tables) after a verified backup; schema no longer creates them | accepted |
 | D-059 | Move to PostgreSQL 17 + pgvector (one DB for relational, vectors, full-text, job queue); no graph DB; plan in `documents/postgres-migration.md` | accepted (done: P0–P3) |
 | D-060 | No sample data in the app: pages show an honest "Not run yet" state until the AI has produced their content; fixtures and `?sample=1` removed | accepted |
-| D-062 | Cloud deployment on Google Cloud: one free-tier e2-micro VM (us-central1) running the same compose stack; CLI `deploy/gcp/deploy.sh` | accepted |
+| D-062 | Cloud deployment on Google Cloud: one free-tier e2-micro VM (us-central1) running the same compose stack; CLI `deploy/gcp/deploy.sh` | superseded by D-063 (files removed) |
+| D-063 | Cloud deployment on Render (free Docker web service, `render.yaml`) + Neon (free Postgres, Frankfurt); one shared ACCESS_KEY (Basic auth) instead of logins; compressed CC BY car models in the image | accepted |
 
 Keep this index in sync when adding a decision.
 
@@ -566,7 +567,7 @@ Template:
 ## D-062 — Deploy on Google Cloud instead of AWS
 - Date: 2026-10-12
 - Decided by: Atahan ("aws didnt work … i need another way"; doesn't want AWS; chose Google Cloud)
-- Status: accepted (supersedes D-061; resolves Q-029; keeps its amendment of AGENTS rule 1: the BMW data may sit on this VM)
+- Status: superseded by D-063 (its files were removed 2026-10-13; git history keeps them). Was: accepted (supersedes D-061; resolves Q-029; keeps its amendment of AGENTS rule 1: the BMW data may sit on this VM)
 - Context: the AWS path (D-061) was ready but Atahan didn't want to continue with AWS. The compose stack
   (`deploy/compose.yaml`, `Caddyfile`) is provider-neutral; only the VM creation was AWS-specific.
 - Decision: one Compute Engine **e2-micro** (x86, 1 GB + 2 GB swap) in `us-central1-a`, Ubuntu 24.04, 30 GB pd-standard
@@ -582,3 +583,27 @@ Template:
 - Consequences: the data sits in a US region (the free tier has no EU region; `GCP_ZONE=europe-west3-a` works but
   isn't free). Tested: the amd64 image builds and starts its Python and frontend; the remote steps are the same code
   that D-061 tested end to end locally. Not yet run against a real Google Cloud project.
+
+## D-063 — Render + Neon, one shared access key
+- Date: 2026-10-13
+- Decided by: Atahan (Google Cloud didn't work out; "Render diye bir site var"; DB elsewhere; "çok basit bir key …
+  hiç auth a gerek yok"; keep all embeddings since the app hardly writes)
+- Status: accepted (supersedes D-062, whose VM files were removed; the data permission of D-061 /
+  AGENTS rule 1 now covers Render and Neon)
+- Context: a free host without a card. Render's free web service has 512 MB RAM, sleeps after 15 min and has no disk;
+  its free Postgres expires. Neon's free Postgres (0.5 GB, pgvector) doesn't expire. A fresh restore of the database is
+  ~440 MB (signal embeddings 245 MB included).
+- Decision: `render.yaml` — one Docker web service (plan free, Frankfurt, health check `/api/health`), env
+  `ACCESS_KEY`, `DATABASE_URL` (app role), `MIGRATION_DATABASE_URL` (Neon owner), `OPENAI_API_KEY`. Neon project in
+  AWS eu-central-1. `api/access.py`: if `ACCESS_KEY` is set, every request but `/api/health` needs it as the Basic-auth
+  password (constant-time compare; the browser prompts once); unset locally → no change. `deploy/render/load-data.sh`:
+  full `pg_restore` of a fresh backup (no superuser needed: data before keys / triggers), then `0003_app_role.sql` +
+  password, prints the app's `DATABASE_URL`. Car models: `assets/models/` (gltf-transform meshopt + WebP, same
+  triangles, 74 → 8 MB, CC BY attribution in `assets/models/README.md`) copied into the image at `/app/data/models`.
+- Alternatives considered: everything on Render (free DB expires, paid ≈ $15 / month); dropping the embedding tables
+  to fit (not needed); Neon Auth / Neon Functions / AI gateway / object storage (not needed for one shared key and
+  models in the image); the Mac + Cloudflare Tunnel.
+- Consequences: settings changed in the app reset on restart (no disk); the first request after sleep takes ~1 min;
+  whole pipeline stages run locally, not on Neon's 0.5 GB. Tested locally: restore as a non-superuser role (12,370
+  source items), the image without a mounted disk serving the models, 401 without / 200 with the key, the app role
+  denied an UPDATE on `audit_event`, the car rendering from the compressed model.

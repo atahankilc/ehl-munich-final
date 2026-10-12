@@ -18,7 +18,7 @@
 | OpenAI call path | OpenAI Python SDK, Responses API, inside `bmw_req.llm` (incl. `web_search`) | D-020 |
 | Structured output | Pydantic models → `responses.parse` | D-020 |
 | Profiles / deployment | `APP_ENV=development` (API reload + Vite) or `production` (API serves `frontend/dist`); natively via `make`, or Docker (`Dockerfile` targets dev/prod, `compose.yaml` profiles dev/prod, ports on 127.0.0.1, `data/` mounted, allowlist `.dockerignore`) | D-053 |
-| Cloud deployment | One Google Compute Engine e2-micro (free tier, us-central1) running `deploy/compose.yaml` (db, app, Caddy HTTPS + password); CLI `deploy/gcp/deploy.sh`; guide `deploy/README.md` | D-062 |
+| Cloud deployment | **Render** free Docker web service (`render.yaml`) + **Neon** free Postgres (Frankfurt); one shared `ACCESS_KEY` (Basic auth, `api/access.py`); data via `deploy/render/load-data.sh`; car models baked into the image (`assets/models/`); guide `deploy/README.md`. | D-063 |
 | Tests | `pytest`, no paid calls; throwaway PostgreSQL databases cloned per test, run as the app role (`make test` starts the database) | D-020, D-059 |
 | Data model | Alembic migrations in `backend/migrations/` (baseline + types + app role); `bmw_req/db.py` is the connection layer only | D-059 |
 | Excel parsing | `openpyxl` (no pandas in the app) | D-021 |

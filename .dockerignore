@@ -1,6 +1,8 @@
 # Allowlist (D-053): only what the image needs. The raw BMW data, data/ (DB, models) and .env must never enter
-# an image (AGENTS rule 1) — they are mounted / passed at run time by compose.yaml.
+# an image (AGENTS rule 1) — they are mounted / passed at run time by compose.yaml. The compressed CC BY car models
+# (assets/models) are public and go in, so a host without a disk still shows the cars (D-063).
 *
+!assets/models/*.glb
 !backend/pyproject.toml
 !backend/uv.lock
 !backend/src/

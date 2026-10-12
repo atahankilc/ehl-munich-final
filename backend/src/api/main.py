@@ -1,6 +1,6 @@
 """FastAPI app for the rebuilt PM frontend (replaces the Streamlit app's read/write paths, inventory §1–§4).
 
-Localhost only (127.0.0.1:8600), no CORS: the frontend is served from the same origin (frontend/dist) or proxied by the
+Localhost by default (127.0.0.1:8600); in the cloud one shared ACCESS_KEY guards it (api/access.py). No CORS: the frontend is served from the same origin (frontend/dist) or proxied by the
 Vite dev server. Run with `uv run python -m api` or `uv run sharksight`.
 
 Profiles (D-053), from the environment:
@@ -18,6 +18,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from api.access import require_access_key
 from api.deps import DB
 from api.routers import ROUTERS, STATIC_ROUTER
 from api.routers.static import WEB_DIST
@@ -45,8 +46,10 @@ async def _lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="Successor — PM decision API", version="1.0", lifespan=_lifespan,
+    app = FastAPI(title="SharkSight — PM decision API", version="1.0", lifespan=_lifespan,
                   docs_url="/api/docs", openapi_url="/api/openapi.json", redoc_url=None)
+    app.middleware("http")(require_access_key)   # no-op unless ACCESS_KEY is set (cloud)
+
     @app.get("/api/health", tags=["meta"])
     def health() -> dict:
         return {"ok": True, "profile": PROFILE}

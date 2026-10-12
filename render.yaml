@@ -1,0 +1,27 @@
+# Render Blueprint (D-063): the SharkSight app as one free Docker web service; the database is Neon (hosted Postgres).
+# Render builds the repo's Dockerfile (target prod: API + built PM app + the CC BY car models). The service's disk is
+# not kept, so the app's own settings changes (limits, agent settings on the AI agents page) reset on every restart;
+# the OpenAI key comes from OPENAI_API_KEY. Guide: deploy/README.md.
+services:
+  - type: web
+    name: sharksight
+    runtime: docker
+    plan: free
+    region: frankfurt                # same region as the Neon project (AWS eu-central-1)
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health     # the only path open without the access key
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: API_PORT
+        value: "10000"               # Render's default port
+      - key: ACCESS_KEY              # the one password for the browser (any user name)
+        sync: false
+      - key: DATABASE_URL            # the app role — printed by deploy/render/load-data.sh
+        sync: false
+      - key: MIGRATION_DATABASE_URL  # Neon's owner connection string (migrations on start)
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
