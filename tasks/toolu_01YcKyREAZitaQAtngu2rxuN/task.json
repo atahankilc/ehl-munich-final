@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01YcKyREAZitaQAtngu2rxuN",
+  "agent_id": "aaf8994d8a41267ca",
+  "subagent_type": "general-purpose",
+  "task_description": "Build Streamlit PM review app",
+  "token_usage": {
+    "input_tokens": 130,
+    "cache_creation_tokens": 391271,
+    "cache_read_tokens": 10625538,
+    "output_tokens": 57767,
+    "api_call_count": 65
+  },
+  "started_at": "2026-10-10T20:35:03.761931+02:00",
+  "completed_at": "2026-10-10T23:07:47.810595+02:00"
+}

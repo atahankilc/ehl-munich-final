@@ -1,0 +1,1 @@
+write me what you have done and give me it as a prompt to next agent session. It will try to validate the bmw challenge with wat you have done. Also include what we are doing here. Btw, did we used rag or any other system like langchain or langgraph?

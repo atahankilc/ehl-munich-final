@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01WZvNWNzDiCk82K7ozuth3d",
+  "agent_id": "a16ba1656e83fa630",
+  "subagent_type": "general-purpose",
+  "task_description": "Ingest study, sales, option lists",
+  "token_usage": {
+    "input_tokens": 60,
+    "cache_creation_tokens": 116475,
+    "cache_read_tokens": 2497629,
+    "output_tokens": 18379,
+    "api_call_count": 30
+  },
+  "started_at": "2026-10-10T20:26:24.08972+02:00",
+  "completed_at": "2026-10-10T23:07:47.726478+02:00"
+}

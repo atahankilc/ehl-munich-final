@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01ThEWM77AEUV3QeDXKYSMU1",
+  "agent_id": "a579eefce11ffbe31",
+  "subagent_type": "general-purpose",
+  "task_description": "Reference layer and web research",
+  "token_usage": {
+    "input_tokens": 78,
+    "cache_creation_tokens": 176221,
+    "cache_read_tokens": 5311477,
+    "output_tokens": 41087,
+    "api_call_count": 39
+  },
+  "started_at": "2026-10-10T20:26:59.236021+02:00",
+  "completed_at": "2026-10-10T23:07:47.760962+02:00"
+}
