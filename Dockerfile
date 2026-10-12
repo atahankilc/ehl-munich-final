@@ -5,7 +5,8 @@
 # The layout mirrors the repo (/app/backend, /app/frontend, /app/research) so bmw_req.config.ROOT resolves to /app.
 
 # ---------------------------------------------------------------- frontend build
-FROM node:22-slim AS web
+# the built files are platform-neutral: build them natively even when the image targets another CPU
+FROM --platform=$BUILDPLATFORM node:22-slim AS web
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci

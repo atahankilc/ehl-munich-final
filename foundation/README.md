@@ -39,6 +39,7 @@ This folder is the project's memory. Every agent (Claude, Codex, humans) reads i
 | `documents/document.md` | Page 5: the requirement document and export (D-051) |
 | `documents/postgres-migration.md` | The move to PostgreSQL + pgvector, as built; rules for new queries (D-059) |
 | `documents/validation-report.md` | Hackathon validation pass (2026-10-10, retired wave pipeline — history) |
+| `documents/future-work.md` | Vision and future work parked for another repo (generalized SharkSight, continuous intake) — not acted on here |
 
 ## Fresh clone
 

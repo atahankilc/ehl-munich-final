@@ -1,0 +1,9 @@
+# HTTPS (Let's Encrypt for <ip>.sslip.io, or your own domain) and one password in front of the app, which has no login
+# of its own yet. Set by deploy.sh in .env: SITE_ADDRESS, BASIC_AUTH_USER, BASIC_AUTH_HASH (bcrypt).
+{$SITE_ADDRESS} {
+	encode zstd gzip
+	basic_auth {
+		{$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
+	}
+	reverse_proxy app:8600
+}

@@ -1,6 +1,6 @@
 # Project State
 
-_Last updated: 2026-10-12_
+_Last updated: 2026-10-13_
 
 ## Current phase
 
@@ -53,16 +53,16 @@ Nothing running.
 - **Database first:** `make db`, then `make migrate` (PostgreSQL in Docker, 127.0.0.1:5433, D-059). Back up with `make backup` (`pg_dump` → `data/backups/`); `make testdata` refreshes the real-data copy the API tests clone.
 - **PM app:** production `make serve` or `make up` (container) → http://127.0.0.1:8600; development `make api` + `make dev` or `make up-dev` → http://127.0.0.1:5173. Only one at a time (same port, same database). All `uv run …` commands run from `backend/`.
 - **Pipeline stages:** `uv run python -m bmw_req.structure.run_all`, `… -m bmw_req.definition.run --checkpoint cp1`, `… -m bmw_req.prioritize.run --checkpoint cp1` (then `cp2`); spend is guarded by the limits and agent settings on the AI agents page.
+- **Cloud (Google Cloud):** `deploy/gcp/deploy.sh create` → `deploy` → `data` (D-062, guide `deploy/README.md`); needs gcloud logged in with a project (`gcloud auth login`, `gcloud config set project <id>`).
 - **3D models:** `data/models/{f70,g60,g70}.glb` (git-ignored, Q-025); without them a placeholder car renders.
-- The pre-Postgres SQLite file `data/app.db` is no longer read by anything (kept until Atahan deletes it); `data/backups/` holds the `pg_dump` backups.
+- `data/backups/` holds the `pg_dump` backups (no SQLite files remain, 2026-10-12).
 
 ## Next up (suggested order)
 
 1. **Automatic checks:** CI (GitHub workflow: pytest on a Postgres service + frontend typecheck) and a Python linter; fix the 3 lint findings that predate the cleanup (`run_all.py`, `prioritize/score.py`).
 2. **AI output quality:** the weakest judged dimensions were "measurable" and "evidence-grounded"; terse audit text for the prioritize stage ("scored", "auto rescore").
-3. **Continuous intake design** (Q-027): background web agent, uploads to the knowledge base, versioning without fixed checkpoints, job queue in Postgres; add the HNSW index when nodes pass ~50k.
-4. **Login / roles for people** before anyone else uses the app.
-5. **Open with BMW / Atahan:** Q-005, Q-006, Q-015, Q-016; sign-off of the brand guardrails (D-031), which gate approval.
+3. **Login / roles for people** before anyone else uses the app.
+4. **Open with BMW / Atahan:** Q-005, Q-006, Q-015, Q-016; sign-off of the brand guardrails (D-031), which gate approval.
 
 ## Budget (OpenAI — limits adjustable in the app, D-054; was $100 total, D-014)
 
@@ -116,7 +116,7 @@ Update the budget table after every paid run. Once the app exists, the source of
 - BMW data must never be committed or sent anywhere except OpenAI (AGENTS rule 1).
 - Public sales are only in model-series pairs, with no regional per-model figures. Model-level market volume relies on BMW's `sales_volumes.xlsx`, which looks stylized and conflicts with public China data (Q-015).
 - Markets without own comments (CN) or very few (G70 EU) score on borrowed customer voice at half weight (D-038, prio-v1).
-- Feedback data has no dates → the process runs on two real-date checkpoints (D-040); continuous intake is Q-027.
+- Feedback data has no dates → the process runs on two real-date checkpoints (D-040); continuous intake is future work (`documents/future-work.md`).
 - China-built i5 (G68 BEV) reportedly ended Jul 2026 (insider rumour, unconfirmed by BMW as of 2026-10-10) — affects 5 Series China powertrain assumptions.
 - X5/7 Series successors: BMW calls them NK models, trade press says the platform is CLAR-derived (`bmw-annual-report-2025.md` §4). This matters for the G70 successor.
 
@@ -183,10 +183,13 @@ Update the budget table after every paid run. Once the app exists, the source of
 - 2026-10-12 — Wave pipeline retired (D-057): 8 old API routers, `pipeline/`, `service.py`, `research/findings.py`, old tests/scripts, `logView`, LangGraph removed; shared helpers moved byte-identical (`bmw_req/audit.py`, `prioritize/factors.py`, `prioritize/fitcheck.py`, `structure/taxonomy.py`, `structure/galaxy.py`); `/api/health`. 114 tests, all green.
 - 2026-10-12 — Old wave tables dropped (D-058): verified backup `data/backups/app-before-D058-20261012T024059Z.db`, 11 tables dropped in one transaction + audit event + VACUUM (373 → 366 MB), schema no longer creates them; rehearsed on a copy first; app healthy, all screens load. 114 tests green.
 - 2026-10-12 — Database direction: Postgres 17 + pgvector, no graph DB (Atahan). Migration plan written (`documents/postgres-migration.md`, D-059 proposed): P0 infra → P1 switch → P2 Postgres features → P3 ops/docs. Waiting for Atahan's approval of the plan.
-- 2026-10-12 — Market scan for a generalized (non-BMW) version: artifact https://claude.ai/artifact/RPFgwBDcz8TFr46pbhLJYA (feedback intelligence, PM suites, RM/ALM, AI-native systems engineering, CI, preference research, decision intelligence); Q-028 opened. No code changes.
 - 2026-10-12 — Postgres P0 done (D-059 accepted): `db` compose service (pgvector 0.8.0 / pg17, 127.0.0.1:5433 — 5432 is another project's), `make db`/`migrate`, `.env` DB settings, Alembic baseline (42 tables, utc_now_text(), append-only triggers, vector columns), throwaway test DBs + schema-parity tests. 121 tests green. App still on SQLite — P1 (switch) next.
-- 2026-10-12 — Method packs + evidence-depth note for the generalized version: artifact https://claude.ai/artifact/MMKqm5c2NihxE8uwGBu1SQ (added under Q-028). No code changes.
 - 2026-10-12 — Postgres P1 done: app, pipelines and tests run on PostgreSQL (D-059; D-016/D-018 superseded). Compatibility layer `bmw_req.db`, hand ports (RETURNING, upserts, vectors), data copied (267k rows, verified), C.UTF-8 collation + SQLite NULL order + explicit tie orders → 96/99 API answers identical to SQLite, 3 explained; found and fixed hash-random order in "changes since JAN". `make backup` / `make testdata`; demo_state/drop_wave_tables removed. 131 tests green. SQLite `data/app.db` kept read-only. Next: P2 (pgvector search, JSONB, timestamptz, app role).
 - 2026-10-12 — No sample data (D-060, Atahan): Definition/Prioritize fixtures, the Document sample overlay and `?sample=1` removed; pages show "Not run yet" + real empty payloads until the AI has run. Checked on an empty DB in the browser and on the real data (cp1 76 / cp2 80 requirements, 252 / 259 targets).
 - 2026-10-12 — Postgres P2 done: timestamptz (25 system timestamps, read back as the same ISO text) + jsonb weights; exact pgvector retrieval in SQL (178/178 themes identical to numpy; HNSW later, Q-027); app role `sharksight_app` without UPDATE/DELETE on append-only tables (tests run as it); found + fixed pgvector `Vector` reads that would have broken every embedding step since P1. 99/99 API answers identical, 134 tests green. Next: P3 (backup/restore round trip, drop sqlite-vec, docs).
 - 2026-10-12 — Postgres P3 done (Atahan: "just drop the sqlite and finish the docs"; backup→restore round trip not run): sqlite-vec, the copy script, `db_path`, sqlite3 type hints and the 8 no-op `ensure()` stubs (+28 calls) removed; 99/99 API answers unchanged, 134 tests green. Docs brought current: STATE rewritten (phase, done, how to run, next up), README, PRODUCT, architecture, tech-stack, prioritization, foundation README folder map.
+- 2026-10-12 — All SQLite files deleted at Atahan's request (app.db, 7 snapshots, 2 SQLite backups incl. the last copy of the D-058 wave tables; ~1.8 GB) after a fresh `pg_dump` (`data/backups/sharksight-20261012T131941Z.dump`). Cloud deployment options researched.
+- 2026-10-12 — Cloud deployment (D-061, Q-029 resolved; numbered Q-028 at first, renumbered 2026-10-13): Atahan accepts the BMW data in the cloud; first Google Cloud (e2-micro) prepared, then switched to AWS: `deploy/compose.yaml` + `Caddyfile` (db, app, HTTPS/password proxy) and `deploy/aws/deploy.sh` (EC2 t4g.small, eu-central-1, image over SSH, data copy, tunnel, budget, destroy). Tested end to end on the Mac with `DEPLOY_TARGET=local`. Waiting for Atahan: AWS account (Free plan) + `aws configure`.
+- 2026-10-12 — Cloud deployment moved to Google Cloud (D-062; Atahan doesn't want AWS): `deploy/gcp/deploy.sh` (e2-micro free tier, us-central1, own network, SSH key in metadata, same push/data/tunnel/destroy flow), Dockerfile frontend stage builds natively for the amd64 image (built + smoke-tested). Waiting for Atahan: Google Cloud account + project, `gcloud auth login`.
+- 2026-10-13 — Lean repo (Atahan): vision and future work moved to `documents/future-work.md` for another repo — the generalized SharkSight idea (old Q-028, market scan + method packs), continuous intake (Q-027, its Next-up item) and PRODUCT.md's parallel-workstream note. No code changes.
+- 2026-10-13 — AWS deploy script `deploy/aws/` deleted (Atahan); D-061 stays in the log as superseded by D-062.

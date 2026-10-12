@@ -28,6 +28,7 @@ Then read only what your task needs:
 | Competitors, trends, brand guardrails (cited) | `documents/competitor-landscape.md` (long — search it) |
 | BMW Group Report 2025: deliveries, EV share, R&D, NK, digital | `documents/bmw-annual-report-2025.md` |
 | Unknown term or code | `documents/glossary.md` |
+| Vision / future work (parked for another repo — don't act on it here) | `documents/future-work.md` |
 | Fresh clone / setup | `foundation/README.md` → Fresh clone |
 
 ## Session end — mandatory
@@ -38,7 +39,7 @@ Then read only what your task needs:
 
 ## Core rules
 
-1. **Raw data is read-only and confidential.** `challange information document/` (typo is the real folder name) is git-ignored — never modify, move or commit it; never send it anywhere except the agreed LLM provider. Derived data goes to git-ignored `data/`.
+1. **Raw data is read-only and confidential.** `challange information document/` (typo is the real folder name) is git-ignored — never modify, move or commit it; never send it anywhere except the agreed LLM provider and, since D-061/D-062 (Atahan's call), the cloud deployment (Google Cloud VM). Derived data goes to git-ignored `data/`.
 2. **Stay in scope.** Customer-facing requirements only (features, equipment, comfort, space, usability, infotainment/digital, design & quality perception, driving experience, range/charging as experienced, variants/packages). **Out:** regulatory/homologation, engineering/component specs, pricing/business cases (rough effort as a factor is OK).
 3. **Traceability is non-negotiable.** Every finding links to ≥1 source item; every requirement links to ≥1 finding. Keep provenance (file, sheet, row/ID, URL + date for web).
 4. **Evidence vs. assumption.** Always separate evidence-backed statements from forward-looking assumptions (3–5 yr horizon); surface conflicting evidence instead of hiding it.

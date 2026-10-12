@@ -1,20 +1,8 @@
 # Open Questions
 
-Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When resolved, move to "Resolved" with the answer + linked decision.
+Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When resolved, move to "Resolved" with the answer + linked decision. Vision and future work (incl. the former Q-027, Q-028) live in `documents/future-work.md`, not here.
 
 ## Open
-
-### Q-028 — Generalize SharkSight beyond BMW into a domain-agnostic product?
-- Owner: Atahan · not blocking · raised 2026-10-12
-- Atahan is considering a version anyone can use for ground-up requirements engineering and product decisions. Market scan: artifact https://claude.ai/artifact/RPFgwBDcz8TFr46pbhLJYA (no tool covers evidence → measurable requirements → gated, per-segment priority → human decision → audit; closest are Productboard Spark upstream and Flow Engineering downstream).
-- Open: positioning (layer between VoC tools and RM/ALM tools?), beachhead (long-cycle physical products?), what becomes config (org/product line/segment, pluggable gates, generic ingest, optional 3D visualizer), integrations (Jira, Jama/Polarion, ReqIF, MCP), and how the BMW-specific rules (brand fit, plant/platform feasibility) map to generic gates.
-- 2026-10-12 — Method packs + evidence-depth idea (Scrum, Kanban, OKR, SAFe, discovery, stage-gate): artifact https://claude.ai/artifact/MMKqm5c2NihxE8uwGBu1SQ. Key point: evidence depth should scale with decision cost/reversibility (light / medium / deep), stories inherit evidence from their epic or opportunity; agile evidence comes mostly after the decision (outcome measurement). Proposal only.
-
-### Q-027 — Continuous data intake instead of fixed checkpoints (future)
-- Owner: Atahan · not blocking · raised 2026-10-11
-- Atahan: the two fixed checkpoints (D-040) will eventually go; new data should be digested automatically — e.g. a background agent that searches the web from time to time, and the user uploading new data into the knowledge base.
-- Open: how evidence is versioned without checkpoints (rolling snapshots? event time?), what a "run" is then, how the audit trail and the PM's decisions stay comparable over time, upload formats + validation + confidentiality (rule 1), and the cost cap for a background agent (D-054/D-055 limits apply).
-- Until then the Audit page and every screen keep the per-checkpoint separation (D-055).
 
 ### Q-026 — Gaps in the checkpoint research (D-040)
 - The agents' web-search quota ran out mid-run. Missing: China model-level sales (5 Series LWB / E-Class L / A6L; Gasgoo/CPCA rankings blocked), Japan & Korea market totals, UK/EU-wide model rankings (Dataforce/JATO), Genesis/Lincoln H1 2026, BMW 1/7 Series volumes in EU/CN, Chinese vs foreign brand share in China, China subsidy pauses, Germany EV-subsidy uptake, UK ZEV mandate, charging-cost vs fuel, in-car AI adoption data, OTA/subscriptions. Full list: `gaps` in `research/checkpoints/checkpoints.json`.
@@ -87,6 +75,9 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
 - Options: (a) leave both as they are and show them in the text only; (b) proposals for decided requirements plus a confidence cut when contradicting web evidence exists. Recommendation: (b), if there's time before the demo.
 
 ## Resolved
+
+### Q-029 — Cloud deployment → **Google Cloud, one e2-micro VM with the compose stack** (D-062, was AWS D-061)
+- Atahan 2026-10-12: data may be hosted in the cloud for this; Google Cloud first, then AWS (`deploy/aws/deploy.sh`), then AWS dropped for Google Cloud: `deploy/gcp/deploy.sh`.
 
 ### Q-007 — Team roles & who is the "PM" in the demo? → **Atahan, solo**
 - Atahan 2026-10-11: the hackathon is over; Atahan continues the project alone and is the PM in the app.

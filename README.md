@@ -27,6 +27,11 @@ and the database.
 `make test` runs pytest + the frontend typecheck. Images never contain the raw BMW data, `data/` or `.env`
 (`.dockerignore` is an allowlist); compose mounts `data/` and reads `.env`, and publishes ports on 127.0.0.1 only.
 
+## Deploying to Google Cloud
+
+One Compute Engine VM (free-tier e2-micro) runs the same containers plus an HTTPS + password proxy:
+`deploy/gcp/deploy.sh create`, then `deploy`, then `data` — see [`deploy/README.md`](deploy/README.md) (D-062).
+
 ## Repository layout
 
 ```
@@ -37,6 +42,7 @@ backend/            Python 3.12 (uv) — run every `uv run …` from here
   scripts/          demo states, benchmarks, pilot, checkpoint research merge
 frontend/           PM app: React + TypeScript (Vite) + three.js
 Dockerfile, compose.yaml   images (targets dev / prod) and compose profiles dev / prod
+deploy/             cloud deployment: the VM's compose + Caddyfile, deploy/gcp/deploy.sh
 research/           cited checkpoint research (JSON) + sales verification
 docs/pitch/         pitch deck, script, pptx builder
 foundation/         project memory: state, decisions, open questions, reference docs

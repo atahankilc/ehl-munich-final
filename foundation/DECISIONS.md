@@ -66,6 +66,8 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-058 | Old wave-pipeline tables dropped (11 tables) after a verified backup; schema no longer creates them | accepted |
 | D-059 | Move to PostgreSQL 17 + pgvector (one DB for relational, vectors, full-text, job queue); no graph DB; plan in `documents/postgres-migration.md` | accepted (done: P0–P3) |
 | D-060 | No sample data in the app: pages show an honest "Not run yet" state until the AI has produced their content; fixtures and `?sample=1` removed | accepted |
+| D-061 | Cloud deployment on AWS: one EC2 t4g.small (Free plan credits) running the compose stack + Caddy (HTTPS, password); Atahan accepts the BMW data in AWS (amends rule 1) | superseded by D-062 |
+| D-062 | Cloud deployment on Google Cloud instead of AWS: one free-tier e2-micro VM (us-central1) running the same compose stack; CLI `deploy/gcp/deploy.sh` | accepted |
 
 Keep this index in sync when adding a decision.
 
@@ -669,3 +671,48 @@ Template:
 - Context: pages 3 (Definition) and 4 (Prioritize) fell back to hand-written fixtures (made-up requirements, ladders, scores, PM decisions, sources) whenever their stages hadn't run at the checkpoint, and `?sample=1` forced them / overlaid sample decisions on page 5. Labelled "Sample data", but it still looked like results.
 - Decision: removed `definition/fixture.ts`, `prioritize/fixture.ts`, `document/sample.ts` and `?sample=1`. The data hooks expose `notRun` + a plain reason instead of `sample`; before a stage has run the pages render the API's real but empty payload (zones, domains, weights, car models stay real) with a "Not run yet" note. The prio-v1 factor list and default bands moved into `prioritize/data.ts` (they mirror the backend, not sample content). Writes no longer have a local-only sample branch.
 - Consequences: rule for every new screen — no fixture or placeholder content standing in for AI output (DESIGN.md → "No sample data"). Screenshots of features that need data must use real runs.
+
+## D-061 — Deploy on AWS: one EC2 instance with the compose stack
+- Date: 2026-10-12
+- Decided by: Atahan ("i dont care about data" — the confidential BMW data may be hosted in the cloud for this; first
+  Google Cloud, then "lets do aws")
+- Status: superseded by D-062 (Google Cloud); the data permission (amended rule 1) carries over
+- Context: Atahan wants to try a cloud deployment at no cost. The database can't run on a stateless container service
+  (Cloud Run, App Runner, Fargate without volumes): it needs a persistent disk. The app keeps state on disk
+  (`data/settings.json`, `data/models/`) and runs background work in-process (re-score worker), so one instance is
+  the honest shape for now.
+- Decision: one EC2 `t4g.small` (ARM, 2 GB) in `eu-central-1`, Ubuntu 24.04, 20 GB gp3, CPU credits "standard"; Docker
+  Compose with the same images: db (pgvector, C.UTF-8, tuned small, 2 GB swap), app (migrations on start, connects as
+  `sharksight_app`), proxy (Caddy: Let's Encrypt for `<ip>.sslip.io`, one basic-auth password, because the app has no
+  login). Only 80/443 public, SSH from the owner's IP, app and Postgres on localhost. No container registry: the image
+  goes over SSH (`docker save | docker load`). CLI `deploy/aws/deploy.sh` (create, build, push, up, data, deploy, url,
+  status, logs, ssh, tunnel, budget, allow-my-ip, stop, start, destroy); `DEPLOY_TARGET=local` runs the same steps on
+  the Mac — tested end to end (push, up, migrations, data copy of 12,370 source items, refusal / --replace, password
+  gate 401 → 200, API answers through the proxy).
+- Cost: AWS Free plan (6 months, $100 + up to $100 credits, account closes instead of billing); ≈ $20 / month of
+  credits for instance + disk + public IPv4. Google Cloud's always-free e2-micro (1 GB) was the first choice, prepared
+  and tested the same way, then dropped for AWS.
+- Alternatives considered: Cloud Run / App Runner + a managed database (state on disk and in-process jobs don't fit
+  yet); RDS (≈ $13–15 / month more, later); a separately hosted frontend (needless: the API serves it, same origin).
+- Consequences: before others use it — real logins (the proxy password is shared, `X-Actor` is still self-declared),
+  settings into the database, 3D models into S3, secrets in a secret store.
+
+## D-062 — Deploy on Google Cloud instead of AWS
+- Date: 2026-10-12
+- Decided by: Atahan ("aws didnt work … i need another way"; doesn't want AWS; chose Google Cloud)
+- Status: accepted (supersedes D-061; resolves Q-029; keeps its amendment of AGENTS rule 1: the BMW data may sit on this VM)
+- Context: the AWS path (D-061) was ready but Atahan didn't want to continue with AWS. The compose stack
+  (`deploy/compose.yaml`, `Caddyfile`) is provider-neutral; only the VM creation was AWS-specific.
+- Decision: one Compute Engine **e2-micro** (x86, 1 GB + 2 GB swap) in `us-central1-a`, Ubuntu 24.04, 30 GB pd-standard
+  — the always-free tier; `MACHINE_TYPE=e2-small` if 1 GB is too slow. Own VPC network `sharksight` (the default
+  network allows SSH from anywhere): 80/443 open, SSH only from the owner's IP. SSH key from `ssh-keygen` in instance
+  metadata (OS Login off on the VM), Docker + swap by startup script. Same flow as D-061: image over SSH, data copy,
+  tunnel, budget alert, destroy — CLI `deploy/gcp/deploy.sh`. The image is built for linux/amd64; the Dockerfile's
+  frontend stage now runs on the build platform (`--platform=$BUILDPLATFORM`) so only Python is emulated.
+- Cost: free tier (e2-micro, 30 GB standard disk, 1 GB egress in the US regions); the public IPv4 may cost a few $ a
+  month; new accounts' $300 / 90-day trial covers it.
+- Alternatives considered: Hetzner (≈ €4 / month ARM VM, EU), the Mac + Cloudflare Tunnel (free, data stays local,
+  only up while the Mac is on), any SSH host — Atahan chose Google Cloud.
+- Consequences: the data sits in a US region (the free tier has no EU region; `GCP_ZONE=europe-west3-a` works but
+  isn't free). Tested: the amd64 image builds and starts its Python and frontend; the remote steps are the same code
+  that D-061 tested end to end locally. Not yet run against a real Google Cloud project.

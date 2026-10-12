@@ -11,7 +11,7 @@ OpenAI cost: $0 — the LLM cache moves with the data.
 
 | Need | SQLite today | PostgreSQL |
 |---|---|---|
-| Background agents writing while the PM works (Q-027) | one writer at a time | MVCC, concurrent writers |
+| Background agents writing while the PM works (future work) | one writer at a time | MVCC, concurrent writers |
 | Scheduled / queued agent jobs | in-process threads | a job table with `FOR UPDATE SKIP LOCKED` |
 | Semantic search over the knowledge base (RAG) | numpy brute force over BLOBs | `pgvector` + HNSW index, hybrid with full-text search |
 | Uploads to the knowledge base | files would bloat the DB file | files on disk / object storage; provenance, chunks, embeddings in Postgres |
@@ -86,7 +86,7 @@ Keep every query's behaviour identical in the switch; use Postgres features only
 
 ## Out of scope here
 
-Continuous intake, the job queue and uploads (Q-027) — this migration only makes them possible. Login / roles for
+Continuous intake, the job queue and uploads (`future-work.md`) — this migration only makes them possible. Login / roles for
 people (needed before any shared deployment).
 
 ## P0 as built (2026-10-12)
@@ -155,7 +155,7 @@ people (needed before any shared deployment).
   embedding <=> theme, node_id DESC`), exact. `scripts/check_retrieval.py` compared it with the numpy search it
   replaced: 178 of 178 themes (cp1 71, cp2 107) identical. **No HNSW index yet, on purpose:** 2,192 nodes take
   milliseconds exactly, and an approximate index could return other neighbours. Add `CREATE INDEX … USING hnsw
-  (embedding vector_cosine_ops)` with `hnsw.iterative_scan` when the knowledge base grows past ~50k nodes (Q-027), and
+  (embedding vector_cosine_ops)` with `hnsw.iterative_scan` when the knowledge base grows past ~50k nodes, and
   re-run the check. Clustering and the 3D layout need full matrices and stay in numpy.
 - **Bug found:** pgvector returns `Vector` objects, not numpy arrays — every pipeline step reading embeddings would
   have failed on its next run since P1. `db.vec()` converts them; `tests/test_vectors.py` covers the round trip and the

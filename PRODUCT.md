@@ -37,7 +37,6 @@ Not a feedback dashboard and not a chatbot: a decision instrument. Every require
 - Evidence and assumption are always shown apart; conflicting evidence is surfaced, not hidden; markets without own comments are labelled.
 - OpenAI is the only LLM provider; $100 total budget; running a wave costs money and takes minutes.
 - Terminology to keep (English): Must / Should / Could; "5 Series · USA"; Strong / Good / Limited evidence / Assumption only; Expected / Differentiator / Delighter; To review / Challenged / Approved / Deferred / Rejected; "AI suggests" for unconfirmed priorities.
-- A parallel workstream (D-040+) adds requirement origins (competitors, trends, regulation, personas), a regulatory radar, customer & model groups, an offering matrix per market and market intelligence; the IA must have a home for these.
 
 ## Brand Commitments
 

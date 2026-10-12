@@ -22,3 +22,9 @@ frontend/dist/
 .impeccable/review/
 *.tsbuildinfo
 **/.impeccable/hook.cache.json
+
+# cloud deployment: SSH keys and local state (deploy/gcp/deploy.sh)
+deploy/**/.state
+deploy/**/*.key
+deploy/**/*.key.pub
+deploy/**/.known_hosts
