@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4S4NREXFFN2TSKQ8F2R7XEY",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 8,
+  "files_touched": [
+    ".dockerignore",
+    "AGENTS.md",
+    "Dockerfile",
+    "README.md",
+    "backend/src/api/main.py",
+    "backend/src/bmw_req/car_zones.py",
+    "deploy/README.md",
+    "deploy/render/load-data.sh",
+    "foundation/DECISIONS.md",
+    "foundation/OPEN_QUESTIONS.md",
+    "foundation/STATE.md",
+    "foundation/documents/tech-stack.md",
+    "render.yaml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 178,
+    "cache_creation_tokens": 340262,
+    "cache_read_tokens": 17244957,
+    "output_tokens": 77968,
+    "api_call_count": 89
+  }
+}

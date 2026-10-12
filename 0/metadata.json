@@ -1,0 +1,88 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4S4NREXFFN2TSKQ8F2R7XEY",
+  "session_id": "a6ed0b67-62c2-41be-9f0f-7363fe825452",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-12T22:45:31.973945Z",
+  "branch": "main",
+  "checkpoints_count": 8,
+  "save_step_count": 1,
+  "files_touched": [
+    ".dockerignore",
+    "AGENTS.md",
+    "Dockerfile",
+    "README.md",
+    "backend/src/api/main.py",
+    "backend/src/bmw_req/car_zones.py",
+    "deploy/README.md",
+    "deploy/render/load-data.sh",
+    "foundation/DECISIONS.md",
+    "foundation/OPEN_QUESTIONS.md",
+    "foundation/STATE.md",
+    "foundation/documents/tech-stack.md",
+    "render.yaml"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5[1m]",
+  "turn_id": "2b3183abd858",
+  "checkpoint_transcript_start": 289,
+  "transcript_lines_at_start": 289,
+  "compact_transcript_start": 37,
+  "token_usage": {
+    "input_tokens": 178,
+    "cache_creation_tokens": 340262,
+    "cache_read_tokens": 17244957,
+    "output_tokens": 77968,
+    "api_call_count": 89
+  },
+  "session_metrics": {
+    "turn_count": 10
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-12T22:45:31.89144Z",
+    "agent_lines": 90,
+    "agent_removed": 65,
+    "human_added": 0,
+    "human_modified": 6,
+    "human_removed": 6,
+    "total_committed": 96,
+    "total_lines_changed": 505,
+    "agent_percentage": 30.693069306930692,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 159,
+      "user_lines_removed": 5,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/scheduled_tasks.lock": 1,
+        ".dockerignore": 3,
+        "Dockerfile": 2,
+        "assets/models/README.md": 14,
+        "backend/src/api/access.py": 39,
+        "backend/src/api/main.py": 5,
+        "backend/src/bmw_req/car_zones.py": 2,
+        "backend/tests/test_access.py": 44,
+        "deploy/render/load-data.sh": 49
+      },
+      "user_removed_per_file": {
+        ".dockerignore": 1,
+        "backend/src/api/main.py": 2,
+        "backend/src/bmw_req/car_zones.py": 2
+      }
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 1,
+      "user_lines_removed": 0,
+      "agent_lines_added": 327,
+      "agent_lines_removed": 70,
+      "user_added_per_file": {
+        ".claude/scheduled_tasks.lock": 1
+      }
+    }
+  ]
+}

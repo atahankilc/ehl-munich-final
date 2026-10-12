@@ -1,0 +1,41 @@
+i want to remove anything not related to this working version of the app. And also, why 3d models are in ignored folder? How will we see them after we deploy it to the cloud?
+
+---
+
+go
+
+---
+
+yes remove the worktree and push
+
+---
+
+also i will update the repo's name to shark-sight and will call it officially SharkSight. So please update anythng referencing to ehl-munich-final
+
+---
+
+i renamed it, update the remote and push
+
+---
+
+google cloud da olmadı. Render diye bir site var, ora olur mu?
+
+---
+
+peki sadece db yi başka yere taşısak?
+
+---
+
+signal embeddingi neden silesin yav zaten 500 mb vermişle bizimki 444 daha ne olsun. ZAten üstüne bir veri sokma gibi bi durum yok appde. Bir de çok basit bir şekilde key falan koysak backend ve db ye, db gelen keyi kendi ile karşılaştırsa ve doğru ise kabul etse. hiç auth a falan gerek yok
+
+---
+
+neon hesabıoluşturuyorum da database name neondb diyo bir de object storage ekledim ihtiyacım var mı? Varsa bucket name ve visibility ne olsun
+
+---
+
+bunlar dısında fucntions var, ai gateaway var, neon auth var. Hangisini aktive etmeliyim söylersin, tabi gerek varsa. Bu api key işe yarar dersen bunlara gerek yok dersen ozman yapmayız
+
+---
+
+ayrıca renderda direkt repoyu seçebiliyorum, o yüzden bu repoyu render a hazır etmek için de bişey yapmak gerekliyse söyle bana.
