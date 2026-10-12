@@ -1,6 +1,8 @@
 # Decision Log
 
-Append-only. Never delete an entry; supersede it with a new one (`Superseded by D-xxx`).
+Append-only. Never edit a decision's substance; supersede it with a new one (`Superseded by D-xxx`).
+Pruned 2026-10-13 (Atahan, lean repo): entries only about retired parts (Streamlit app, wave pipeline, LangGraph,
+SQLite, AWS) — D-004, D-015, D-016, D-018, D-019, D-023, D-025, D-028, D-032, D-034–D-037, D-061 — are in git history.
 
 ## Index (read this first; open an entry only when relevant)
 
@@ -9,7 +11,6 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-001 | `foundation/` is the single source of project truth | accepted |
 | D-002 | Raw BMW data is read-only and stays out of git | accepted |
 | D-003 | Only humans approve/reject/defer requirements | accepted |
-| D-004 | Non-LLM tech stack | superseded by D-015–D-020 |
 | D-005 | Portfolio-level (multi-model/market/platform/plant); 5 Series deepest | accepted |
 | D-006 | OpenAI for all LLM work (framework open, Q-014) | accepted |
 | D-007 | Web-enriched 3-layer knowledge base | accepted |
@@ -20,28 +21,17 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-012 | Future-need projection (horizon, Kano) | accepted |
 | D-013 | Continuous re-prioritization with snapshots & change proposals | accepted |
 | D-014 | Budget plan ≈$60, thresholds $45/$70/$90, $20 demo reserve | accepted |
-| D-015 | Orchestration: LangGraph | superseded by D-057 |
-| D-016 | Storage: SQLite, relational tables | superseded by D-059 |
 | D-017 | No graph DB; relational links + graph view in the UI | accepted |
-| D-018 | Vector search / RAG: sqlite-vec in the same SQLite file | superseded by D-059 |
-| D-019 | UI: Streamlit (superseded by D-039) | superseded |
 | D-020 | Scaffold conventions (Python 3.12/uv, OpenAI SDK direct, Pydantic, pytest) | accepted |
 | D-021 | Demo slice G60 × US + G68 × CN; demo table set (Q-017) | accepted |
 | D-022 | Extraction v2 (Q-018 fixes) + `signal` / `verbatim_extraction` tables | accepted |
-| D-023 | Q-019 re-check of out-of-scope verdicts with sol; signal provenance column | accepted |
 | D-024 | Extraction v3: one scope rule, `support_question` flag (resolves Q-020) | accepted |
-| D-025 | Verbatim findings: embeddings + agglomerative clustering (0.35), per-market/per-wave metrics | accepted |
 | D-026 | Study, sales and option-list ingest; one study finding per item with z-score | accepted |
 | D-027 | Simulated ingest waves 1–3, LangGraph wave orchestrator (resolves Q-012) | accepted |
-| D-028 | Derivation v3 (sol), evidence linker, portfolio consolidation across lines | accepted |
 | D-029 | Scoring v1: weights, renormalization over available factors, gates, bands (resolves Q-004) | accepted; customer-voice gap handling amended by D-038 |
 | D-030 | Feasibility is non-blocking realization context (resolves Q-010, option b) | accepted |
 | D-031 | Reference layer + web research agents with citation-filtered URLs and quote verification | accepted |
-| D-032 | PM app: Streamlit pages over one service layer; access events logged | accepted |
 | D-033 | Wrapper falls back from Flex to standard when Flex is unavailable; per-job run caps | accepted |
-| D-036 | PM app organised by the PM's job: Home, guided Review, Priorities by market, AI suggestions; plain labels; demo tour | accepted |
-| D-035 | Later waves dedup new drafts against the whole backlog → `extend` proposals (resolves Q-022) | accepted |
-| D-037 | "How it works" page: one requirement traced through all 8 steps, rule beside concrete effect, score waterfall | accepted |
 | D-038 | Requirements must be product decisions: defects → quality hand-over, strict merging, no-comment markets can't outrank evidenced ones, one priority for Expected needs (amends D-028, D-029) | accepted |
 | D-039 | New PM frontend "Successor": React + three.js (`web/`) over a FastAPI JSON layer (`api/`), redesigned workflow (Briefing → Decide → Cars in 3D → Markets → Evidence → Process), replaces Streamlit (supersedes D-019) | accepted |
 | D-040 | Two real-date checkpoints (31 Jan / 31 Jul 2026) replace simulated waves; cited checkpoint research in `research/checkpoints/` | accepted (research layer); pipeline/UI integration pending |
@@ -54,7 +44,6 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-047 | Web-agent findings and the reference layer join the evidence pool (as research nodes, K 10 → 14); `relink` re-runs only evidence linking as a NEW contextualize run (lineage kept) | accepted |
 | D-048 | Requirement definition layer (page 3): define → specify → couple on checkpoints; customer-experienced metric + target ladder (baseline/threshold/target/stretch, PM picks the rung), every number cited/projected/assumption/gap; requirement links with a "via" resource; grouped by domain, shown on the 3D car | accepted |
 | D-049 | Evidence page shows sources only; the AI's reading of an item ("What the AI found", "Used as evidence") moves to Structure, with a "View in Structure" link | accepted |
-| D-034 | Validation fixes: rejected new requirement → status rejected; stale priority proposals superseded; honest new-requirement cause; Streamlit on localhost | accepted |
 | D-050 | Prioritization layer (page 4): deterministic `prio-v1` per requirement × line × market (Customer 45 / Business 35 / Future 20), bundle band, choose-jointly flags, enabler credit, PM rung changes the stored score, new LLM gate | accepted |
 | D-051 | Page 5 "Document" = BMW step 5 deliverable per line × market (all brief fields, JAN→JUL changes, MD/CSV export, logged); PM-editable weights + bands with preview; auto re-score after PM actions; challenged-decision alerts | accepted |
 | D-052 | Repo cleanup + monorepo layout: Streamlit app removed (completes D-039); `backend/` (Python) + `frontend/` (was `web/`) + `docs/pitch/`; root Makefile | accepted |
@@ -66,8 +55,7 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-058 | Old wave-pipeline tables dropped (11 tables) after a verified backup; schema no longer creates them | accepted |
 | D-059 | Move to PostgreSQL 17 + pgvector (one DB for relational, vectors, full-text, job queue); no graph DB; plan in `documents/postgres-migration.md` | accepted (done: P0–P3) |
 | D-060 | No sample data in the app: pages show an honest "Not run yet" state until the AI has produced their content; fixtures and `?sample=1` removed | accepted |
-| D-061 | Cloud deployment on AWS: one EC2 t4g.small (Free plan credits) running the compose stack + Caddy (HTTPS, password); Atahan accepts the BMW data in AWS (amends rule 1) | superseded by D-062 |
-| D-062 | Cloud deployment on Google Cloud instead of AWS: one free-tier e2-micro VM (us-central1) running the same compose stack; CLI `deploy/gcp/deploy.sh` | accepted |
+| D-062 | Cloud deployment on Google Cloud: one free-tier e2-micro VM (us-central1) running the same compose stack; CLI `deploy/gcp/deploy.sh` | accepted |
 
 Keep this index in sync when adding a decision.
 
@@ -108,12 +96,6 @@ Template:
 - Decided by: derived from challenge brief ("PM firmly in control of every decision")
 - Status: accepted
 - Decision: AI may only create requirements in `proposed` status and suggest edits/scores. Transitions to `approved` / `rejected` / `deferred` require a human actor and a rationale, both written to the audit trail.
-
-## D-004 — Tech stack (non-LLM parts)
-- Date: 2026-10-10
-- Decided by: agent (proposed); LLM part superseded by D-006
-- Status: superseded by D-015–D-020 (Q-014 resolved 2026-10-10).
-- Proposal on the table: Python/FastAPI/SQLite backend, Next.js frontend — see `documents/tech-stack.md`.
 
 ## D-005 — Portfolio-level architecture (multi-model, multi-market, platform- and plant-aware)
 - Date: 2026-10-10
@@ -270,24 +252,6 @@ Template:
   - **Levers if the warn threshold hits early:** cut dev runs from 3 to 2 (≈ −$7); luna for all rationale (≈ −$5); web-search cap 600 (≈ −$5).
   - The fallback `gpt-5-mini` costs 2.5–4× luna. Use it only if luna's structured-output quality fails the pilot.
 
-## D-015 — Orchestration: LangGraph
-- Date: 2026-10-10
-- Decided by: Atahan (approved the agent's Q-014 recommendation table)
-- Status: accepted
-- Context: Q-014. PM gates and re-prioritization runs need human-in-the-loop pauses and checkpoints (D-003, D-013).
-- Decision: multi-step pipelines run as LangGraph graphs. LangChain is **not** adopted: graph nodes call OpenAI through our own budget-guarded wrapper (D-014), never through LangChain model classes.
-- Alternatives considered: OpenAI Agents SDK; LangChain; plain SDK + own pipeline.
-- Consequences: no graph code until there is a step to orchestrate; the wrapper stays the only path to OpenAI.
-
-## D-016 — Storage: SQLite, relational tables
-- Date: 2026-10-10
-- Decided by: Atahan (approved the agent's Q-014 table, which offered "SQLite or Postgres"; agent picked SQLite)
-- Status: accepted
-- Context: Q-014. Audit trail, run snapshots and provenance are naturally rows.
-- Decision: one SQLite file at `data/app.db` (git-ignored). Postgres not used: SQLite needs no server and holds vectors too (D-018).
-- Alternatives considered: Postgres (+pgvector); DuckDB.
-- Consequences: append-only tables for audit/usage; concurrent writers serialized via `BEGIN IMMEDIATE`. The demo data model (which of the ~25 logical entities to build) is still open → Q-017.
-
 ## D-017 — No graph DB
 - Date: 2026-10-10
 - Decided by: Atahan (approved the agent's Q-014 table)
@@ -296,25 +260,6 @@ Template:
 - Decision: model the chain as relational link tables in SQLite; render it as a graph in the UI. No Neo4j/Kùzu.
 - Alternatives considered: Neo4j, Kùzu.
 - Consequences: graph queries are SQL joins / recursive CTEs.
-
-## D-018 — Vector search / RAG: sqlite-vec
-- Date: 2026-10-10
-- Decided by: Atahan (approved the agent's Q-014 table, which offered "sqlite-vec or LanceDB"; agent picked sqlite-vec)
-- Status: accepted
-- Context: Q-014. Retrieval must keep citations traceable to the source item.
-- Decision: embeddings (`text-embedding-3-small`, D-010) stored with `sqlite-vec` in the same `data/app.db`; every vector row carries its source ID. LanceDB not used, to keep one store.
-- Alternatives considered: LanceDB, Chroma, Qdrant, pgvector.
-- Consequences: needs a Python build that allows SQLite extension loading (uv's Python 3.12 does).
-
-## D-019 — UI: Streamlit
-- **Superseded by D-039 (2026-10-11): React + three.js frontend over a FastAPI layer.**
-- Date: 2026-10-10
-- Decided by: Atahan (approved the agent's Q-014 table, which offered "Streamlit or FastAPI + simple frontend"; agent picked Streamlit)
-- Status: accepted
-- Context: Q-014. BMW values reasoning over architecture; hackathon pace (AGENTS rule 18).
-- Decision: one Python Streamlit app for the PM review UI. No separate backend/frontend; Next.js proposal from D-004 dropped.
-- Alternatives considered: FastAPI + Next.js; FastAPI + simple frontend.
-- Consequences: whole app is Python.
 
 ## D-020 — Scaffold conventions
 - Date: 2026-10-10
@@ -360,17 +305,6 @@ Template:
 - Alternatives considered: storing signals in `source_item.meta_json` — rejected, not queryable for clustering.
 - Consequences: changing the prompt means a new `EXTRACTOR_VERSION`; old results stay for comparison.
 
-## D-023 — Re-check out-of-scope verdicts with sol (Q-019 option a)
-- Date: 2026-10-10
-- Decided by: Atahan ("run the Q-019 re-check"); implementation by agent
-- Status: accepted
-- Decision:
-  - `bmw_req.pipeline.recheck`: verbatims with `in_scope = 0` are re-examined by sol (low effort, Flex) with the first-pass reason and an instruction to extract in-scope parts of mixed verbatims.
-  - A flip updates `verbatim_extraction` (in_scope, `recheck_llm_usage_id`), adds signals under the same extractor version, and writes an `audit_event` with before/after. Confirmed verdicts only get `recheck_llm_usage_id`.
-  - New column `signal.llm_usage_id` (call/model that produced each signal), backfilled for existing signals; small column-migration helper in `db.py`.
-- Consequences: first-pass and re-check signals are distinguishable via `llm_usage.job`. The re-check used a looser rule than the first pass for "customer asked how X works" verbatims → Q-020.
-
-
 ## D-024 — Extraction v3: one scope rule for all derivatives (resolves Q-020)
 - Date: 2026-10-10
 - Decided by: agent (Atahan delegated full authority over the challenge on 2026-10-10: "you are the sole competitor")
@@ -380,12 +314,6 @@ Template:
 - Validation: 50-verbatim check incl. 25 recheck flips; benchmark vs BMW labels (`scripts/benchmark_extraction.py`, aggregates only): G60 macro recall v2 0.707 / v3 0.693, lenient recall unchanged; v3 in-scope 91% vs 96% — the 213 newly excluded verbatims are mostly BMW "overall technology" likes and unclassified rows (generic praise), accepted.
 - Cost: ≈ $0.31 for all three derivatives (luna Flex).
 
-## D-025 — Verbatim findings by clustering
-- Date: 2026-10-10 · Decided by: agent · Status: accepted
-- Decision: signals embedded (`text-embedding-3-small`, `signal_embedding` vec table, rowid = signal.id); agglomerative clustering (cosine, average linkage, distance threshold 0.35) within derivative × polarity (improve vs like) × category; clusters with ≥ 3 distinct verbatims become findings (`finding_signal`, `finding_source` with the best quote per verbatim); luna labels title/summary/type/coherence. Findings span the derivative's markets; `metrics_json.by_wave[w].markets[m]` holds verbatims, share of that market's in-scope base, severity-weighted count, types, channels, engines.
-- Threshold sweep on G60 (0.30–0.50): 0.35 → 243 findings, 93% signal coverage, mean centroid cohesion 0.88. Result: G60 243, F70 166, G70 see STATE.
-- Consequence: findings are never rebuilt in place once requirements link to them (the CLI refuses).
-
 ## D-026 — Study, sales, option-list ingest; study findings
 - Date: 2026-10-10 · Decided by: agent · Status: accepted
 - Decision: deterministic ingest (`bmw_req.ingest.study/sales/options`); study → `study_metric` with z-score/rank within each model × market column (CN/EU means, US net top2−bottom3); one `finding` per study item (`satisfaction_gap` z ≤ −0.8, `satisfaction_strength` z ≥ 0.8, else `satisfaction_level`) — only notable ones are shown to derivation, all can be linked by the evidence linker. Option lists: luna turns DE price-list pages into 458 equipment items, every source line verified against the page text ($0.02). US/CN equipment = DE is an assumption. F70 China 2024 sales cell is a formula with value 0 (noted).
@@ -393,10 +321,6 @@ Template:
 ## D-027 — Simulated ingest waves and wave orchestrator (resolves Q-012)
 - Date: 2026-10-10 · Decided by: agent · Status: accepted
 - Decision: `source_item.wave`: feedback split 50/50 per derivative × channel × market stratum (seed 2026); wave 1 = first half + 2024 sales + option lists + reference + baseline web; wave 2 = second half + customer study + 2025/2030 sales; wave 3 = "market event" web research (2026 launches). Labelled as a simulation everywhere. `bmw_req.pipeline.graph` (LangGraph): open_wave → derive → link_evidence → fit_checks → prioritize. Clusters are computed on all data; a finding is visible from its first wave with wave-specific metrics (documented leak of cluster structure, not of counts).
-
-## D-028 — Derivation v3, evidence linker, portfolio consolidation
-- Date: 2026-10-10 · Decided by: agent · Status: accepted
-- Decision: sol (high effort, Flex) per vehicle line gets top-110 pain/want + top-30 strength findings with per-market metrics, notable study findings, web findings, market profiles, brand guardrails, sales and existing requirements; proposes NEW requirements only (incremental). Every cited finding/target validated; drafts without valid evidence dropped. derive-v3 prompt fixes after the dry run: incremental effort scale and evidence-based market targeting (v2 put nearly every requirement on every market and rated most effort L). Wave 1 drafts of all lines are consolidated by sol into portfolio requirements where the same need appears in several lines. After derivation the luna evidence linker attaches study items (relation from z: supports/contradicts/context) and web findings per target market.
 
 ## D-029 — Scoring v1 (resolves Q-004)
 - Date: 2026-10-10 · Decided by: agent · Status: accepted
@@ -410,42 +334,9 @@ Template:
 - Date: 2026-10-10 · Decided by: agent · Status: accepted
 - Decision: curated reference data (`bmw_req/reference_data.py`) loaded with one `source_item(kind=reference)` per cited original source (96; 21 flagged unverified); platforms, plants, production, 21 competitor models, market profiles, BMW guardrails (status "proposed — PM sign-off needed"). Research agents (competitor scout, review miner, trend scout, market profile, market analyst; luna + web_search, ≤ 4 calls/task) return structured evidence; an item is kept only if its URL is among the response's citations (10 dropped), quotes verified by fetching the page where possible (131 verified). 41 tasks (6 tagged wave 3). Web findings grouped per derivative × market by luna (152). Spend $1.69.
 
-## D-032 — PM app
-- Date: 2026-10-10 · Decided by: agent · Status: accepted
-- Decision: Streamlit app (`app.py`, `ui/`), 11 pages (overview, portfolio, backlog, requirement detail, change inbox, market conflicts, findings explorer, weights & runs, audit trail, export, budget). All writes go through `bmw_req.service` (rationale + named actor mandatory, append-only audit). View and export are logged as access events. Challenge = sol answer over linked evidence + semantic search; its edits become change proposals.
-
 ## D-033 — Flex fallback and per-job run caps
 - Date: 2026-10-10 · Decided by: agent · Status: accepted
 - Decision: on `429 flex_unavailable` the wrapper settles the reservation at $0 and retries once on standard processing (same cache key). Run caps in `run_extract` count only the run's own job, so parallel jobs can't trip them (a G60 run aborted for that reason).
-
-## D-034 — Validation fixes (judge/QA pass)
-- Date: 2026-10-10 · Decided by: agent (validation session, clear bugs only) · Status: accepted
-- Context: end-to-end validation (`documents/validation-report.md`) found bugs that would show in a live demo.
-- Decision:
-  - `service.decide_proposal`: rejecting a `new_requirement` proposal sets the requirement to `rejected` (human action, rationale, audited). Before, it stayed `proposed`, in the backlog and in every scoring run, although the inbox says "reject to drop it".
-  - `scoring.run_prioritization`: every re-score supersedes open priority proposals for that target; before, a stale proposal stayed open when a later run agreed with the PM again.
-  - `graph.node_derive`: the cause of a wave ≥ 2 `new_requirement` proposal says whether it cites a finding new in that wave; before, it always claimed "new evidence" (false for 5 of 25 in the demo).
-  - `.streamlit/config.toml`: `server.address = "localhost"` — the app served confidential BMW data on all interfaces (AGENTS rule 1). For a demo on another device, change it deliberately.
-- Consequences: 2 regression tests (46 total). The `demo` snapshot is unaffected (no rejected new requirements, no stale proposals in it).
-
-## D-035 — Dedup later-wave drafts against the whole backlog (resolves Q-022)
-- Date: 2026-10-10 · Decided by: Atahan ("fix the duplicates and rebuild the demo"), implemented by agent · Status: accepted
-- Context: wave ≥ 2 derivation saw only its own line's requirements and consolidation only merged one run's drafts → ~9 cross-line near-duplicates in the demo.
-- Decision: after per-run consolidation, one sol call (`requirements.match_existing`, job `match_existing:wN`) maps every new draft to an existing non-rejected requirement of ANY line with the same need, or none. A match becomes an `extend` change proposal on the existing requirement (its new targets + new evidence links; audit `match_existing` by AI). Only unmatched drafts are stored as new requirements. Accepting (`service.extend_requirement`) adds the targets/links as human-attributed audit events; new targets are scored by the next run and fit-checked in the next wave (`fit.run` now checks every target without a brand check). Derivation prompts are unchanged, so earlier waves replay from cache.
-- Alternatives: show other lines' requirements to derivation (prompt change, re-derivation of all waves); AI extends `proposed` requirements directly (allowed by rule 5, but less visible to the PM).
-- Consequences: demo rebuilt ($0.45): 39 requirements (was 53), 151 targets, 14 duplicate drafts → 7 accepted merges (wave 2, scripted) + 7 open merge proposals in the wave-3 inbox. Top-20 pain coverage F70 0.95 · G60 0.95 · G70 0.75. Borderline pairs left by the matcher: REQ-0015/0033 (luggage), REQ-0012/0014/0018 (assistance, wave-1). Wave-1 drafts are still only consolidated among themselves.
-
-## D-036 — PM app organised by the PM's job, in plain language
-- Date: 2026-10-10 · Decided by: Atahan ("build it"), implemented by agent · Status: accepted (amends D-032's page set)
-- Context: the 11 pages mirrored the data model (pipeline funnel, 20-column backlog, 6-tab requirement page, codes like G60×US / E1 / Kano); Atahan couldn't follow the flow — a judge won't either.
-- Decision: sidebar groups *Start here* (Home, Review requirements, Priorities by market, AI suggestions), *Explore & trace* (Requirement details, Market conflicts, Findings explorer, Audit trail), *Under the hood* (Pipeline & data, All requirements table, Portfolio coverage, Weights & runs, Export, Budget). Home leads with the question, a 6-step "how it works", the wave stepper (moved from Overview), what needs a decision and top priorities for `portfolio.FOCUS_TARGETS`. Review = one requirement at a time: the need, customer comments (counts, quotes, small samples and markets without comments flagged), study, cited web evidence, conflicts, AI suggestion per car · market, decision form (reason required; optional "accept the AI priorities" per unset market) and "Ask the AI". Plain labels in `ui/common.py` (car/market names, evidence levels, Kano, horizon, status); AI suggestions are always marked as such. Optional 7-step demo tour. All writes still go through `service.py`.
-- Consequences: no pipeline/schema change; existing detail pages unchanged apart from titles. The tour flag lives in plain session state (widget state didn't survive `st.switch_page`).
-
-## D-037 — "How it works": follow one requirement step by step
-- Date: 2026-10-11 · Decided by: Atahan ("improve the process and UI by showing how data is handled step by step and how decisions are made"), implemented by agent · Status: accepted (extends D-036)
-- Context: the pipeline graph (Pipeline & data) shows counts, and Requirement details shows tabs per artefact, but nowhere does a reader see one piece of data travel end to end, nor the rule that decided each step.
-- Decision: new page `ui/journey.py` in *Start here*, second after Home. Pick a requirement and a car · market; 8 step cards (collect → read/extract → group into themes → draft → fit checks → score → PM decides → new wave re-scores). Each card: who acts (AI with model / System / PM), the rule in plain words, live totals and AI spend for that step on the left; on the right the concrete example — one real verbatim with provenance, the signals the AI extracted (quote verified), the theme it landed in with per-market share, the draft (evidence vs assumption, horizon reason), the four fit verdicts with their effect (gate / modifier / shown / context), the score as a waterfall (factor points after renormalization → evidence-confidence cut → market-fit and effort modifiers → score, with Should 45 / Must 60 lines) plus the factor table, the PM's audited decisions, and the score per wave run with the AI's stated cause. Markets without comments (China) say so and borrow the example from another market of the same requirement. Linked from Home ("how it works" strip), Review ("Walk through it step by step") and the demo tour (step 2).
-- Consequences: read-only; no pipeline, schema or scoring change; thresholds are imported from `pipeline/scoring.py` so the page can't drift from the formula (clustering 0.35 / ≥3 comments is restated in text).
 
 ## D-038 — Requirements must be product decisions; evidence-poor markets can't top the ranking
 - Date: 2026-10-11 · Decided by: Atahan (PM review of the first queued requirement: "what kind of analysis is this?"), implemented by agent · Status: accepted (amends D-028 derivation/consolidation and D-029 scoring)
@@ -671,31 +562,6 @@ Template:
 - Context: pages 3 (Definition) and 4 (Prioritize) fell back to hand-written fixtures (made-up requirements, ladders, scores, PM decisions, sources) whenever their stages hadn't run at the checkpoint, and `?sample=1` forced them / overlaid sample decisions on page 5. Labelled "Sample data", but it still looked like results.
 - Decision: removed `definition/fixture.ts`, `prioritize/fixture.ts`, `document/sample.ts` and `?sample=1`. The data hooks expose `notRun` + a plain reason instead of `sample`; before a stage has run the pages render the API's real but empty payload (zones, domains, weights, car models stay real) with a "Not run yet" note. The prio-v1 factor list and default bands moved into `prioritize/data.ts` (they mirror the backend, not sample content). Writes no longer have a local-only sample branch.
 - Consequences: rule for every new screen — no fixture or placeholder content standing in for AI output (DESIGN.md → "No sample data"). Screenshots of features that need data must use real runs.
-
-## D-061 — Deploy on AWS: one EC2 instance with the compose stack
-- Date: 2026-10-12
-- Decided by: Atahan ("i dont care about data" — the confidential BMW data may be hosted in the cloud for this; first
-  Google Cloud, then "lets do aws")
-- Status: superseded by D-062 (Google Cloud); the data permission (amended rule 1) carries over
-- Context: Atahan wants to try a cloud deployment at no cost. The database can't run on a stateless container service
-  (Cloud Run, App Runner, Fargate without volumes): it needs a persistent disk. The app keeps state on disk
-  (`data/settings.json`, `data/models/`) and runs background work in-process (re-score worker), so one instance is
-  the honest shape for now.
-- Decision: one EC2 `t4g.small` (ARM, 2 GB) in `eu-central-1`, Ubuntu 24.04, 20 GB gp3, CPU credits "standard"; Docker
-  Compose with the same images: db (pgvector, C.UTF-8, tuned small, 2 GB swap), app (migrations on start, connects as
-  `sharksight_app`), proxy (Caddy: Let's Encrypt for `<ip>.sslip.io`, one basic-auth password, because the app has no
-  login). Only 80/443 public, SSH from the owner's IP, app and Postgres on localhost. No container registry: the image
-  goes over SSH (`docker save | docker load`). CLI `deploy/aws/deploy.sh` (create, build, push, up, data, deploy, url,
-  status, logs, ssh, tunnel, budget, allow-my-ip, stop, start, destroy); `DEPLOY_TARGET=local` runs the same steps on
-  the Mac — tested end to end (push, up, migrations, data copy of 12,370 source items, refusal / --replace, password
-  gate 401 → 200, API answers through the proxy).
-- Cost: AWS Free plan (6 months, $100 + up to $100 credits, account closes instead of billing); ≈ $20 / month of
-  credits for instance + disk + public IPv4. Google Cloud's always-free e2-micro (1 GB) was the first choice, prepared
-  and tested the same way, then dropped for AWS.
-- Alternatives considered: Cloud Run / App Runner + a managed database (state on disk and in-process jobs don't fit
-  yet); RDS (≈ $13–15 / month more, later); a separately hosted frontend (needless: the API serves it, same origin).
-- Consequences: before others use it — real logins (the proxy password is shared, `X-Actor` is still self-declared),
-  settings into the database, 3D models into S3, secrets in a secret store.
 
 ## D-062 — Deploy on Google Cloud instead of AWS
 - Date: 2026-10-12

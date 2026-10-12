@@ -7,8 +7,8 @@ related_targets: []
 
 # Successor — PM cockpit (web app)
 
-Scope: the whole PM web app (`frontend/`), Operate mode, demo-first (live pitch to BMW judges on laptop/projector) but a real tool.
-Audience/job: PM decides what successor cars offer per market; judges watch the process.
+Scope: the whole PM web app (`frontend/`), Operate mode, a real tool that also has to read well when shown live.
+Audience/job: PM decides what successor cars offer per market; viewers follow the process.
 Constraints: dark only, BMW-like blue accent, no BMW logo, English + current domain terms, localhost only.
 Inspiration pinned by user: Fey (web) — calm near-black, dense refined data, floating dock, ⌘K, AI recap card, right drawers.
 

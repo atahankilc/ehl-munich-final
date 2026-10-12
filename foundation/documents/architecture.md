@@ -39,7 +39,7 @@ The requirements process runs **~2 years**. Steps 1–9 repeat whenever somethin
 ```
 new ingest batch (feedback wave, study, sales update, competitor launch, web refresh)
   → re-extract / update findings (only affected ones)
-  → derive new drafts; drafts that restate an existing requirement (any line) become `extend` proposals, not duplicates (D-035)
+  → derive new drafts
   → future-need projection refresh
   → prioritization run (snapshot of all requirement-target scores & ranks)
   → change proposals (priority / content / link_finding / new_requirement / extend) → PM accepts/rejects
@@ -123,29 +123,6 @@ Requirement IDs are global (`REQ-0001`); scope lives in `requirement_target`, so
 - AI events record model name + prompt/agent version; web research events record queries and URLs.
 - Access events (view/export) logged as well.
 
-## Key UI views (planned)
-
-- **Organised by the PM's job (D-036):** *Start here* = Home (question, wave stepper, what needs a decision, top priorities), Review requirements (guided queue, one requirement at a time in plain language), Priorities by market (Must/Should/Could board + market comparison), AI suggestions (the change inbox), plus How it works (D-037: one requirement traced step by step — rule for all data on the left, its concrete effect on this requirement on the right, score as a waterfall). *Explore & trace* and *Under the hood* hold the detail views below. Optional demo tour (8 steps).
-- **Portfolio matrix** — derivatives × markets, with platform and plant, sales trend, top findings, requirement count.
-- **Requirement detail** — evidence chain (sources → findings → requirement), fit checks, score breakdown, audit timeline, approve/reject/edit/challenge.
-- **Competitor view** — per segment × market: who sells what, strengths, gaps vs. BMW.
-- **Ranked backlog** — per market (EU / US / CN side by side), adjustable weights, visible re-ranking diff.
-- **Priority history** — timeline per requirement across prioritization runs, each move annotated with its cause (new evidence, weight change, PM decision).
-- **Change inbox** — open AI change proposals after a new ingest batch; PM accepts/rejects with rationale.
-- **Market conflict view** — requirements whose priority diverges strongly between markets, with realization options.
-
 ## PM frontend v2 (D-041, replaces the D-039 screens)
 
 Black, near-textless, 3D-first ("track-while-scan"). App-wide checkpoint state (`frontend/src/state/checkpoint.tsx`, URL `?cp=`, ← / →) and a bottom-right sweep control; switching checkpoints animates a sweep that acquires the new contacts. First screen **Scan** (`/`): the comment galaxy plus range rings for the other raw sources (study items as z-score ticks, option dots, sales bars with the 2030 forecast as outline, dated research on a time ring); hover shows the comment, click opens it. API: `backend/src/api/routers/scan.py` (`/api/checkpoints`, `/api/scan/points|comment|sources`). Further screens are added per rebuilt pipeline stage.
-
-## PM frontend (D-039, superseded by D-041 — kept for history)
-
-`frontend/` (React + three.js) over `api/` (FastAPI, localhost). Workflow, one destination per PM job:
-- **Briefing** — what the last wave changed (compiled from the latest run, no AI), portfolio pulse car × market, movers, event feed.
-- **Decide** — one queue for everything needing a human: AI priority changes, merges (`extend`), requirements to review, AI content/evidence edits. Reason required; brand-gate override inline; "Ask the AI" = challenge job.
-- **Cars** — today's car in 3D (glTF in `data/models/`), requirements pinned to zones (`car_zones`), market switch, same-car market comparison, market profile, competitors, plants, today's equipment per zone.
-- **Markets** — profile, what the market asks of each car, where it disagrees, cited signals, competitors, study stand-outs.
-- **Requirement** — score per market (arc), waterfall, history across runs, evidence chain requirement → finding → signal → comment, fit, audit, challenges, "Trace step by step".
-- **Evidence** — findings library, gaps (uncovered themes), quality hand-over. **Process** — wave timeline + open next wave (job), runs & weights, audit, deliverable export, budget, demo snapshots.
-Writes went through `bmw_req.service` / `pipeline.scoring` (actor from `X-Actor`, rationale ≥5 chars, ActionError → 409). All of this was removed with the wave pipeline (D-057); today's writes are in `api/routers/definition.py` and `prioritize.py`.
-

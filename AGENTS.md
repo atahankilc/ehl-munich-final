@@ -55,7 +55,7 @@ Then read only what your task needs:
 14. **Future, not just past.** Derive what customers will need at successor launch (3–5 yr) from predecessor feedback + competitors + trends; tag horizon, Kano class and assumptions (D-012).
 15. **Living process, not a one-shot list.** ~2-year process: every prioritization run is snapshotted; AI only *proposes* priority/status changes with their cause; PM decides; history is always visible (D-013).
 16. **Adjustable OpenAI budget** (was $100 total for the hackathon; limits now set by Atahan in the app, D-054: "ask before spending above" + "stop at"). Cheap model (`gpt-6-luna`) for bulk extraction/classification/summaries; `gpt-6.1-sol` only for reasoning-heavy steps; all calls through the budget-guarded wrapper; Flex/Batch + caching; capped web-search calls; pilot before full runs; update the Budget section in `foundation/STATE.md` after paid runs (D-010, D-014; limits D-054). Never pass `BUDGET_CONFIRM=1`, raise a limit or change agent settings / tiers / prices (AI agents page, D-055) on your own — ask Atahan.
-17. **Don't decide architecture alone.** The stack is fixed in D-015–D-020; changing it (new framework, store, LangChain, …) needs the team first. The demo data model is open (Q-017).
+17. **Don't decide architecture alone.** The stack is fixed (`documents/tech-stack.md`: D-017, D-020, D-039, D-052, D-053, D-059); changing it (new framework, store, LangChain, …) needs Atahan first.
 18. **Hackathon pace.** Ship a working demo path end-to-end before polishing; prefer simple, cached, deterministic pipelines over clever ones. Don't build what's not needed for the demo.
 
 ## Quick facts

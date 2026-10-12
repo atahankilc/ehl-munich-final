@@ -1,4 +1,4 @@
-"""PostgreSQL store (D-059) behind the connection surface the code was written against (sqlite3, D-016).
+"""PostgreSQL store (D-059) behind the connection surface the code was written against (originally sqlite3).
 
 The schema lives in Alembic migrations (`backend/migrations/`, `make migrate`), not here. `connect()` returns a thin
 wrapper over a psycopg 3 connection that keeps the old behaviour, so ~500 query sites stay unchanged:

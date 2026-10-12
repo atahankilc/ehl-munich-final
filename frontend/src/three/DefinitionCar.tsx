@@ -1,6 +1,6 @@
 // Today's car for page 3 (Definition), inside the shared scan canvas. Restyled for the black instrument field
 // (DESIGN.md): no environment map, floor or turntable; the body becomes a quiet graphite study model so the
-// requirement pins and link arcs carry the colour. Normalised like CarStage: front = +X, up = +Y, wheels on y = 0,
+// requirement pins and link arcs carry the colour. Normalised: front = +X, up = +Y, wheels on y = 0,
 // length CAR_LENGTH (frame.ts). The parent scales it into the scene.
 import { Component, Suspense, useEffect, useLayoutEffect, useMemo, useRef, type MutableRefObject, type ReactNode } from "react";
 import { useFrame } from "@react-three/fiber";

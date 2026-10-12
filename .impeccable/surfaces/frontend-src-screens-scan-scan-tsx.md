@@ -7,7 +7,7 @@ related_targets: []
 
 # Scan — raw evidence space
 
-Mode: Operate. Audience: the BMW PM (Atahan) and hackathon judges on a laptop/projector. Job: see every piece of raw evidence the system holds, as one space, at a checkpoint; switch Jan 26 → Jul 26 and see what the second sweep added. Constraints: localhost only (confidential comments), black only, near-textless, 3D-first; checkpoint 2 always builds on checkpoint 1 (tracks, not snapshots).
+Mode: Operate. Audience: the BMW PM (Atahan); sometimes shown live. Job: see every piece of raw evidence the system holds, as one space, at a checkpoint; switch Jan 26 → Jul 26 and see what the second sweep added. Constraints: localhost or the password-protected cloud VM (confidential comments, D-062), black only, near-textless, 3D-first; checkpoint 2 always builds on checkpoint 1 (tracks, not snapshots).
 
 ## Direction contract
 THESIS: each checkpoint is a radar sweep over one fixed evidence space; the app shows what a sweep acquired and how every track changed. Refuses the sidebar-plus-chart-cards dashboard.

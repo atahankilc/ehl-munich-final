@@ -44,7 +44,6 @@ frontend/           PM app: React + TypeScript (Vite) + three.js
 Dockerfile, compose.yaml   images (targets dev / prod) and compose profiles dev / prod
 deploy/             cloud deployment: the VM's compose + Caddyfile, deploy/gcp/deploy.sh
 research/           cited checkpoint research (JSON) + sales verification
-docs/pitch/         pitch deck, script, pptx builder
 foundation/         project memory: state, decisions, open questions, reference docs
 data/               derived data, settings, 3D models, backups (git-ignored); the database lives in Docker
 ```

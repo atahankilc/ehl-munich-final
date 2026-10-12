@@ -8,7 +8,7 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
 - The agents' web-search quota ran out mid-run. Missing: China model-level sales (5 Series LWB / E-Class L / A6L; Gasgoo/CPCA rankings blocked), Japan & Korea market totals, UK/EU-wide model rankings (Dataforce/JATO), Genesis/Lincoln H1 2026, BMW 1/7 Series volumes in EU/CN, Chinese vs foreign brand share in China, China subsidy pauses, Germany EV-subsidy uptake, UK ZEV mandate, charging-cost vs fuel, in-car AI adoption data, OTA/subscriptions. Full list: `gaps` in `research/checkpoints/checkpoints.json`.
 - **China round 2 done (2026-10-11):** +207 items (china_models, china_market, china_context): FY2025/H1 2026 retail for A6L / E-Class / 5 Series, luxury registrations 7 Series / S-Class / S800 / Maybach S, domestic-brand share 64→69 %, luxury retail −30 % in H1, CPCA forecast cut, trade-in fund, L2/NOA standard, McKinsey 2026. Many China model figures are Yiche sums (T3, unverified). Still open: i7 China, BBA combined share, rear-screen/massage penetration, Roland Berger/Bain, Gasgoo (blocked).
 
-### Q-025 — 3D models for the Cars screen (D-039)
+### Q-025 — 3D models of today's cars (D-039)
 - Owner: Atahan · not blocking (placeholder car renders without them)
 - Context: the Cars screen renders public, fan-made CC BY Sketchfab models (attribution on screen): 1 Series "Bmw-1-series 2025" (teenlin3, AI-generated mesh, 500k tris), 5 Series "i5" (akyolefe319), 7 Series "2023 BMW I7 G70" (NazhDesign). Downloads need a Sketchfab login (the agent may not log in), so the files must be placed in `data/models/{f70,g60,g70}.glb` (or `<name>/scene.gltf`). Each model's axis orientation in `car_zones.MODELS_GLTF` is provisional until checked visually. For real use BMW would supply its own visualisation assets.
 - Update 2026-10-11: Atahan downloaded the three GLBs; copied (not moved — raw folder is read-only) to `data/models/{f70,g60,g70}.glb`; orientations set in `car_zones.MODELS_GLTF` (files carry a Z-up→Y-up root matrix → F70/G70 front +z, G60 front −z) and checked by rendering all three plus the rear-cabin x-ray. Remaining: whether to keep these fan-made models for the pitch (the 1 Series mesh is AI-generated) and the originals in `challange information document/` can be deleted by Atahan.
@@ -76,14 +76,11 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
 
 ## Resolved
 
-### Q-029 — Cloud deployment → **Google Cloud, one e2-micro VM with the compose stack** (D-062, was AWS D-061)
+### Q-029 — Cloud deployment → **Google Cloud, one e2-micro VM with the compose stack** (D-062)
 - Atahan 2026-10-12: data may be hosted in the cloud for this; Google Cloud first, then AWS (`deploy/aws/deploy.sh`), then AWS dropped for Google Cloud: `deploy/gcp/deploy.sh`.
 
 ### Q-007 — Team roles & who is the "PM" in the demo? → **Atahan, solo**
 - Atahan 2026-10-11: the hackathon is over; Atahan continues the project alone and is the PM in the app.
-
-### Q-008 — Hackathon logistics → **moot, hackathon over**
-- Atahan 2026-10-11: no more deadline, demo format or judging; the project continues as Atahan's own improvement work.
 
 ### Q-021 — Linker over-linking → **same need, not same theme (option c, prompt part)** (D-038)
 - Atahan 2026-10-11: closed. The linker prompt now links only evidence about the same need and says that every web link raises the score. Still open: evidence on approved requirements becomes a proposal instead of a direct change (option b) → Q-024.
@@ -91,14 +88,8 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
 ### Q-023 — Customer voice barely separates markets → **score-v3: borrowed rate ×0.5, capped at the best comment-backed market** (D-038)
 - Atahan 2026-10-11: closed. A market without its own comment base borrows the line's rate at ×0.5, labelled "borrowed". It can't outrank the requirement's best comment-backed market unless it has its own study gap and competitor pressure. E3/E4 confidence cuts are stricter. Still open: contradicting web evidence lowering the score → Q-024.
 
-### Q-022 — Cross-line duplicates from later waves → **dedup against the whole backlog, `extend` proposals** (D-035)
-- Atahan 2026-10-10: "fix the duplicates and rebuild the demo". Demo 53 → 39 requirements.
-
 ### Q-020 — Support-call questions → **kept as weak usability evidence, one consistent rule** (D-024)
 - Agent 2026-10-10 under Atahan's full delegation: extract-v3 re-extracted all derivatives with one rule; `signal.support_question` flags them and scoring weights them ×0.5.
-
-### Q-012 — Demoing a ~2-year process → **three simulated ingest waves** (D-027)
-- Stratified 50/50 verbatim split per derivative × channel × market; study + 2025 sales in wave 2; web "market event" in wave 3. Labelled SIMULATION in the UI.
 
 ### Q-010 — Feasibility framing → **option (b), non-blocking realization context** (D-030)
 - Agent decision under full delegation; revisit if BMW mentors want it blocking.
@@ -106,17 +97,8 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
 ### Q-004 — Prioritization logic → **scoring v1** (D-029)
 - Renormalize over factors with data + explicit evidence gaps; brand fit gate only; PM-editable versioned weights; bands Must ≥ 60 / Should ≥ 45.
 
-### Q-019 — Out-of-scope verdict drops usable verbatims → **re-checked with sol** (D-023)
-- Atahan 2026-10-10: "run the Q-019 re-check". 111 of 268 flipped back in scope (118 signals). Agent's 15–20% guess was far too low; but 66 of the new signals are support-call questions → Q-020.
-
-### Q-018 — Extraction schema fixes after the pilot → **applied in extract-v2** (D-022)
-- Atahan 2026-10-10: "apply the Q-018 fixes". Verified on the 50 pilot verbatims, then full G60 run.
-
 ### Q-017 — Demo slice & data-model scope → **G60 × US + G68 × CN; logical model minus 3 folded tables** (D-021)
 - Delegated by Atahan 2026-10-10 ("do whatever you want"); agent decided.
-
-### Q-014 — Architecture & framework choices → **LangGraph, SQLite, no graph DB, sqlite-vec, Streamlit** (D-015–D-020)
-- Answered by Atahan 2026-10-10: approved the agent's recommendation table and said to start scaffolding. Data-model scope and demo slice moved to Q-017.
 
 ### Q-009 — OpenAI models & budget → **luna for bulk, 6.1-sol for reasoning, $100 cap with guard** (D-010)
 - Answered 2026-10-10: Atahan set $100 total and delegated model choice to the agent.
@@ -124,7 +106,7 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
 ### Q-001 — Demo derivative/market → **portfolio-level, 5 Series deepest** (D-005)
 - Answered by Atahan 2026-10-10: no single-car demo. Multi-model, multi-market architecture from the start; 5 Series (G60/G68) is the deepest example.
 
-### Q-002 — Tech stack → **OpenAI for LLM/agents** (D-006); everything else is open in Q-014 (D-004 is only a proposal)
+### Q-002 — Tech stack → **OpenAI for LLM/agents** (D-006); the rest of the stack: `documents/tech-stack.md`
 - Answered by Atahan 2026-10-10. API key provided by Atahan.
 
 ### Q-003 — Focus area → **web-enriched knowledge base + brand fit + platform/plant feasibility** (D-007, D-008, D-009)

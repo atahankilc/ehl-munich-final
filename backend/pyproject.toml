@@ -23,8 +23,6 @@ successor = "api.main:run"
 
 [dependency-groups]
 dev = ["pytest"]
-# docs/pitch/build_pptx.py only: `uv sync --group pitch`
-pitch = ["python-pptx", "pillow"]
 
 [build-system]
 requires = ["hatchling"]

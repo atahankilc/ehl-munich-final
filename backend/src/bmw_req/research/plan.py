@@ -1,5 +1,5 @@
 """Research plan as data: vehicle lines × markets × agents (knowledge-base.md). Wave-3 tasks simulate
-'market events' — new information that arrives later in the multi-wave process (Q-012, D-027)."""
+'market events' — new information that arrives later in the multi-wave process (D-027)."""
 
 from bmw_req.research.agents import Task
 

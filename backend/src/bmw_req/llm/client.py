@@ -1,4 +1,4 @@
-"""The only path to OpenAI (D-014, D-015, D-020). Every call is reserved, logged and settled."""
+"""The only path to OpenAI (D-014, D-020). Every call is reserved, logged and settled."""
 
 import hashlib
 import json

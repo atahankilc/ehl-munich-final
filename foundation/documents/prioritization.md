@@ -71,7 +71,7 @@ POST /api/prioritize/proposal/{id}  {verdict: accept|reject, rationale, actor}
 
 ## Page 4 (`/prioritize`)
 
-Continues page 3's object story in the same canvas: the requirement pins on the car become the priority view (see DESIGN.md "Prioritize (page 4)"). Market switcher, factor waterfall per target (D-037 pattern grouped Customer / Business / Future → confidence → modifiers), bundle halos, "choose jointly" flags, JAN → JUL proposals with causes, PM confirm flow.
+Continues page 3's object story in the same canvas: the requirement pins on the car become the priority view (see DESIGN.md "Prioritize (page 4)"). Market switcher, factor waterfall per target (grouped Customer / Business / Future → confidence → modifiers), bundle halos, "choose jointly" flags, JAN → JUL proposals with causes, PM confirm flow.
 
 ## As built (additive to the contract above)
 

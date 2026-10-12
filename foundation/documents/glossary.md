@@ -57,7 +57,7 @@ Short definitions of terms used across the foundation. Sources are in the linked
 | **Fit checks** | brand / segment / market / feasibility per target: pass / warn / fail |
 | **Prioritization run / snapshot** | One scoring pass with stored scores and ranks (D-013) |
 | **Change proposal** | AI-suggested priority/status change that only the PM can accept |
-| **Ingest wave** | Simulated batch of new evidence used to demo the ~2-year process (Q-012) |
+| **Ingest wave** | Retired demo concept (D-027); survives only as the 50/50 comment split behind the two checkpoints |
 | **PM** | Product manager — the human decision-maker in the loop |
 
 ## Budget terms (D-014)

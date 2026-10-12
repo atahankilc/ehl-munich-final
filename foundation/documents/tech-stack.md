@@ -10,15 +10,15 @@
 | Config | Model names via env (`OPENAI_MODEL_FAST/SMART/EMBED`), never hardcoded | AGENTS rule 12 |
 | All LLM calls | Go through one budget-guarded wrapper that logs usage | D-014 |
 | Language / runtime | Python 3.12 via `uv`; packages `backend/src/bmw_req/` (pipeline) + `backend/src/api/` (API); `uv run …` from `backend/` | D-020, D-052 |
-| Orchestration | Plain Python stages per checkpoint (`structure.run_all`, `definition.run`, `prioritize.run`), each a recorded `checkpoint_run`; no LangGraph / LangChain | D-057 (supersedes D-015) |
-| Storage | **PostgreSQL 17 + pgvector** in Docker (`make db`, 127.0.0.1:5433), C.UTF-8 collation; schema in Alembic (`backend/migrations/`, `make migrate`, as the owner); the app connects as `sharksight_app` (no UPDATE/DELETE on append-only tables); system timestamps are `timestamptz`; `bmw_req.db.connect()` keeps the old sqlite3-style surface | D-059 (supersedes D-016) |
+| Orchestration | Plain Python stages per checkpoint (`structure.run_all`, `definition.run`, `prioritize.run`), each a recorded `checkpoint_run`; no LangGraph / LangChain | D-057 |
+| Storage | **PostgreSQL 17 + pgvector** in Docker (`make db`, 127.0.0.1:5433), C.UTF-8 collation; schema in Alembic (`backend/migrations/`, `make migrate`, as the owner); the app connects as `sharksight_app` (no UPDATE/DELETE on append-only tables); system timestamps are `timestamptz`; `bmw_req.db.connect()` keeps the old sqlite3-style surface | D-059 |
 | Graph | **No graph DB**; relational link tables + graph view in the UI | D-017 |
-| Vector store / RAG | **pgvector** `vector(1536)` columns in the same database; every vector row carries its source ID; evidence retrieval is exact nearest-neighbour SQL (`<=>`), HNSW when the knowledge base grows | D-059 (supersedes D-018) |
-| UI | **React + TypeScript (Vite) + three.js/react-three-fiber** (`frontend/`) over a **FastAPI** JSON layer (`backend/src/api/`, 127.0.0.1:8600); Streamlit app removed | D-039 (supersedes D-019), D-052 |
+| Vector store / RAG | **pgvector** `vector(1536)` columns in the same database; every vector row carries its source ID; evidence retrieval is exact nearest-neighbour SQL (`<=>`), HNSW when the knowledge base grows | D-059 |
+| UI | **React + TypeScript (Vite) + three.js/react-three-fiber** (`frontend/`) over a **FastAPI** JSON layer (`backend/src/api/`, 127.0.0.1:8600); Streamlit app removed | D-039, D-052 |
 | OpenAI call path | OpenAI Python SDK, Responses API, inside `bmw_req.llm` (incl. `web_search`) | D-020 |
 | Structured output | Pydantic models → `responses.parse` | D-020 |
 | Profiles / deployment | `APP_ENV=development` (API reload + Vite) or `production` (API serves `frontend/dist`); natively via `make`, or Docker (`Dockerfile` targets dev/prod, `compose.yaml` profiles dev/prod, ports on 127.0.0.1, `data/` mounted, allowlist `.dockerignore`) | D-053 |
-| Cloud deployment | One Google Compute Engine e2-micro (free tier, us-central1) running `deploy/compose.yaml` (db, app, Caddy HTTPS + password); CLI `deploy/gcp/deploy.sh`; guide `deploy/README.md` | D-062 (was D-061) |
+| Cloud deployment | One Google Compute Engine e2-micro (free tier, us-central1) running `deploy/compose.yaml` (db, app, Caddy HTTPS + password); CLI `deploy/gcp/deploy.sh`; guide `deploy/README.md` | D-062 |
 | Tests | `pytest`, no paid calls; throwaway PostgreSQL databases cloned per test, run as the app role (`make test` starts the database) | D-020, D-059 |
 | Data model | Alembic migrations in `backend/migrations/` (baseline + types + app role); `bmw_req/db.py` is the connection layer only | D-059 |
 | Excel parsing | `openpyxl` (no pandas in the app) | D-021 |
@@ -28,8 +28,6 @@
 
 | Topic | Ref |
 |---|---|
-| Simulated ingest waves | decided, D-027 |
-| — (clustering: scikit-learn agglomerative on `text-embedding-3-small`, D-025; PDFs: `pdftotext`; export: JSON/CSV/Markdown, D-032) | decided |
 
 ## Requirements any chosen stack must meet
 - **Precompute:** run pipeline and research offline, cache results with retrieval timestamps, demo against the cache, and re-run only changed steps. Live web search in the demo is optional, with a cached fallback.

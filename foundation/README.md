@@ -15,7 +15,7 @@ This folder is the project's memory. Every agent (Claude, Codex, humans) reads i
 - `DECISIONS.md`: append a new `D-xxx` entry for every decision (who decided, why, alternatives) **and add it to the Index**. Statuses: `accepted` · `proposed` · `superseded by D-xxx`.
 - `OPEN_QUESTIONS.md`: add new `Q-xxx` entries in numeric order. When answered, move them to "Resolved" with the answer and link the resulting decision.
 - `documents/`: keep reference docs true to the code. If you change the stack, schema or workflow, update the doc in the same change. State each fact **once**: other docs link to it instead of copying it.
-- Never present something as decided unless a `D-xxx` says so. Changing the stack (D-015–D-020) needs the team.
+- Never present something as decided unless a `D-xxx` says so. Changing the stack (`documents/tech-stack.md`) needs Atahan.
 
 ## Folder map
 
@@ -38,7 +38,6 @@ This folder is the project's memory. Every agent (Claude, Codex, humans) reads i
 | `documents/prioritization.md` | Page 4: prio-v1 factors, bundles, fit gate, PM decisions (D-050) |
 | `documents/document.md` | Page 5: the requirement document and export (D-051) |
 | `documents/postgres-migration.md` | The move to PostgreSQL + pgvector, as built; rules for new queries (D-059) |
-| `documents/validation-report.md` | Hackathon validation pass (2026-10-10, retired wave pipeline — history) |
 | `documents/future-work.md` | Vision and future work parked for another repo (generalized SharkSight, continuous intake) — not acted on here |
 
 ## Fresh clone

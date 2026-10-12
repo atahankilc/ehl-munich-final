@@ -1,4 +1,4 @@
-// The score as a waterfall (D-037 pattern): the six factors add up by dimension (Customer, Business, Future) to the
+// The score as a waterfall: the six factors add up by dimension (Customer, Business, Future) to the
 // base, × the confidence multiplier, then the modifiers (effort, market fit) to the final score, on one 0–100 scale
 // with the band thresholds marked. Neutral only: ink steps up, ink-3 hatched steps down, the score in full ink.
 import type { Band, Factor, Target } from "@/lib/prioritize";
