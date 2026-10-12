@@ -39,3 +39,7 @@ bunlar dısında fucntions var, ai gateaway var, neon auth var. Hangisini aktive
 ---
 
 ayrıca renderda direkt repoyu seçebiliyorum, o yüzden bu repoyu render a hazır etmek için de bişey yapmak gerekliyse söyle bana.
+
+---
+
+evet push et, gcp dosyalarını da sil
