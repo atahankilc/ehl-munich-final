@@ -65,18 +65,6 @@ CREATE TABLE IF NOT EXISTS source_item (
     UNIQUE (kind, ref)
 );
 CREATE INDEX IF NOT EXISTS ix_source_scope ON source_item(vehicle_model_id, market_code);
-CREATE TABLE IF NOT EXISTS finding (
-    id INTEGER PRIMARY KEY, type TEXT, title TEXT NOT NULL, summary TEXT,
-    scope_level TEXT,             -- derivative | platform | market | portfolio
-    vehicle_model_id TEXT REFERENCES vehicle_model(id), market_code TEXT REFERENCES market(code),
-    platform_id TEXT REFERENCES platform(id),
-    metrics_json TEXT, created_by TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT {NOW}
-);
-CREATE TABLE IF NOT EXISTS finding_source (
-    finding_id INTEGER NOT NULL REFERENCES finding(id), source_item_id INTEGER NOT NULL REFERENCES source_item(id),
-    quote TEXT, relation TEXT NOT NULL DEFAULT 'supports',   -- supports | contradicts
-    PRIMARY KEY (finding_id, source_item_id)
-);
 
 CREATE TABLE IF NOT EXISTS verbatim_extraction (   -- one row per verbatim × extractor version (D-022)
     source_item_id INTEGER NOT NULL REFERENCES source_item(id), extractor_version TEXT NOT NULL,
@@ -95,11 +83,6 @@ CREATE TABLE IF NOT EXISTS signal (                -- AI-extracted customer sign
 );
 CREATE INDEX IF NOT EXISTS ix_signal_source ON signal(source_item_id);
 
-CREATE TABLE IF NOT EXISTS finding_signal (       -- cluster membership: which signals make up a finding (D-025)
-    finding_id INTEGER NOT NULL REFERENCES finding(id), signal_id INTEGER NOT NULL REFERENCES signal(id),
-    PRIMARY KEY (finding_id, signal_id)
-);
-CREATE INDEX IF NOT EXISTS ix_finding_signal_signal ON finding_signal(signal_id);
 CREATE TABLE IF NOT EXISTS study_metric (           -- one row per study item × model × market (D-026)
     id INTEGER PRIMARY KEY, source_item_id INTEGER NOT NULL REFERENCES source_item(id),
     vehicle_model_id TEXT NOT NULL REFERENCES vehicle_model(id), market_code TEXT NOT NULL REFERENCES market(code),
@@ -111,34 +94,6 @@ CREATE TABLE IF NOT EXISTS study_metric (           -- one row per study item ×
 );
 
 -- Decision layer ---------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS requirement (
-    id TEXT PRIMARY KEY,          -- REQ-0001
-    title TEXT NOT NULL, description TEXT, category TEXT, target_metric TEXT, acceptance_criteria TEXT,
-    horizon TEXT,                 -- today | at_successor_launch
-    kano_class TEXT, kano_drift TEXT, evidence_level TEXT,   -- E1..E4
-    assumptions TEXT, uncertainties TEXT, conflicting_evidence TEXT,
-    status TEXT NOT NULL DEFAULT 'proposed', version INTEGER NOT NULL DEFAULT 1,
-    created_at TEXT NOT NULL DEFAULT {NOW}
-);
-CREATE TABLE IF NOT EXISTS requirement_target (
-    requirement_id TEXT NOT NULL REFERENCES requirement(id),
-    vehicle_model_id TEXT NOT NULL REFERENCES vehicle_model(id), market_code TEXT NOT NULL REFERENCES market(code),
-    realization TEXT,             -- carry_over | platform_wide | derivative_specific | market_variant | package
-    score REAL, score_breakdown_json TEXT, priority TEXT, rationale TEXT,
-    PRIMARY KEY (requirement_id, vehicle_model_id, market_code)
-);
-CREATE TABLE IF NOT EXISTS requirement_finding (
-    requirement_id TEXT NOT NULL REFERENCES requirement(id), finding_id INTEGER NOT NULL REFERENCES finding(id),
-    relation TEXT NOT NULL DEFAULT 'supports',
-    PRIMARY KEY (requirement_id, finding_id)
-);
-CREATE TABLE IF NOT EXISTS fit_check (
-    id INTEGER PRIMARY KEY, requirement_id TEXT NOT NULL REFERENCES requirement(id),
-    vehicle_model_id TEXT REFERENCES vehicle_model(id), market_code TEXT REFERENCES market(code),
-    check_type TEXT NOT NULL,     -- brand | segment | market | feasibility
-    result TEXT NOT NULL,         -- pass | warn | fail
-    rationale TEXT, evidence_source_ids_json TEXT, checked_by TEXT NOT NULL, checked_at TEXT NOT NULL DEFAULT {NOW}
-);
 CREATE TABLE IF NOT EXISTS audit_event (
     id INTEGER PRIMARY KEY, ts TEXT NOT NULL DEFAULT {NOW},
     actor_type TEXT NOT NULL CHECK (actor_type IN ('ai', 'human', 'system')), actor_id TEXT,
@@ -155,29 +110,7 @@ CREATE TABLE IF NOT EXISTS weights_version (
     id INTEGER PRIMARY KEY, weights_json TEXT NOT NULL, created_by TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT {NOW}, rationale TEXT
 );
-CREATE TABLE IF NOT EXISTS prioritization_run (
-    id INTEGER PRIMARY KEY, ts TEXT NOT NULL DEFAULT {NOW},
-    trigger TEXT NOT NULL,        -- new_evidence | weight_change | pm_request | scheduled
-    ingest_batch_id INTEGER REFERENCES ingest_batch(id), weights_version_id INTEGER REFERENCES weights_version(id),
-    model TEXT, initiated_by TEXT NOT NULL
-);
-CREATE TABLE IF NOT EXISTS score_snapshot (
-    run_id INTEGER NOT NULL REFERENCES prioritization_run(id), requirement_id TEXT NOT NULL REFERENCES requirement(id),
-    vehicle_model_id TEXT NOT NULL, market_code TEXT NOT NULL,
-    score REAL, breakdown_json TEXT, rank INTEGER, priority TEXT,
-    PRIMARY KEY (run_id, requirement_id, vehicle_model_id, market_code)
-);
-CREATE TABLE IF NOT EXISTS change_proposal (
-    id INTEGER PRIMARY KEY, run_id INTEGER REFERENCES prioritization_run(id),
-    requirement_id TEXT NOT NULL REFERENCES requirement(id), vehicle_model_id TEXT, market_code TEXT,
-    field TEXT NOT NULL, old_value TEXT, proposed_value TEXT, reason TEXT, evidence_delta_json TEXT,
-    status TEXT NOT NULL DEFAULT 'open',   -- open | accepted | rejected
-    decided_by TEXT, decided_at TEXT, decision_rationale TEXT
-);
 
-CREATE TABLE IF NOT EXISTS app_state (               -- e.g. current simulated wave (D-027)
-    key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL DEFAULT {NOW}
-);
 
 -- Checkpoints (D-041): two real-date checkpoints; checkpoint 2 builds on checkpoint 1 ------------
 CREATE TABLE IF NOT EXISTS checkpoint (
@@ -280,22 +213,8 @@ MIGRATIONS = [
     ("signal", "llm_usage_id", "INTEGER REFERENCES llm_usage(id)"),
     ("verbatim_extraction", "recheck_llm_usage_id", "INTEGER REFERENCES llm_usage(id)"),
     ("signal", "support_question", "INTEGER NOT NULL DEFAULT 0"),   # Q-020, D-024
-    # Simulated ingest waves (Q-012, D-027): the wave in which an item becomes visible to the pipeline.
+    # Simulated ingest waves (Q-012, D-027): the wave in which an item became visible (history; waves retired, D-057).
     ("source_item", "wave", "INTEGER NOT NULL DEFAULT 1"),
-    ("finding", "source_kind", "TEXT"),            # verbatim | study | web | reference
-    ("finding", "polarity", "TEXT"),               # pain | want | like | context
-    ("finding", "category", "TEXT"),
-    ("finding", "first_wave", "INTEGER"),
-    ("requirement", "effort", "TEXT"),             # S | M | L rough effort (prioritization only, no cost math)
-    ("requirement", "must_not_lose", "INTEGER NOT NULL DEFAULT 0"),
-    ("requirement", "realization_note", "TEXT"),
-    ("requirement", "created_by", "TEXT"),
-    ("requirement", "first_run_id", "INTEGER"),
-    ("requirement", "derivation_json", "TEXT"),     # raw AI draft incl. horizon_reason, cited IDs
-    ("requirement_target", "evidence_level", "TEXT"),
-    ("requirement_target", "proposed_priority", "TEXT"),   # AI proposal; `priority` is the PM-confirmed one
-    ("requirement_target", "run_id", "INTEGER"),
-    ("change_proposal", "kind", "TEXT"),            # priority | status | content | new_requirement | link_finding
     ("audit_event", "run_id", "INTEGER"),
     # Curated reference layer: provenance + competitor details per model (competes_with, markets, strengths).
     ("vehicle_model", "source_ids_json", "TEXT"),

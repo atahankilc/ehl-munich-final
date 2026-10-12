@@ -63,6 +63,7 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-055 | AI agents page = source of truth for AI config (per-agent model / effort / on-off / spend cap, model tiers, priced models) + usage; Audit page (whole trail, one checkpoint at a time); audit panel slimmed | accepted |
 | D-056 | Document, AI agents and Audit are full-screen 2D pages: no 3D rendered behind them, own checkpoint switch, timeline hidden (supersedes D-051's sheet-over-scene) | accepted |
 | D-057 | Wave pipeline retired: old API routes, `pipeline/`, `service.py`, `research/findings.py`, their tests and scripts removed; shared helpers moved; LangGraph dropped (supersedes D-015); old-only DB tables kept for now | accepted |
+| D-058 | Old wave-pipeline tables dropped (11 tables) after a verified backup; schema no longer creates them | accepted |
 
 Keep this index in sync when adding a decision.
 
@@ -638,5 +639,14 @@ Template:
   1. Removed: API routers `meta_state`, `briefing`, `queue`, `requirements`, `cars`, `markets`, `evidence`, `process` and `api/{queries,jobs,labels}.py`; `bmw_req/pipeline/` (except galaxy), `bmw_req/service.py`, `bmw_req/research/findings.py`; tests `test_api` (static tests kept as `test_static.py` on an empty DB), `test_service`, `test_scoring`, `test_requirements`, the extraction/recheck tests in `test_store` and the findings test in `test_research`; scripts `demo_build.py`, `pilot.py`, `benchmark_scoring.py`, `benchmark_requirements.py`; the frontend's unused `logView`; the `langgraph` dependency.
   2. Moved unchanged (byte-identical prompts, so cached answers stay valid): `audit()` + `log_access()` → `bmw_req/audit.py`; score-v3 helpers used by prio-v1 → `prioritize/factors.py`; the fit-check instructions + luna→sol re-check → `prioritize/fitcheck.py`; `Category` + `quote_ok` → `structure/taxonomy.py`; `pipeline/galaxy.py` → `structure/galaxy.py`.
   3. `GET /api/health` replaces `/api/state` for the container healthcheck. The agent registry (D-055) drops the research summarizer; its past spend counts as earlier pipeline.
-  4. **Not yet done:** dropping the tables only the old pipeline used (`requirement`, `requirement_target`, `requirement_finding`, `fit_check`, `prioritization_run`, `score_snapshot`, `change_proposal`, `app_state`, `finding_signal`, and `finding`/`finding_source`) — a DB migration, to be decided with Atahan. Audit rows stay (append-only).
+  4. Dropping the tables only the old pipeline used followed as D-058. Audit rows stay (append-only).
 - Consequences: tests 151 → 114, all green (the 3 stale failures are gone with the code they tested). Old snapshots in `data/snapshots/` (evidence, wave1, demo) predate the checkpoint data — restoring them now gives the old model; `demo_state.py` stays as a generic DB backup/restore.
+
+## D-058 — Drop the wave-pipeline tables
+- Date: 2026-10-12
+- Decided by: Atahan ("back up and drop the old tables")
+- Status: accepted (completes D-057)
+- Decision: `requirement`, `requirement_target`, `requirement_finding`, `fit_check`, `prioritization_run`, `score_snapshot`, `change_proposal`, `app_state`, `finding`, `finding_source`, `finding_signal` are removed from the schema (`db.py`, incl. their column migrations) and dropped from `data/app.db` by `backend/scripts/drop_wave_tables.py`: verified online backup first (integrity check + equal row counts), then one transaction, an `audit_event` (system, `drop_tables`, row counts + backup name), foreign-key check, VACUUM. Idempotent. Dropped rows: 28 requirements, 105 targets, 105 score snapshots, 420 fit checks, 1,194 findings with 14,311 sources and 14,564 signal links, 262 requirement–finding links, 1 run, 1 state row, 0 proposals.
+- Kept: `signal`, `verbatim_extraction`, `signal_embedding`, `source_embedding` (used by the checkpoint pipeline), `source_item.wave` (harmless history column), `weights_version` (shared), and every audit row.
+- Backup: `data/backups/app-before-D058-20261012T024059Z.db` (373 MB, git-ignored). Restoring it (`scripts/demo_state.py` or a file copy, API stopped) brings the old tables back; the code no longer reads them.
+- Consequences: old snapshots in `data/snapshots/` still contain the tables (harmless leftovers if restored).
