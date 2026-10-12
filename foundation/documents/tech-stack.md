@@ -11,7 +11,7 @@
 | All LLM calls | Go through one budget-guarded wrapper that logs usage | D-014 |
 | Language / runtime | Python 3.12 via `uv`; packages `backend/src/bmw_req/` (pipeline) + `backend/src/api/` (API); `uv run …` from `backend/` | D-020, D-052 |
 | Orchestration | Plain Python stages per checkpoint (`structure.run_all`, `definition.run`, `prioritize.run`), each a recorded `checkpoint_run`; no LangGraph / LangChain | D-057 (supersedes D-015) |
-| Storage | **SQLite**, one file `data/app.db` | D-016 |
+| Storage | **SQLite**, one file `data/app.db` — moving to **PostgreSQL 17 + pgvector** (`make db`, Alembic in `backend/migrations/`), P0 done, app switches in P1 | D-016 → D-059 |
 | Graph | **No graph DB**; relational link tables + graph view in the UI | D-017 |
 | Vector store / RAG | **sqlite-vec** in the same SQLite file; every vector row carries its source ID | D-018 |
 | UI | **React + TypeScript (Vite) + three.js/react-three-fiber** (`frontend/`) over a **FastAPI** JSON layer (`backend/src/api/`, 127.0.0.1:8600); Streamlit app removed | D-039 (supersedes D-019), D-052 |

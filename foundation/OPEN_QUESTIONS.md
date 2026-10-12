@@ -4,6 +4,11 @@ Format: `Q-xxx` · owner · blocking? · context · options/recommendation. When
 
 ## Open
 
+### Q-028 — Generalize SharkSight beyond BMW into a domain-agnostic product?
+- Owner: Atahan · not blocking · raised 2026-10-12
+- Atahan is considering a version anyone can use for ground-up requirements engineering and product decisions. Market scan: `research/market-landscape.md` (no tool covers evidence → measurable requirements → gated, per-segment priority → human decision → audit; closest are Productboard Spark upstream and Flow Engineering downstream).
+- Open: positioning (layer between VoC tools and RM/ALM tools?), beachhead (long-cycle physical products?), what becomes config (org/product line/segment, pluggable gates, generic ingest, optional 3D visualizer), integrations (Jira, Jama/Polarion, ReqIF, MCP), and how the BMW-specific rules (brand fit, plant/platform feasibility) map to generic gates.
+
 ### Q-027 — Continuous data intake instead of fixed checkpoints (future)
 - Owner: Atahan · not blocking · raised 2026-10-11
 - Atahan: the two fixed checkpoints (D-040) will eventually go; new data should be digested automatically — e.g. a background agent that searches the web from time to time, and the user uploading new data into the knowledge base.

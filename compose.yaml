@@ -3,6 +3,7 @@
 #   docker compose --profile dev up --build       → http://127.0.0.1:5173 (Vite, live reload) + API on :8600
 # Ports are published on 127.0.0.1 only (AGENTS rule 1). data/ (DB, snapshots, 3D models) is mounted, never baked in.
 # Don't run the native API (`make api`) at the same time: same port and same SQLite file.
+# `db` (PostgreSQL + pgvector, D-059) has no profile: it starts with either profile and alone via `make db`.
 name: sharksight
 
 x-api: &api
@@ -13,6 +14,23 @@ x-api: &api
     - "127.0.0.1:8600:8600"
 
 services:
+  db:
+    image: pgvector/pgvector:0.8.0-pg17
+    environment:
+      POSTGRES_USER: sharksight
+      POSTGRES_DB: sharksight
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"   # 5433: 5432 is often taken by another local Postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sharksight -d sharksight"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
   app:
     <<: *api
     profiles: [prod]
@@ -50,3 +68,6 @@ services:
       - /app/frontend/node_modules   # container's own (Linux) node_modules, not the host's macOS ones
     depends_on:
       api-dev: { condition: service_healthy }
+
+volumes:
+  pgdata:

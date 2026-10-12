@@ -10,3 +10,12 @@ def isolated_app_settings(tmp_path, monkeypatch):
     monkeypatch.setenv("APP_SETTINGS_FILE", str(tmp_path / "settings.json"))
     monkeypatch.delenv("BUDGET_CONFIRM", raising=False)
     monkeypatch.setattr(budget, "_confirmed", False)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _drop_pg_template():
+    """The migrated template database (tests/pg.py) lives for the session only."""
+    yield
+    from tests import pg
+
+    pg.drop_template()

@@ -1,10 +1,20 @@
 # Common commands from the repo root. Python runs in backend/ (uv), the PM app in frontend/ (npm).
 # Profiles (D-053): development = API auto-reload + Vite dev server; production = API serves the built app.
-.PHONY: install api dev build serve test up up-dev down logs
+.PHONY: install api dev build serve test up up-dev down logs db db-stop migrate
 
 install:  ## Python venv + frontend deps
 	cd backend && uv sync
 	cd frontend && npm install
+
+# ---- database (PostgreSQL + pgvector, D-059)
+db:  ## start only the database container (127.0.0.1:5433), wait until it is ready
+	docker compose up -d --wait db
+
+db-stop:  ## stop the database container (data stays in the pgdata volume)
+	docker compose stop db
+
+migrate: db  ## apply the schema migrations (Alembic) to DATABASE_URL
+	cd backend && uv run alembic upgrade head
 
 # ---- native, development profile
 api:  ## API on http://127.0.0.1:8600, auto-reload on backend/src changes
@@ -20,7 +30,7 @@ build:  ## build frontend/dist
 serve: build  ## build, then the API alone serves the app on http://127.0.0.1:8600 (no reload)
 	cd backend && APP_ENV=production uv run python -m api
 
-test:  ## Python tests + frontend typecheck
+test: db  ## Python tests (incl. the PostgreSQL ones) + frontend typecheck
 	cd backend && uv run pytest -q
 	cd frontend && npm run typecheck
 
@@ -31,7 +41,7 @@ up:  ## production container on http://127.0.0.1:8600
 up-dev:  ## dev containers: API (reload) on :8600 + Vite on http://127.0.0.1:5173
 	docker compose --profile dev up --build
 
-down:  ## stop all containers
+down:  ## stop all containers (the database volume is kept)
 	docker compose --profile prod --profile dev down
 
 logs:  ## follow container logs

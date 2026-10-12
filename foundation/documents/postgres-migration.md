@@ -1,4 +1,6 @@
-# PostgreSQL migration plan (D-059, proposed)
+# PostgreSQL migration plan (D-059)
+
+**Status:** P0 done (2026-10-12) · P1 next.
 
 Move the app from SQLite + sqlite-vec to **PostgreSQL 17 + pgvector**, one database for relational data, vectors,
 full-text search and (later) the job queue. Uploaded files stay outside the database (disk volume now, S3-compatible
@@ -32,11 +34,12 @@ OpenAI cost: $0 — the LLM cache moves with the data.
 
 ## Target setup
 
-- **Compose service `db`**: image `pgvector/pgvector:pg17`, volume `pgdata`, port published on `127.0.0.1:5432`
-  only (rule 1), healthcheck `pg_isready`. The app containers `depends_on: db (healthy)`.
+- **Compose service `db`**: image `pgvector/pgvector:0.8.0-pg17`, volume `pgdata`, port published on
+  `127.0.0.1:5433` only (rule 1; 5432 is often taken by another local Postgres, `POSTGRES_PORT` overrides),
+  healthcheck `pg_isready`. The app containers get `depends_on: db (healthy)` in P1.
 - **Native development**: `make db` starts only the database container; `make api` / pipeline commands connect to it.
 - **Connection**: `DATABASE_URL` in `.env` (e.g. `postgresql://sharksight:…@127.0.0.1:5432/sharksight`); a separate
-  database `sharksight_test` for tests. Credentials in `.env` only; `.env.example` gets a placeholder.
+  server connection `TEST_DATABASE_URL` through which tests create and drop throwaway databases. Credentials in `.env` only; `.env.example` gets a placeholder.
 - **Driver**: psycopg 3 (binary). **Migrations**: Alembic (raw SQL migrations, no ORM).
 - **Two roles**: `sharksight_owner` runs migrations; `sharksight_app` is what the app uses — no UPDATE/DELETE on
   `audit_event`, `def_choice`, `def_link_review`, `prio_decision` (append-only by permission, not only by trigger).
@@ -85,3 +88,17 @@ Keep every query's behaviour identical in the switch; use Postgres features only
 
 Continuous intake, the job queue and uploads (Q-027) — this migration only makes them possible. Login / roles for
 people (needed before any shared deployment).
+
+## P0 as built (2026-10-12)
+
+- `compose.yaml` service `db` (no profile), `make db` / `make db-stop` / `make migrate`; `make test` starts the DB.
+- `.env`: `POSTGRES_PASSWORD`, `DATABASE_URL`, `TEST_DATABASE_URL` (placeholders in `.env.example`).
+- Alembic in `backend/` (`alembic.ini`, `migrations/`): raw SQL files in `migrations/sql/`, run through the psycopg
+  connection without parameter parsing (`migrations/helpers.py`). Baseline `0001`: all 42 tables (incl. the ones the
+  stage modules create and the not-yet-run `candidate`), `utc_now_text()` producing SQLite's timestamp text,
+  `forbid_change()` triggers on the 4 append-only tables, `vector(1536)` for every embedding, `source_embedding` /
+  `signal_embedding` keyed by entity id instead of `rowid`. Column order follows the real DB.
+- Tests: `tests/pg.py` (one migrated template DB per session, cloned per test, dropped afterwards; skips without a
+  server); `tests/test_postgres_schema.py` checks table and column parity with today's SQLite schema (exact order for
+  the positionally written `source_aspect`, `node_embedding`), append-only triggers, vector columns, timestamp format.
+- Deferred to P2 as planned: the separate owner / app roles (one `sharksight` role for now).
