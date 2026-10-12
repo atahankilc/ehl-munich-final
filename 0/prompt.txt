@@ -1,0 +1,13 @@
+just drop the sqlite and finish the docs
+
+---
+
+remove them from my disk and then tell me what i need to do to properly deploy this on cloud. I really want to test aws for this but i also dont want to spend money. So if there is a fre tier cloud deployers for containers and db and frotnend maybe. Thınk about it.
+
+---
+
+fuck it, i dont care abot data. If google cloud can host all our containers which is only two. I think we can do that. Prepare the docker file and cli tool to prepare containers. I assume bd also can run in container
+
+---
+
+or i changed my mind, lets do aws
