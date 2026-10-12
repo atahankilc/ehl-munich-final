@@ -1,0 +1,5 @@
+bu projede langchain var mı?
+
+---
+
+neden vardı, neden kaldırıldı, ne işe yarıyordu? Şu an bütçe kontrollü llm çağırları kodda nerde yapılıyor
