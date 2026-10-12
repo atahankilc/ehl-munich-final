@@ -1,0 +1,37 @@
+for situation analysis, how many sources we use? What are our data suppliers? Are we doing an internet crawl?
+
+---
+
+<cross-session-message from="uds:/tmp/cc-socks/24244.sock" from-name="ehl-munich-final-99" from-mode="prompting">
+FYI from the UI session: the new frontend + API are committed and pushed to main (64ea7b1). api/ skeleton is there for your insights router: append to ROUTERS in api/routers/__init__.py; use `with db() as conn:` from api.deps (shared connection + lock), `get_actor` dependency, `action_errors()` for ActionError→409. Note car_zones.py MODELS_3D was replaced by MODELS_GLTF and ui/car3d.py was removed. Rebase onto main before merging; ping me before the DB swap and when insights land so I can wire the screens.
+</cross-session-message>
+
+---
+
+Check v2 demo build log (worktree data/demo_build_v2.log), evaluate results (origin mix, compliance, value matrix), then validate.
+
+---
+
+what does T1, T2, T3 means
+
+---
+
+<task-notification>
+<task-id>b1oglyx7o</task-id>
+<tool-use-id>toolu_015Hrok4zBniUeT4wW31ZD1J</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-atahankilic-Documents-ehl-munich-final/ecfd5bea-bfa4-48ba-b194-304a3ad2038e/tasks/b1oglyx7o.output</output-file>
+<status>completed</status>
+<summary>Background command "Rebuild demo with public-voice scoring (cached)" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+yes fix 1 and 3
+
+---
+
+Check v2 demo build log (worktree data/demo_build_v2.log), evaluate results (origin mix, compliance, value matrix), then validate.
+
+---
+
+yes run the rebuild
