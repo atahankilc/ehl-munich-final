@@ -20,12 +20,11 @@ from urllib.parse import unquote
 
 from fastapi import Query, Header, HTTPException
 
-from api.labels import DEFAULT_PM
 from bmw_req.config import get_settings
 from bmw_req.db import connect
-from bmw_req.service import ActionError
 
 LOCK = threading.RLock()
+DEFAULT_PM = "Atahan (PM)"
 
 
 class Database:
@@ -71,15 +70,6 @@ def get_actor(x_actor: str | None = Header(default=None), as_actor: str | None =
     return name or DEFAULT_PM
 
 
-@contextmanager
-def action_errors() -> Iterator[None]:
-    """Map the service layer's user-facing refusals to HTTP 409 {detail: message}."""
-    try:
-        yield
-    except ActionError as e:
-        raise HTTPException(status_code=409, detail=str(e)) from e
-
-
 def conflict(msg: str) -> HTTPException:
     return HTTPException(status_code=409, detail=msg)
 
@@ -89,7 +79,7 @@ def not_found(msg: str) -> HTTPException:
 
 
 def need_rationale(rationale: str | None, what: str = "A rationale") -> str:
-    """Same rule as `service._need`: ≥ 5 characters after strip (409, like an ActionError)."""
+    """A PM decision needs a reason: ≥ 5 characters after strip (409)."""
     if not rationale or len(rationale.strip()) < 5:
         raise conflict(f"{what} is required (at least 5 characters).")
     return rationale.strip()

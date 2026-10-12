@@ -6,7 +6,7 @@
    One layout for both checkpoints, so a comment never moves when the second sweep arrives; the layout only encodes
    textual similarity, not counts or conclusions (same documented trade-off as D-027's cluster structure).
 
-`uv run python -m bmw_req.pipeline.galaxy`
+`uv run python -m bmw_req.structure.galaxy`
 """
 
 from __future__ import annotations

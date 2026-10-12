@@ -42,47 +42,36 @@ data/               derived data + SQLite DB (git-ignored)
 ```
 
 The raw BMW data (`challange information document/`) and the database (`data/app.db`) are git-ignored.
-Demo states (`data/snapshots/`):
-
-| Snapshot | Contents | Use |
-|---|---|---|
-| `evidence` | all evidence ingested, no requirements | rebuild the pipeline |
-| `wave1` | wave 1 done, no PM decisions | **live demo**: review as the PM from scratch |
-| `demo` | wave 1 → PM review → wave 2 → PM decides proposals → wave 3 | explore the full ~2-year history |
-
-```bash
-cd backend
-uv run python scripts/demo_state.py restore wave1   # stop the app first; keeps the LLM usage log + cache
-uv run python scripts/demo_build.py                 # rebuild wave1 + demo from the evidence snapshot
-```
+Back up or restore the whole database (the LLM usage log and cache are always kept) with
+`cd backend && uv run python scripts/demo_state.py save|restore|list <name>` — stop the API first.
 
 ## End-to-end workflow
 
+Runs per **checkpoint** (D-040, D-041): JAN 26 (cut-off 31 Jan 2026), then JUL 26 building on it. Every stage is a
+recorded run (`checkpoint_run`) at one checkpoint; all commands run from `backend/` with `uv run python -m …`.
+
 | # | Step | Who | Where |
 |---|---|---|---|
-| 1 | Ingest feedback (10,128 verbatims), customer study, sales, option lists | AI/system, autonomous | `bmw_req.ingest` |
-| 2 | Curated reference layer (platforms, plants, competitors, market profiles, brand guardrails) | AI-researched, **PM signs off guardrails** | `bmw_req.reference_data` |
-| 3 | Web research agents → cited evidence (URL in search citations, quote verified) | AI, autonomous | `bmw_req.research` |
-| 4 | Signal extraction (luna) → findings (embeddings + clustering, per-market/per-wave metrics) | AI, autonomous | `pipeline.extract`, `pipeline.findings` |
-| 5 | Requirement derivation (sol), portfolio consolidation, dedup against the existing backlog (merge proposals), evidence linking | AI **proposes** | `pipeline.requirements`, `pipeline.linker` |
-| 6 | Fit checks: brand (gate), segment, market, feasibility (context) | AI checks, sol re-checks warn/fail | `pipeline.fit` |
-| 7 | Explainable per-target scoring, snapshots, change proposals | AI computes, **PM sets weights** | `pipeline.scoring` |
-| 8 | Review: approve / reject / defer / edit / challenge / override gate / confirm priority | **Human, mandatory** | PM app |
-| 9 | Audit trail, export | system | PM app → Audit trail / Export |
+| 1 | Ingest feedback (10,128 verbatims), customer study, sales, option lists | system | `bmw_req.ingest` |
+| 2 | Reference layer (platforms, plants, competitors, market profiles, brand guardrails) + cited checkpoint research | AI-researched, **PM signs off guardrails** | `bmw_req.reference_data`, `research/checkpoints/`, `bmw_req.research` |
+| 3 | Classify comments into signals in one shared aspect space; map study, options and research onto it | AI | `bmw_req.structure.classify`, `.classify_context` |
+| 4 | Cluster → contextualize (insights, themes, evidence links) → requirement areas | AI | `bmw_req.structure.run_all` |
+| 5 | Define → specify (metric + target ladder) → couple (links) | AI **proposes** | `bmw_req.definition.run` |
+| 6 | Fit gate (brand, segment, market; feasibility as context) → deterministic prio-v1 score per line × market | AI checks, score is rule-based | `bmw_req.prioritize.run` |
+| 7 | PM picks target rungs, reviews links, confirms bands, accepts or rejects AI proposals, sets weights | **Human, mandatory** | PM app: Definition, Prioritize |
+| 8 | Requirement document per line × market, export (logged); audit trail | system | PM app: Document, Audit |
 
-Repeated per **simulated ingest wave** (LangGraph orchestrator `pipeline.graph`): wave 1 kick-off, wave 2
-(+6 months: more feedback, customer study, new sales), wave 3 (+12 months: market event from web research).
-Scores are recomputed automatically; priority changes against a PM-confirmed priority become **change
-proposals** with their factor-level cause.
+The AI never sets a priority: a changed score against a PM-confirmed band becomes a **proposal** with its cause.
+Which model each AI step uses, its effort and spend cap are set on the **AI agents** page (D-055).
 
 ## How the deliverables map
 
 | BMW deliverable | Where |
 |---|---|
-| Concept + working prototype | this repo; PM app: Home → How it works → Review requirements → Priorities by market → AI suggestions (sidebar "Demo tour" walks the path) |
-| Structured requirement list (ID, description, findings+sources, score, rationale, evidence level, assumptions/uncertainties, status) | Export page (JSON / CSV / Markdown), `service.export_requirements` |
-| Workflow definition: AI autonomous vs mandatory human review | table above; Home ("How it works") and Pipeline & data pages; `foundation/documents/architecture.md` |
-| Audit trail: sources → findings → consolidation → scoring → prioritization → human decision | Requirement → Audit tab; Audit trail page; `audit_event` (append-only via triggers) |
+| Concept + working prototype | this repo; PM app: Evidence → Structure → Definition → Prioritize → Document |
+| Structured requirement list (ID, description, findings + sources, score, rationale, evidence level, assumptions / uncertainties, status) | Document page, Markdown / CSV export (`/api/document/export`) |
+| Workflow definition: AI autonomous vs mandatory human review | table above; `foundation/documents/architecture.md` |
+| Audit trail: sources → findings → consolidation → scoring → prioritization → human decision | Audit page (per checkpoint); `audit_event` (append-only via triggers) |
 
 ## Key design choices
 
@@ -90,6 +79,6 @@ proposals** with their factor-level cause.
 - **Markets are different customers** — every derivative × market target has its own score, evidence level and
   priority; missing data (e.g. no China verbatims) is shown as an evidence gap, not silently scored as zero.
 - **Brand fit** is an approval gate (PM override with rationale); **feasibility** is non-blocking context.
-- **$100 OpenAI budget** enforced by a reserving wrapper; every call logged in `llm_usage`, identical calls cached.
+- **OpenAI budget** with limits you set (ask before spending, stop) enforced by a reserving wrapper; every call logged in `llm_usage`, identical calls cached.
 
 Project memory, decisions (D-001 … ) and open questions live in `foundation/`.

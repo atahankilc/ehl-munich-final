@@ -23,7 +23,7 @@ from bmw_req.checkpoints import BY_ID, CHECKPOINTS, latest_run
 from bmw_req.definition import benchmarks as B
 from bmw_req.definition.define import ensure
 from bmw_req.definition.domains import DOMAINS, RESOURCES
-from bmw_req.pipeline.requirements import audit
+from bmw_req.audit import audit
 
 router = APIRouter(prefix="/api/definition", tags=["definition"])
 STAGES = ("define", "specify", "couple")

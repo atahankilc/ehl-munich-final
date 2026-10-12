@@ -12,7 +12,7 @@
 
 Seed docs: `portfolio-reference.md` (platforms, plants, BMW sales), `competitor-landscape.md` (competitors, trends, brand positioning), `bmw-annual-report-2025.md` (T1: BMW Group Report 2025 — market & sales data, R&D, NEUE KLASSE strategy, with page numbers; recommended by BMW support).
 
-## Research agents (OpenAI web search; orchestration via LangGraph — D-015)
+## Research agents (OpenAI web search; plain Python, D-057)
 
 | Agent | Question it answers | Typical sources |
 |---|---|---|

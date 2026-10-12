@@ -28,7 +28,7 @@ COPY research/checkpoints/checkpoints.json /app/research/checkpoints/checkpoints
 ENV API_HOST=0.0.0.0 API_PORT=8600 DATA_DIR=/app/data
 EXPOSE 8600
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8600/api/state', timeout=4)"
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8600/api/health', timeout=4)"
 CMD ["python", "-m", "api"]
 
 # ---------------------------------------------------------------- dev: + pytest, reload

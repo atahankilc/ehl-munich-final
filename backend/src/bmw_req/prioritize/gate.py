@@ -1,7 +1,7 @@
 """Stage `gate` (D-050): brand / segment fit per requirement and line, market / feasibility per line × market target,
 for the definition-layer requirements (`def_requirement` + its ladder). The only LLM step of prioritization.
 
-Reuses the score-v3 fit check (`pipeline/fit.py`): its instructions, the luna → sol re-check (`luna_then_sol`: every
+Reuses the score-v3 fit check (now `prioritize/fitcheck.py`): its instructions, the luna → sol re-check (`luna_then_sol`: every
 brand / segment / market warn or fail is re-examined by sol, whose verdict is final; feasibility is non-blocking
 context, D-030) and the same reference data (brand guardrails, platforms, plants, market profiles), re-shaped:
 - the static part (instructions + portfolio reference: brand, the three lines with their segments, platforms, plants,
@@ -27,7 +27,7 @@ from bmw_req import checkpoints as C
 from bmw_req.db import connect
 from bmw_req.definition.define import generate
 from bmw_req.llm import LLM
-from bmw_req.pipeline.fit import INSTRUCTIONS as FIT_INSTRUCTIONS, Result, luna_then_sol
+from bmw_req.prioritize.fitcheck import INSTRUCTIONS as FIT_INSTRUCTIONS, Result, luna_then_sol
 from bmw_req.portfolio import LINES
 from bmw_req.prioritize import ensure
 from bmw_req.prioritize.score import _loads, targets_of

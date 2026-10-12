@@ -24,7 +24,7 @@ from fastapi import APIRouter, Depends, Query, Response
 from api.deps import db, get_actor, not_found
 from api.routers import definition as D
 from api.routers import prioritize as PR
-from bmw_req import service
+from bmw_req.audit import log_access
 from bmw_req.checkpoints import BY_ID, CHECKPOINTS, latest_run, visible_ids
 from bmw_req.prioritize import score as P
 
@@ -425,6 +425,6 @@ def export(cp: str = Query("cp2"), line: str = Query("5 Series"), market: str = 
             body, mime, name = buf.getvalue(), "text/csv; charset=utf-8", f"{slug}.csv"
         else:
             body, mime, name = markdown(doc), "text/markdown; charset=utf-8", f"{slug}.md"
-        service.log_access(conn, actor, "export", "export", name,
+        log_access(conn, actor, "export", "export", name,
                            f"document page: {doc['header']['count']} requirements; {line} × {market} at {cp}; format {format}")
     return Response(body, media_type=mime, headers={"Content-Disposition": f'attachment; filename="{name}"'})

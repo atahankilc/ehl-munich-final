@@ -25,7 +25,7 @@ import openai
 from pydantic import BaseModel, Field
 
 from bmw_req.ingest.common import audit_batch, existing_refs, open_batch
-from bmw_req.pipeline.extract import Category
+from bmw_req.structure.taxonomy import Category
 
 WAVE = 1
 MARKET = "EU"                 # German market list

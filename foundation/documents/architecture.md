@@ -147,5 +147,5 @@ Black, near-textless, 3D-first ("track-while-scan"). App-wide checkpoint state (
 - **Markets** — profile, what the market asks of each car, where it disagrees, cited signals, competitors, study stand-outs.
 - **Requirement** — score per market (arc), waterfall, history across runs, evidence chain requirement → finding → signal → comment, fit, audit, challenges, "Trace step by step".
 - **Evidence** — findings library, gaps (uncovered themes), quality hand-over. **Process** — wave timeline + open next wave (job), runs & weights, audit, deliverable export, budget, demo snapshots.
-Writes go only through `bmw_req.service` / `pipeline.scoring` (actor from `X-Actor`, rationale ≥5 chars, ActionError → 409); audit rules unchanged.
+Writes went through `bmw_req.service` / `pipeline.scoring` (actor from `X-Actor`, rationale ≥5 chars, ActionError → 409). All of this was removed with the wave pipeline (D-057); today's writes are in `api/routers/definition.py` and `prioritize.py`.
 

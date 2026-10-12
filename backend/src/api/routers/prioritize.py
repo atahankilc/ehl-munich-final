@@ -27,7 +27,7 @@ from pydantic import BaseModel
 from api import rescore as R
 from api.deps import conflict, db, get_actor, need_rationale, not_found
 from bmw_req.checkpoints import BY_ID, CHECKPOINTS, CheckpointError, latest_run, visible_ids
-from bmw_req.pipeline.requirements import audit
+from bmw_req.audit import audit
 from bmw_req.prioritize import ensure
 from bmw_req.prioritize import score as P
 

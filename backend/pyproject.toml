@@ -7,7 +7,6 @@ dependencies = [
     "openai",
     "httpx",
     "numpy",
-    "langgraph",
     "sqlite-vec",
     "pydantic",
     "python-dotenv",

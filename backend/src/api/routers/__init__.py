@@ -3,17 +3,9 @@ whose SPA catch-all must stay last."""
 
 from fastapi import APIRouter
 
-from api.routers import agents, audit_feed, briefing, cars, definition, document, evidence, markets, meta_state, prioritize, process, queue, requirements, scan, settings, static, structure, usage
+from api.routers import agents, audit_feed, definition, document, prioritize, scan, settings, static, structure, usage
 
 ROUTERS: list[APIRouter] = [
-    meta_state.router,
-    briefing.router,
-    queue.router,
-    requirements.router,
-    cars.router,
-    markets.router,
-    evidence.router,
-    process.router,
     scan.router,
     structure.router,
     definition.router,

@@ -24,7 +24,7 @@ def test_every_agent_has_a_known_tier_and_unique_key():
 @pytest.mark.parametrize("job, key", [
     ("classify:extract-v4:cp1", "classify"), ("classify:study-aspects", "context_mapper"), ("couple:cp2:recheck", "couple_recheck"),
     ("couple:cp2", "couple"), ("research:competitor_scout", "research_web"), ("research:benchmarks", "benchmark_research"),
-    ("research:findings", "research_findings"), ("gate:sol", "gate_recheck"), ("embed:themes", "embed_context"),
+    ("research:findings", None), ("gate:sol", "gate_recheck"), ("embed:themes", "embed_context"),
     ("derive:5 Series:w1", None), ("extract:G60:extract-v3", None),
 ])
 def test_jobs_match_their_agent(job, key):

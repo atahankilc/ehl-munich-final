@@ -16,7 +16,7 @@ import httpx
 from pydantic import BaseModel, Field
 
 from bmw_req.llm import LLM
-from bmw_req.pipeline.extract import Category
+from bmw_req.structure.taxonomy import Category
 
 AGENT_VERSION = "research-v1"
 MAX_TOOL_CALLS = 4

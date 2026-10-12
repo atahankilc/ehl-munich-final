@@ -1,4 +1,4 @@
-"""Reference loader + research agents/storage/findings on synthetic data (no paid calls, no network)."""
+"""Reference loader + research agents and storage on synthetic data (no paid calls, no network)."""
 
 import json
 from types import SimpleNamespace as NS
@@ -7,8 +7,6 @@ import pytest
 
 from bmw_req.db import connect
 from bmw_req.ingest import reference
-from bmw_req.llm import LLMResult
-from bmw_req.research import findings as F
 from bmw_req.research.agents import (
     AgentResult, EvidenceItem, Task, cited_urls, filter_cited, norm_url, quote_in_text, page_text,
 )
@@ -89,35 +87,3 @@ def test_store_is_idempotent_and_audited(conn):
     assert "cs:G68:CN" in done_task_ids(conn)
     ev = json.loads(conn.execute("SELECT new_value FROM audit_event WHERE action = 'web_research'").fetchone()[0])
     assert ev["n_dropped_uncited"] == 1 and ev["queries"] == ["q"]
-
-
-class FakeLLM:
-    def __init__(self, out):
-        self.out = out
-
-    def model_for(self, tier):
-        return "fake-model"
-
-    def generate(self, **kw):
-        return LLMResult(text="", parsed=self.out, usage_id=None, cost_usd=0.0, response=None)
-
-
-def test_findings_validate_ids_and_store(conn):
-    task = Task("cs:G68:CN", "competitor_scout", "5 Series", "G68", "CN", "focus")
-    ids = store(conn, _result(task, ["https://a.com/1", "https://b.com/2", "https://c.com/3"]), [1, 1, 0])
-    out = F.FindingsOut(findings=[
-        F.WebFinding(type="competitor_advantage", title="Rivals offer rear massage", summary="s", category="Comfort & Space",
-                     scope_level="derivative", supporting_ids=[ids[0], ids[1], 999999], contradicting_ids=[ids[2], ids[0]]),
-        F.WebFinding(type="market_trend", title="Invented", summary="s", category=None, scope_level="market",
-                     supporting_ids=[424242], contradicting_ids=[]),
-    ])
-    summary = F.build_all(conn, llm_factory=lambda: FakeLLM(out))
-    s = summary[F.FINDINGS_VERSION + ":G68|CN|w1"]
-    assert s["findings"] == 1 and s["dropped_findings"] == 1 and s["invalid_ids"] == 2
-    f = conn.execute("SELECT * FROM finding").fetchone()
-    assert f["source_kind"] == "web" and f["created_by"] == "ai:fake-model" and f["vehicle_model_id"] == "G68"
-    assert f["first_wave"] == 1 and json.loads(f["metrics_json"])["n_sources"] == 3
-    rel = dict(conn.execute("SELECT source_item_id, relation FROM finding_source").fetchall())
-    assert rel == {ids[0]: "supports", ids[1]: "supports", ids[2]: "contradicts"}
-    # idempotent per group
-    assert F.build_all(conn, llm_factory=lambda: FakeLLM(out)) == {}

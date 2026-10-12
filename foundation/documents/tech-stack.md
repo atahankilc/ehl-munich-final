@@ -10,7 +10,7 @@
 | Config | Model names via env (`OPENAI_MODEL_FAST/SMART/EMBED`), never hardcoded | AGENTS rule 12 |
 | All LLM calls | Go through one budget-guarded wrapper that logs usage | D-014 |
 | Language / runtime | Python 3.12 via `uv`; packages `backend/src/bmw_req/` (pipeline) + `backend/src/api/` (API); `uv run …` from `backend/` | D-020, D-052 |
-| Orchestration | **LangGraph**. No LangChain; graph nodes call OpenAI through the wrapper | D-015 |
+| Orchestration | Plain Python stages per checkpoint (`structure.run_all`, `definition.run`, `prioritize.run`), each a recorded `checkpoint_run`; no LangGraph / LangChain | D-057 (supersedes D-015) |
 | Storage | **SQLite**, one file `data/app.db` | D-016 |
 | Graph | **No graph DB**; relational link tables + graph view in the UI | D-017 |
 | Vector store / RAG | **sqlite-vec** in the same SQLite file; every vector row carries its source ID | D-018 |

@@ -20,7 +20,7 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-012 | Future-need projection (horizon, Kano) | accepted |
 | D-013 | Continuous re-prioritization with snapshots & change proposals | accepted |
 | D-014 | Budget plan ≈$60, thresholds $45/$70/$90, $20 demo reserve | accepted |
-| D-015 | Orchestration: LangGraph | accepted |
+| D-015 | Orchestration: LangGraph | superseded by D-057 |
 | D-016 | Storage: SQLite, relational tables | accepted |
 | D-017 | No graph DB; relational links + graph view in the UI | accepted |
 | D-018 | Vector search / RAG: sqlite-vec in the same SQLite file | accepted |
@@ -62,6 +62,7 @@ Append-only. Never delete an entry; supersede it with a new one (`Superseded by 
 | D-054 | Adjustable budget + API key in the app: ask-before-spending and stop limits, terminal/app confirmation, key in `data/settings.json` (amends D-014, rule 12/16) | accepted |
 | D-055 | AI agents page = source of truth for AI config (per-agent model / effort / on-off / spend cap, model tiers, priced models) + usage; Audit page (whole trail, one checkpoint at a time); audit panel slimmed | accepted |
 | D-056 | Document, AI agents and Audit are full-screen 2D pages: no 3D rendered behind them, own checkpoint switch, timeline hidden (supersedes D-051's sheet-over-scene) | accepted |
+| D-057 | Wave pipeline retired: old API routes, `pipeline/`, `service.py`, `research/findings.py`, their tests and scripts removed; shared helpers moved; LangGraph dropped (supersedes D-015); old-only DB tables kept for now | accepted |
 
 Keep this index in sync when adding a decision.
 
@@ -627,3 +628,15 @@ Template:
 - Decision: Document, AI agents and Audit fill the screen under the top band on an opaque black page (content ≤ 1320px, centred). The 3D canvas stays mounted but is hidden and paused (`frameloop="never"`), so it costs no GPU time and going back is instant; the 3D-only HUD (nav pad, hover card, inspector, checkpoint timeline) is not shown. Document gets its own JAN 26 / JUL 26 switch in its head (the Audit page already has one; AI agents needs none).
 - Alternatives considered: unmount the canvas (reload of the scene and 3D models on every return); keep the dimmed scene (Atahan: no).
 - Consequences: DESIGN.md "Document (page 5)" and the new "Full-screen 2D pages" section updated.
+
+## D-057 — Retire the wave pipeline
+- Date: 2026-10-12
+- Decided by: Atahan (code-health plan after the hackathon: "do the first one")
+- Status: accepted (supersedes D-015; the wave model of D-027–D-038 survives only as history in the DB and audit trail)
+- Context: the app ran on the checkpoint pipeline (D-040 ff.), but the simulated-wave pipeline was still in the code: 8 API routers no screen called, `bmw_req.pipeline` (waves, LangGraph orchestrator, derive, linker, fit, scoring, challenge, extraction v2/v3, findings), `service.py`, the old-only `research/findings.py`, and the tests behind 3 stale failures.
+- Decision:
+  1. Removed: API routers `meta_state`, `briefing`, `queue`, `requirements`, `cars`, `markets`, `evidence`, `process` and `api/{queries,jobs,labels}.py`; `bmw_req/pipeline/` (except galaxy), `bmw_req/service.py`, `bmw_req/research/findings.py`; tests `test_api` (static tests kept as `test_static.py` on an empty DB), `test_service`, `test_scoring`, `test_requirements`, the extraction/recheck tests in `test_store` and the findings test in `test_research`; scripts `demo_build.py`, `pilot.py`, `benchmark_scoring.py`, `benchmark_requirements.py`; the frontend's unused `logView`; the `langgraph` dependency.
+  2. Moved unchanged (byte-identical prompts, so cached answers stay valid): `audit()` + `log_access()` → `bmw_req/audit.py`; score-v3 helpers used by prio-v1 → `prioritize/factors.py`; the fit-check instructions + luna→sol re-check → `prioritize/fitcheck.py`; `Category` + `quote_ok` → `structure/taxonomy.py`; `pipeline/galaxy.py` → `structure/galaxy.py`.
+  3. `GET /api/health` replaces `/api/state` for the container healthcheck. The agent registry (D-055) drops the research summarizer; its past spend counts as earlier pipeline.
+  4. **Not yet done:** dropping the tables only the old pipeline used (`requirement`, `requirement_target`, `requirement_finding`, `fit_check`, `prioritization_run`, `score_snapshot`, `change_proposal`, `app_state`, `finding_signal`, and `finding`/`finding_source`) — a DB migration, to be decided with Atahan. Audit rows stay (append-only).
+- Consequences: tests 151 → 114, all green (the 3 stale failures are gone with the code they tested). Old snapshots in `data/snapshots/` (evidence, wave1, demo) predate the checkpoint data — restoring them now gives the old model; `demo_state.py` stays as a generic DB backup/restore.

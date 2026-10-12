@@ -43,8 +43,6 @@ AGENTS: list[Agent] = [
     Agent("research_web", "Web research agents", "sources",
           "Search the web for competitor, trend, review and market facts; every item cited with URL and quote.",
           r"^research:(?!findings\b|benchmarks\b)", web_search=True),
-    Agent("research_findings", "Research summarizer", "sources",
-          "Turns cited web items into findings per car line and market.", r"^research:findings\b"),
     Agent("options_reader", "Price-list reader", "sources",
           "Reads BMW's option price lists (PDF pages) into structured options.", r"^ingest:options\b"),
     # structure & context

@@ -77,11 +77,3 @@ export const queryClient = new QueryClient({
 export function invalidateAll() {
   return queryClient.invalidateQueries();
 }
-
-/** Log a "view" access event once per browser session per requirement (StrictMode mounts effects twice in dev). */
-const viewed = new Set<string>();
-export function logView(reqId: string) {
-  if (viewed.has(reqId)) return;
-  viewed.add(reqId);
-  api.post("/api/access", { action: "view", entity_type: "requirement", entity_id: reqId }).catch(() => viewed.delete(reqId));
-}

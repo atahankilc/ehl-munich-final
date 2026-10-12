@@ -11,7 +11,7 @@ import sys
 from collections import Counter, defaultdict
 
 from bmw_req.db import connect
-from bmw_req.pipeline.extract import quote_ok
+from bmw_req.structure.taxonomy import quote_ok
 from bmw_req.structure.classify import C_SEVERITY, D_PROMPT
 
 SAMPLE = "data/eval/classify_ab_ids.json"

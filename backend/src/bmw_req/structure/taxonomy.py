@@ -2,6 +2,9 @@
 comments, customer study items, research, options — is mapped onto it, so clusters, evidence links and requirements
 join on `aspect` instead of free text."""
 
+import re
+from typing import Literal
+
 ASPECTS: dict[str, list[str]] = {
     "Exterior": ["exterior_design", "lighting", "doors_tailgate", "wheels_tyres", "paint_body", "mirrors_wipers"],
     "Interior": ["interior_design", "materials", "storage", "controls_layout", "interior_lighting"],
@@ -18,6 +21,12 @@ ASPECTS: dict[str, list[str]] = {
     "Design & Quality Perception": ["build_quality", "squeaks_rattles", "durability_wear", "brand_image"],
 }
 CATEGORIES = list(ASPECTS)
+# the ten categories as a schema type (same values and order as ASPECTS; was pipeline.extract.Category)
+Category = Literal[
+    "Exterior", "Interior", "Comfort & Space", "Infotainment & Digital", "Driving Experience",
+    "Powertrain (as experienced)", "Range & Charging", "Driver Assistance (as experienced)",
+    "Variants & Packages", "Design & Quality Perception",
+]
 ALL_ASPECTS = [a for v in ASPECTS.values() for a in v] + ["other"]
 CATEGORY_OF = {a: c for c, v in ASPECTS.items() for a in v}
 
@@ -33,3 +42,12 @@ CONTEXTS = ["cold", "heat", "long_distance", "city_parking", "family", "chauffeu
 def taxonomy_text() -> str:
     """The aspect list as prompt text (part of the cacheable prefix)."""
     return "\n".join(f"- {c}: {', '.join(a)}" for c, a in ASPECTS.items()) + "\n- (anything else): other"
+
+
+def _norm(s: str) -> str:
+    return re.sub(r"\s+", " ", s).strip().lower()
+
+
+def quote_ok(quote: str, text: str) -> bool:
+    """Quote is a contiguous span of the text (whitespace and case normalized)."""
+    return bool(quote.strip()) and _norm(quote) in _norm(text)

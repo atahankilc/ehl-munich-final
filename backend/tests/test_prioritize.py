@@ -9,7 +9,7 @@ import sqlite3
 import pytest
 
 from bmw_req.config import ROOT
-from bmw_req.pipeline import scoring as S
+from bmw_req.prioritize import factors as S
 from bmw_req.prioritize import score as P
 
 

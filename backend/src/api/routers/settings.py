@@ -14,7 +14,7 @@ from pydantic import BaseModel
 from api.deps import db, get_actor
 from bmw_req import app_settings
 from bmw_req.llm import budget
-from bmw_req.pipeline.requirements import audit
+from bmw_req.audit import audit
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
 

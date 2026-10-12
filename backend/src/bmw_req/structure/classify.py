@@ -29,7 +29,7 @@ from pydantic import BaseModel, Field
 from bmw_req import checkpoints as C
 from bmw_req.db import connect
 from bmw_req.llm import LLM, BudgetExceeded
-from bmw_req.pipeline.extract import quote_ok
+from bmw_req.structure.taxonomy import quote_ok
 from bmw_req.structure.taxonomy import ALL_ASPECTS, CATEGORIES, CATEGORY_OF, CONTEXTS, FEEDBACK_TYPE, SEVERITY, taxonomy_text
 
 VERSION = "extract-v4"

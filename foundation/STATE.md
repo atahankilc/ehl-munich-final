@@ -11,7 +11,7 @@ _Earlier:_ **Phase 2 — End-to-end demo built (2026-10-10).** Atahan delegated 
 - Findings: verbatim clusters G60 243 · F70 166 · G70 242 (D-025), 391 study findings (D-026).
 - Requirements pipeline: derivation (sol, derive-v6) → portfolio consolidation → dedup vs backlog (D-035) → evidence linker → fit checks → scoring v3 → change proposals, orchestrated per simulated wave (LangGraph, D-027–D-029). D-038: defects go to a Quality hand-over page instead of becoming requirements, strict merging, markets without comments can't outrank evidenced ones, one priority for Expected needs.
 - PM app (Streamlit, D-032, restructured D-036, D-037: Home → How it works → Review → Priorities by market → AI suggestions, plus detail pages, Quality hand-over (D-038) and a demo tour) with approve/reject/defer/edit/challenge/override/priority/inbox, audit trail, export.
-- Demo states via `backend/scripts/demo_state.py` + `backend/scripts/demo_build.py` (snapshots `evidence`, `wave1`, `demo`).
+- Demo states via `backend/scripts/demo_state.py` (snapshots `evidence`, `wave1`, `demo`; `demo_build.py` removed with the wave pipeline, D-057).
 
 ## Team & logistics (Q-007, Q-008 resolved 2026-10-11)
 
@@ -62,7 +62,7 @@ One thin slice end-to-end before anything else (AGENTS rule 18). It covers BMW's
 - **PM app (D-039, layout D-052, profiles D-053):** production `make serve` or `make up` (container) → http://127.0.0.1:8600; development `make api` + `make dev` or `make up-dev` → http://127.0.0.1:5173. Only one at a time (same port and DB). All `uv run …` commands run from `backend/`.
 - **Pitch:** click **Present** in the top band (or ⌘K → "Present the demo story"): Briefing → Decide (AI priority change, then one requirement decided with a reason) → 5 Series USA in 3D → 5 Series LWB China (cockpit x-ray) → Markets/China → REQ-0001 fully opened ("Trace step by step") → Evidence gaps → Process timeline → Audit → Deliverable. `[` / `]` step.
 - **3D models:** `data/models/{f70,g60,g70}.glb` (git-ignored, Q-025); without them a placeholder car renders.
-- DB holds the full `demo` state (wave 3). To replay waves live: Process → System → restore `wave1` (or `cd backend && uv run python scripts/demo_state.py restore wave1` with the API stopped).
+- Back up / restore the DB: `cd backend && uv run python scripts/demo_state.py save|restore|list <name>` (API stopped). The old wave snapshots (evidence, wave1, demo) predate the checkpoint data (D-057).
 
 ## Next up (suggested order)
 
@@ -193,3 +193,4 @@ Update the budget table after every paid run. Once the app exists, the source of
 - 2026-10-11 — Post-hackathon (Phase 3, Q-007/Q-008 closed). Adjustable budget + API key in the app (D-054): `bmw_req.app_settings` (`data/settings.json`, 0600), guard asks before spending above a limit (terminal y/N, `BUDGET_CONFIRM=1`, `budget.approved()` for API jobs) and stops at a limit; `/api/settings`; Audit → Usage "OpenAI API key" + "Spend limits"; block-non-demo threshold dropped. 135 tests (+10), same 3 old `test_api` failures. Old-pipeline dependency map done (agent) — basis for retiring waves (next).
 - 2026-10-11 — AI agents page + Audit page (D-055): agent registry (`bmw_req.llm.agents`, 22 agents), per-agent model / effort / on-off / cap + tiers + custom priced models applied on every call, `/api/agents`; `/agents` sheet (key, limits, tiers, per-pipeline tables, models, usage details) and `/audit` sheet (one checkpoint at a time + "No checkpoint", area + who filters); audit panel = quick look with link. 151 tests (+16), same 3 old failures; checked in the browser. Future: continuous intake instead of checkpoints (Q-027).
 - 2026-10-11 — Full-screen 2D pages (D-056): Document, AI agents, Audit no longer drawn over the 3D scene; canvas hidden + paused (`frameloop="never"`, stays mounted), timeline hidden there, Document got its own checkpoint switch. Checked in the browser (3D resumes on return).
+- 2026-10-12 — Wave pipeline retired (D-057): 8 old API routers, `pipeline/`, `service.py`, `research/findings.py`, old tests/scripts, `logView`, LangGraph removed; shared helpers moved byte-identical (`bmw_req/audit.py`, `prioritize/factors.py`, `prioritize/fitcheck.py`, `structure/taxonomy.py`, `structure/galaxy.py`); `/api/health`. 114 tests, all green. Open: drop the old-only DB tables (migration, ask Atahan).

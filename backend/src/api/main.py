@@ -47,6 +47,10 @@ async def _lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     app = FastAPI(title="Successor — PM decision API", version="1.0", lifespan=_lifespan,
                   docs_url="/api/docs", openapi_url="/api/openapi.json", redoc_url=None)
+    @app.get("/api/health", tags=["meta"])
+    def health() -> dict:
+        return {"ok": True, "profile": PROFILE}
+
     for r in ROUTERS:
         app.include_router(r)
     app.include_router(STATIC_ROUTER)   # /models + SPA catch-all, must stay last

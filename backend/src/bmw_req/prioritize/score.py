@@ -1,6 +1,6 @@
 """Stage `prioritize` (D-050): deterministic prio-v1 score per requirement × car line × market. No LLM, free.
 
-Same machinery as score-v3 (`pipeline/scoring.py`, imported, not copied): weighted factors 0–1, renormalised over the
+Same machinery as score-v3 (its helpers now live in `prioritize/factors.py`, D-057): weighted factors 0–1, renormalised over the
 factors that have data (missing ones are evidence gaps), × confidence multiplier, + effort / market-fit modifiers;
 bands Must ≥ 60 · Should ≥ 45 · Could; customer voice with shrinkage + log curve and the D-038 borrow (×0.5) and cap for
 markets without their own comments; D-038 one band for Expected (Kano basic) needs; templated rationale (rule 11).
@@ -28,8 +28,8 @@ from collections import defaultdict
 
 from bmw_req import checkpoints as C
 from bmw_req.definition.domains import ASPECT_RESOURCES
-from bmw_req.pipeline import scoring as S
-from bmw_req.pipeline.requirements import audit
+from bmw_req.prioritize import factors as S
+from bmw_req.audit import audit
 from bmw_req.portfolio import LINES, MIN_MARKET_VERBATIMS
 from bmw_req.prioritize import BAND_RANK, ensure
 from bmw_req.structure.classify import VERSION as EXTRACT_VERSION
